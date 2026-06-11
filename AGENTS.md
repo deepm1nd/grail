@@ -38,6 +38,8 @@ Agents without direct execution capabilities (such as conversational AI assistan
 -   **Session Initialization:** The agent MUST follow the session initialization protocols, including acknowledging its mandates, running startup scripts, and internalizing the rules.
 -   **Technology and Tools:** The agent MUST adhere to the policies defined in `agents/PREFERRED_DEPENDENCIES.md` and `agents/PREFERRED_TOOLS.md`.
 -   **Scripts and Commands:** The agent MUST adhere to all rules for script and command execution as defined in `agents/SCRIPT_RULES.md`.
+-   **Hermetic Environment Mandate:** The agent MUST ensure that the development environment is hermetic and reproducible using `scripts/setup_env.sh`.
+-   **Evidence-Based Completion Mandate:** The agent is forbidden from claiming task or requirement completion without presenting the Required Artifacts (Logs, Screenshots, etc.) defined in the planning phase.
 
 ### 2.3. Mandate for Quality and Completeness
 **MANDATE: All work must be implemented to the fullest, most robust, and most complete potential.**
@@ -50,6 +52,9 @@ When "user approval" is required, the agent must follow this protocol:
 1.  **Propose with ID and Wait:** The agent must state its proposal and assign it a unique ID (e.g., `PLAN-20251010-0001`). It must then wait for an explicit instruction to proceed (e.g., "Proceed", "Continue") or the keyword "APPROVED".
 2.  **Clarification is not Approval:** A user response that only asks a question or provides clarification is NOT approval. The agent must update its plan based on the clarification and re-request approval with a new plan ID.
 3.  **Partial Approval:** If the user provides the keyword "APPROVED" but also includes additional instructions, the approval is considered partial. The agent MUST update its plan to incorporate the new instructions and then re-request approval. Final, unambiguous approval is achieved only when the user responds with the single word "APPROVED" or a direct, explicit instruction to proceed.
+
+**EXCEPTION: Minor Change Protocol**
+For trivial changes that do not impact system logic, architecture, or critical protocols (e.g., fixing typos, updating non-functional comments, or minor formatting), the agent may propose the change and request permission to execute it in a single turn without assigning a unique Plan ID. The agent must still wait for an explicit "Go ahead" or "APPROVED" before proceeding.
 
 ### 3.2. Responding to User Questions
 If the user asks a question, the agent's response MUST be a written answer to that question and only that question. The agent is explicitly forbidden from taking any other action.

@@ -50,7 +50,8 @@ This stage is an iterative cycle focused on producing a stable, high-quality, an
 -   **Log Inspection:** Before presenting results, the agent MUST meticulously inspect all relevant logs to confirm the test outcome.
 -   **Evidence Presentation:**
     -   **MANDATE: The agent is explicitly forbidden from marking any test, acceptance criterion, or requirement as complete.** This decision rests solely with the user.
-    -   For visual evidence, the agent MUST use the `frontend_verification_complete(screenshot_path: "path/to/screenshot.png")`.
+    -   **MANDATE: Visual Verification.** For any user-facing feature, the agent MUST provide visual evidence using Playwright-generated screenshots or screen recordings. Use `frontend_verification_complete(screenshot_path: "path/to/screenshot.png")`.
+    -   **MANDATE: Log Capture.** For back-end or logic-heavy features, the agent MUST provide filtered log captures or structured data outputs that clearly demonstrate the requirement being met.
     -   For textual evidence, the agent MUST use `message_user(message: str, continue_working: bool)`.
 -   **User Approval and Iteration:**
     -   The agent must wait for the user to explicitly approve the evidence.

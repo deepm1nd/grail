@@ -17,7 +17,7 @@ v.0.0.02
 ## 1. Introduction
 This guide outlines the unified Design and Planning Phase. This is the most critical phase for ensuring a project's success. All session-level rules are defined in `AGENTS.md` and all script and command rules are in `agents/SCRIPT_RULES.md`. Both MUST be adhered to at all times.
 
-**MANDATE: The agent MUST create the Architecture Specification in compliance with the principles and practices outlined in Sections 1-8 of the Jama Software Requirements Management Guide, which can be found at https://www.jamasoftware.com/requirements-management-guide/**
+**MANDATE:** The agent MUST create the Architecture Specification in compliance with the inlined quality criteria defined in Section 5.1. Reference to external guides (e.g., Jama Software Requirements Management Guide) is supplementary.
 
 ## 2. Goal
 The goal of this phase is to produce two key artifacts, derived from user input:
@@ -41,9 +41,16 @@ The final documentation set (Architecture Specification and Development Plan) MU
 ## 5. The Design and Planning Workflow
 
 ### 5.1. Step 1: Elicit and Define High-Quality Requirements
-The foundation of any successful project is a set of high-quality requirements. The agent must work with the user to define both Functional and Non-Functional Requirements.
+The foundation of any successful project is a set of high-quality requirements. The agent must work with the user through a recursive process of definition and decomposition.
 
-**MANDATE:** Each requirement the agent defines MUST be reviewed against the following quality criteria before being presented to the user:
+**MANDATE: Requirement Decomposition Loop**
+The agent MUST NOT accept high-level or "epic" style requirements. Every requirement must undergo at least two iterations of decomposition:
+1.  **Iterative Elicitation:** The agent must ask probing questions to uncover edge cases, error states, and specific UI/UX behaviors.
+2.  **Atomic Verification:** The agent must evaluate every requirement against the **Atomic** and **Verifiable** criteria. If a requirement describes more than one logical action or lacks a clear pass/fail metric, it MUST be decomposed.
+3.  **Recursive Decomposition:** After the first decomposition, the agent must re-evaluate the new, smaller requirements. If any still feel "high-level" or "complex," the loop continues until every requirement is a single, verifiable unit of work.
+
+**MANDATE: Quality Criteria**
+Each requirement the agent defines MUST be reviewed against the following quality criteria before being presented to the user:
 -   **Necessary:** The requirement is essential for the system to meet its goals.
 -   **Atomic:** The requirement is a single, complete statement. It cannot be broken down further.
 -   **Unambiguous:** The requirement has only one possible interpretation.
@@ -54,15 +61,21 @@ The foundation of any successful project is a set of high-quality requirements. 
 -   **Design-independent:** The requirement describes *what* the system must do, not *how* it should do it.
 -   **Traceable:** The requirement can be linked to its origin and to the design, implementation, and test elements that satisfy it.
 
+**MANDATE: Verification Feasibility Study**
+Before finalizing requirements, the agent must perform a "Verification Feasibility Study." For every requirement, the agent must identify the specific tool (e.g., Playwright, `grep`, custom script) and the specific artifact (e.g., screenshot, log capture, exit code) that will prove completion. Requirements that lack a clear verification path are considered deficient.
+
 ### 5.2. Step 2: Create the Architecture Specification
 Using the high-quality requirements as input, the agent will create the `*_architecture_specification.md` document. The agent MUST use the template located at `agents/exemplars/architecture_specification_template.md`. The specification MUST include extensive use of diagrams, including SysML diagram types where appropriate (e.g., Use Case, Block Definition, Sequence diagrams).
+
+**MANDATE: Inlined Requirement Quality Criteria**
+The agent must adhere to the quality criteria defined in Section 5.1 when creating the Architecture Specification. Referencing external guides is supplementary; the inlined criteria are the primary mandate.
 
 ### 5.3. Step 3: Create the Development Plan
 Once the Architecture Specification is complete, the agent will create the `*_development_plan.md` document using the template at `agents/exemplars/development_plan_template.md`.
 
 **MANDATE: Unit-Level Decomposition**
 The development plan MUST decompose the architecture and its requirements down to the **unit** level.
--   **Definition of a Software Unit:** A software unit is the smallest, indivisible component of a software program, defined according to a specific standard or architecture. A unit is a finite group of operations that together perform a function or task. In no case should a unit be larger than a single source code file.
+-   **Definition of a Software Unit:** A software unit is the smallest indivisible component of a software program that performs a single logical function and can be independently tested. While a unit typically corresponds to a single source code file, the primary boundary is **logical responsibility and testability**.
 -   **Unit Requirements:** Each unit defined in the development plan must have its own specific, traceable requirements derived from the main architecture specification.
 
 ## 6. Phase Completion Criteria

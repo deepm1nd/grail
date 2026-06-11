@@ -2,6 +2,13 @@
 
 **MANDATE: Adherence to this guide is not optional. It is a strict requirement.**
 
+## Language Specific Mandates
+
+### Rust
+- **Rust Edition:** The agent MUST prefer the latest stable Rust edition (e.g., 2021 or 2024) that is supported by the project's current toolchain and library ecosystem.
+
+## Dependencies
+
 - **Preferred Dependencies:** You SHOULD prioritize using dependencies from the preferred lists below.
 - **Unlisted Dependencies:** If a desired dependency is NOT on the preferred list, you MUST follow the "Dependency and Tool Selection" mandate in `AGENTS.md` to get explicit user approval before proceeding.
 - **Forbidden Dependencies:** You are **ABSOLUTELY FORBIDDEN** from using any dependency on the forbidden list. There are no exceptions. Proposing or using a forbidden dependency is a critical process failure.
@@ -15,12 +22,6 @@
 - tokio-tungstenite
 - url
 - wtransport
-
-## Frontend (Yew)
-# NOTE: The `tokio` runtime MUST NOT be used in WASM-based frontend applications.
-- yew
-- yew-router
-- material-yew = { git = "https://github.com/constructableconcepts/material-yew", branch = "update-yew-0.21" } # Fork compatible with Yew 0.21.0
 
 ## WASM & Gloo
 - wasm-pack
@@ -70,6 +71,10 @@
 ## Docker
 - bollard
 
-## Forbidden Dependencies
+## Dependencies Requiring Approval
+The following dependencies are allowed but REQUIRE explicit user approval before being added to a project.
 - trunk
 - webpack
+
+## Forbidden Dependencies
+(None currently listed)

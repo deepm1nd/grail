@@ -33,6 +33,8 @@ These tools can be used at any time without special approval.
 - `run_in_bash_session`: Executes a shell command.
 - `create_file_with_block`: Creates a new file with specified content.
 - `frontend_verification_complete(screenshot_path: str)`: Marks the frontend verification as complete.
+- `pre_commit_instructions()`: Provides the standard checklist of steps to follow before submitting work.
+- `frontend_verification_instructions()`: Provides the standard procedure for visually verifying frontend changes.
 
 ---
 
@@ -53,10 +55,8 @@ These tools are considered dangerous or require special caution. They are forbid
 1.  **Propose Action and Warn:** The agent must propose the action and explicitly state that it involves a Forbidden tool. It must then ask the user for confirmation to proceed.
 2.  **Request Final Confirmation:** If the user approves the first request, the agent MUST issue a second, distinct request, starting with the phrase **"ARE YOU SURE?"**, to get a final confirmation before executing the tool.
 
-- `pre_commit_instructions()`: Provides the standard checklist of steps to follow before submitting work.
 - `request_code_review()`: Requests a review of current code changes.
 - `delete_file(filepath: str)`: Deletes a file.
-- `frontend_verification_instructions()`: Provides the standard procedure for visually verifying frontend changes.
 - `reset_all()`: Resets all code changes in the repository.
 - `restore_file(filepath: str)`: Restores a single file to its original state.
 - `read_pr_comments()`: Reads comments on a pull request.

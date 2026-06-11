@@ -25,13 +25,27 @@ v.0.0.01
 ### 2.1. Target Audience & User Personas
 ### 2.2. User Scenarios / Use Cases
 ### 2.3. Core Functional Requirements
-**MANDATE:** Each requirement MUST have a unique, machine-readable ID (e.g., `PROJ-FUNC-REQ-0001`) and be written clearly and concisely.
+**MANDATE:** Each requirement MUST have a unique, machine-readable ID (e.g., `PROJ-FUNC-REQ-0001`), be written clearly and concisely, and include a **Verification Protocol** (the specific test/artifact that will prove completion).
+
+| Req ID | Description | Verification Protocol |
+| :--- | :--- | :--- |
+| `PROJ-FUNC-REQ-0001` | [Requirement Description] | [e.g., Playwright screenshot of X state] |
+
 ### 2.4. Non-Functional Requirements
-**MANDATE:** Each requirement MUST have a unique, machine-readable ID (e.g., `PROJ-NFR-REQ-0001`) and be written clearly and concisely.
+**MANDATE:** Each requirement MUST have a unique, machine-readable ID (e.g., `PROJ-NFR-REQ-0001`), be written clearly and concisely, and include a **Verification Protocol**.
+
+| Req ID | Description | Verification Protocol |
+| :--- | :--- | :--- |
+| `PROJ-NFR-REQ-0001` | [Requirement Description] | [e.g., Log capture showing latency < 200ms] |
 ### 2.5. Out-of-Scope Features
 
-## 3. Acceptance Criteria
+## 3. Acceptance Criteria & Traceability
 **MANDATE:** This section MUST contain a subsection for each requirement from section 2, identified by its unique Requirement ID. Each acceptance criterion must be detailed, unambiguous, and verifiable.
+
+### 3.1. Traceability Matrix
+| Req ID | Component / Unit | Test ID | Verification Artifact |
+| :--- | :--- | :--- | :--- |
+| `PROJ-FUNC-REQ-0001` | `Unit-A` | `TEST-001` | `screenshot_001.png` |
 
 ## 4. System Architecture
 ### 4.1. Architectural Goals & Constraints
@@ -52,9 +66,9 @@ v.0.0.01
 ### 4.16. Sequence Diagrams
 ### 4.17. Logging and Monitoring
 - **Logging Strategy:** This section must detail the system-wide logging strategy.
-  - **Log Levels:** The design must incorporate an 8-level logging system: Emergency, Alert, Critical, Error, Warning, Notice, Informational, Debug.
-  - **Default Level:** The default logging level at application launch must be `NOTICE`.
-  - **Configuration:** The logging level must be configurable at launch.
+  - **Log Levels:** The design must incorporate a standard 5-level logging system: Error, Warn, Info, Debug, Trace.
+  - **Default Level:** The default logging level at application launch must be `INFO`.
+  - **Configuration:** The logging level must be configurable at launch via environment variables or configuration files.
 - **Monitoring Strategy:** Outline the approach for monitoring the system's health and performance, including key metrics to track.
 ### 4.18. Primary Dependencies
 

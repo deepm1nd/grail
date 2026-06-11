@@ -34,10 +34,13 @@ v.0.0.01
 - **Task ID:** `AUTH-001`
 - **Description:**
 - **Component(s):**
-- **Dependencies:**
+- **Dependencies:** (List any package or system-level dependency changes)
 - **Estimated Effort:**
-- **Exit Criteria:**
-- **Testing Requirements:**
+- **Definition of Done (DoD):**
+    - [ ] Code implemented and hermetically builds.
+    - [ ] Unit tests pass.
+    - [ ] **Required Artifacts:** (e.g., Log capture showing X, Playwright screenshot of Y)
+- **Traceability:** (Link to Requirement ID from Architecture Spec)
 
 ## 6. Test Strategy & Plan
 - **Unit Test Plan:**
