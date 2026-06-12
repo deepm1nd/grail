@@ -27,7 +27,13 @@ v.0.0.01
 ## 4. Phases and Milestones
 (Break down the development work into logical phases with clear milestones.)
 
-## 5. Task Decomposition
+## 5. Risk Management & Mitigation
+(Identify high-risk units, such as complex algorithms or 3rd-party integrations, and plan their development/mitigation.)
+| Risk | Impact | Mitigation Strategy |
+| :--- | :--- | :--- |
+| [e.g., Latency in external API] | High | Implement local cache and mock for testing |
+
+## 6. Task Decomposition
 (For each phase, provide a detailed list of tasks.)
 
 **Example Task:**
@@ -39,15 +45,16 @@ v.0.0.01
 - **Definition of Done (DoD):**
     - [ ] Code implemented and hermetically builds.
     - [ ] Unit tests pass.
+    - [ ] **Test Case:** [ID] (e.g., Verify that input A results in output B)
     - [ ] **Required Artifacts:** (e.g., Log capture showing X, Playwright screenshot of Y)
 - **Traceability:** (Link to Requirement ID from Architecture Spec)
 
-## 6. Test Strategy & Plan
+## 7. Test Strategy & Plan
 - **Unit Test Plan:**
 - **Integration Test Plan:**
 - **System & Acceptance Test Plan:**
 
-## 7. Logging Strategy
+## 8. Logging Strategy
 (Incorporate the logging strategy defined in the Architecture Specification, including tasks for instrumentation.)
 
 ---

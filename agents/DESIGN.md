@@ -1,5 +1,5 @@
 # Design and Planning Phase Guide
-v.0.0.02
+v.0.0.03
 
 ## Table of Contents
 - [1. Introduction](#1-introduction)
@@ -7,9 +7,6 @@ v.0.0.02
 - [3. Core Design Principles](#3-core-design-principles)
 - [4. Agent Responsibilities](#4-agent-responsibilities)
 - [5. The Design and Planning Workflow](#5-the-design-and-planning-workflow)
-  - [5.1. Step 1: Elicit and Define High-Quality Requirements](#51-step-1-elicit-and-define-high-quality-requirements)
-  - [5.2. Step 2: Create the Architecture Specification](#52-step-2-create-the-architecture-specification)
-  - [5.3. Step 3: Create the Development Plan](#53-step-3-create-the-development-plan)
 - [Appendix R - Revision History](#appendix-r---revision-history)
 
 ---
@@ -17,7 +14,7 @@ v.0.0.02
 ## 1. Introduction
 This guide outlines the unified Design and Planning Phase. This is the most critical phase for ensuring a project's success. All session-level rules are defined in `AGENTS.md` and all script and command rules are in `agents/SCRIPT_RULES.md`. Both MUST be adhered to at all times.
 
-**MANDATE:** The agent MUST create the Architecture Specification in compliance with the inlined quality criteria defined in Section 5.1. Reference to external guides (e.g., Jama Software Requirements Management Guide) is supplementary.
+**MANDATE:** The agent MUST create the Architecture Specification in compliance with the inlined quality criteria defined in Section 5. Reference to external guides (e.g., Jama Software Requirements Management Guide) is supplementary.
 
 ## 2. Goal
 The goal of this phase is to produce two key artifacts, derived from user input:
@@ -34,55 +31,49 @@ The final documentation set (Architecture Specification and Development Plan) MU
 -   **Traceability:** The documents must provide enough detail and granularity that each unit, its functionality, and its testability can be traced through the development plan back to the architecture document and the specific requirement that specifies the unit's functions.
 
 ## 4. Agent Responsibilities
--   **Elicit Detail:** If the user's initial input is insufficient to meet the criteria defined in this guide, the agent MUST provide guidance and feedback to the user to elicit more details. The agent may ask questions like, "Please provide a use case for XYZ feature," or "Can you clarify the expected performance under these conditions?"
--   **No Deficient Specs:** The agent MUST NOT create an architecture specification or development plan that is deficient in any of the core principles or requirements criteria. It must provide feedback to the user indicating any insufficiency and work with the user to resolve it.
--   **Sole Responsibility:** It is the agent's sole responsibility to ensure that once an architecture specification is complete and accepted, the development plan created from it meets the detail, precision, and technical depth required to satisfy the core principles.
+-   **Sole Responsibility:** The agent is solely responsible for the technical quality, completeness, and rigor of its work. If information is insufficient, the agent MUST ask the user well-formed questions to elicit the required detail.
+-   **Elicit Detail:** If the user's initial input is insufficient to meet the criteria defined in this guide, the agent MUST provide guidance and feedback to the user to elicit more details.
+-   **Major Change Notification:** Throughout the design process, the agent MUST notify the user if any input or iteration causes a "Major Change" to the architecture. The agent has the discretion to determine what constitutes a major change.
+-   **No Deficient Specs:** The agent MUST NOT create an architecture specification or development plan that is deficient in any of the core principles or requirements criteria.
 
 ## 5. The Design and Planning Workflow
+The design process is a highly iterative, evidence-based lifecycle.
 
-### 5.1. Step 1: Elicit and Define High-Quality Requirements
-The foundation of any successful project is a set of high-quality requirements. The agent must work with the user through a recursive process of definition and decomposition.
+### 5.1. Phase Initiation & Concept Intake
+1.  **Concept Statement:** The user starts the session by providing a concept statement or pointing to existing concept documents in the repository.
+2.  **Architecture Pass 1 (Draft):** The agent creates the first draft of the `Architecture Specification` using the template at `agents/exemplars/architecture_specification_template.md`. This pass focuses on high-level structure and system boundaries.
 
-**MANDATE: Requirement Decomposition Loop**
-The agent MUST NOT accept high-level or "epic" style requirements. Every requirement must undergo at least two iterations of decomposition:
-1.  **Iterative Elicitation:** The agent must ask probing questions to uncover edge cases, error states, and specific UI/UX behaviors.
-2.  **Atomic Verification:** The agent must evaluate every requirement against the **Atomic** and **Verifiable** criteria. If a requirement describes more than one logical action or lacks a clear pass/fail metric, it MUST be decomposed.
-3.  **Recursive Decomposition:** After the first decomposition, the agent must re-evaluate the new, smaller requirements. If any still feel "high-level" or "complex," the loop continues until every requirement is a single, verifiable unit of work.
+### 5.2. User Story Elicitation Loop
+1.  **Elicit Stories:** The agent MUST ask the user for several **User Stories**.
+2.  **Interaction Sequences:** For each story, the agent MUST elicit detailed interaction sequences (happy paths, edge cases, error conditions).
+3.  **Architecture Pass 2 (Refinement):** The agent performs a second pass on the `Architecture Specification`, incorporating the user stories into Section 2.2 and making any structural modifications (additions, removals, changes) implied by the stories.
 
-**MANDATE: Quality Criteria**
-Each requirement the agent defines MUST be reviewed against the following quality criteria before being presented to the user:
--   **Necessary:** The requirement is essential for the system to meet its goals.
--   **Atomic:** The requirement is a single, complete statement. It cannot be broken down further.
--   **Unambiguous:** The requirement has only one possible interpretation.
--   **Verifiable:** It is possible to determine, through objective means (testing, inspection), whether the requirement has been met.
--   **Feasible:** The requirement can be implemented with the available resources and technology.
--   **Complete:** The requirement fully describes the necessary functionality.
--   **Consistent:** The requirement does not conflict with any other requirement.
--   **Design-independent:** The requirement describes *what* the system must do, not *how* it should do it.
--   **Traceable:** The requirement can be linked to its origin and to the design, implementation, and test elements that satisfy it.
+### 5.3. Progressive Elaboration & Decomposition Loop
+The agent is solely responsible for ensuring requirements reach atomic stability.
+1.  **Three-Pass Decomposition:** The agent breaks high-level goals into:
+    -   **Pass 1: Functional Scope.**
+    -   **Pass 2: Logical Decomposition.**
+    -   **Pass 3: Detailed Specification.** (May be relaxed for simple projects).
+2.  **Requirement Smell Detection:** Scan for subjective terms (e.g., "fast," "easy") and ask questions to replace them with quantified metrics.
+3.  **Iteration & Questioning:** The agent repeatedly asks the user questions to refine functional/non-functional requirements and to identify specific **Test Cases**, **Definitions of Done (DoD)**, and **Verification Criteria**.
+4.  **The Decomposition Gate:** The agent MUST NOT proceed until requirements are atomic and verifiable, unless the user explicitly overrides this rigor.
 
-**MANDATE: Verification Feasibility Study**
-Before finalizing requirements, the agent must perform a "Verification Feasibility Study." For every requirement, the agent must identify the specific tool (e.g., Playwright, `grep`, custom script) and the specific artifact (e.g., screenshot, log capture, exit code) that will prove completion. Requirements that lack a clear verification path are considered deficient.
+**MANDATE: Requirement Quality Criteria**
+Every requirement MUST be: Necessary, Atomic, Unambiguous, Verifiable, Feasible, Complete, Consistent, Design-independent, and Traceable.
 
-### 5.2. Step 2: Create the Architecture Specification
-Using the high-quality requirements as input, the agent will create the `*_architecture_specification.md` document. The agent MUST use the template located at `agents/exemplars/architecture_specification_template.md`. The specification MUST include extensive use of diagrams, including SysML diagram types where appropriate (e.g., Use Case, Block Definition, Sequence diagrams).
+### 5.4. Final Architecture & Verification Review
+1.  **Architecture Pass 3 (Final):** The agent performs a final pass of updates to the `Architecture Specification`, ensuring all atomic requirements and test cases are fully mapped.
+2.  **Verification Feasibility Study:** For every requirement, the agent must identify the tool (Playwright, `grep`) and artifact (screenshot, log segment) that will prove completion.
+3.  **Deficiency Audit:** The agent performs a final review of the spec looking for gaps in testing, validation, or structural integrity.
 
-**MANDATE: Inlined Requirement Quality Criteria**
-The agent must adhere to the quality criteria defined in Section 5.1 when creating the Architecture Specification. Referencing external guides is supplementary; the inlined criteria are the primary mandate.
-
-### 5.3. Step 3: Create the Development Plan
+### 5.5. Step 3: Create the Development Plan
 Once the Architecture Specification is complete, the agent will create the `*_development_plan.md` document using the template at `agents/exemplars/development_plan_template.md`.
 
 **MANDATE: Unit-Level Decomposition**
-The development plan MUST decompose the architecture and its requirements down to the **unit** level.
--   **Definition of a Software Unit:** A software unit is the smallest indivisible component of a software program that performs a single logical function and can be independently tested. While a unit typically corresponds to a single source code file, the primary boundary is **logical responsibility and testability**.
--   **Unit Requirements:** Each unit defined in the development plan must have its own specific, traceable requirements derived from the main architecture specification.
+The development plan MUST decompose the architecture into **units** based on logical responsibility and testability. Each unit must have specific, traceable requirements.
 
 ## 6. Phase Completion Criteria
-This phase is complete when:
-1.  The `Architecture Specification` has been created and approved by the user.
-2.  The `Development Plan` has been created and approved by the user.
-3.  The `Development Checklist` has been generated from the development plan.
+This phase is complete when the approved Architecture Specification, Development Plan, and Development Checklist are committed to the repository.
 
 ---
 
@@ -91,3 +82,4 @@ This phase is complete when:
 |---------|------------|-------------|---------------------------------------|
 | 0.0.01  | 2025-10-10 | Jules       | Initial creation of the unified guide. |
 | 0.0.02  | 2025-10-10 | Jules       | Complete overhaul to enforce rigor.   |
+| 0.0.03  | 2025-10-12 | Jules       | Integrated iterative 6-step workflow. |

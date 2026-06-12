@@ -49,11 +49,11 @@ If `scripts/build_system.sh` and `scripts/run_system_test.sh` exist, the agent i
 - **Tests/Execution:** MUST use `scripts/run_system_test.sh`.
 - **Exception:** Any deviation requires explicit, case-by-case approval from the user for EACH command.
 
-### 2.2. `setup_env.sh`: The Hermetic Environment Builder
+### 2.2. `setup_env.sh`: Health Check & Hermetic Setup
 This script is the single source of truth for installing all applications, packages, tools, and other dependencies required for the project.
 - **Mandate:** If the agent needs to install a new dependency (OS-level or package-level), it MUST first add the installation command to this script *before* executing the command in the session.
 - **Idempotency:** The script MUST be idempotent. It should check if a dependency exists (e.g., `command -v playwright`) before attempting installation.
-- **Verification:** The script MUST include verification steps for critical dependencies to ensure the environment is actually ready.
+- **Verification:** The script MUST include verification steps for critical dependencies (e.g., checking versions) and fail-fast if the host environment is incompatible.
 - **Environment Management:** This script MUST handle the setup of virtual environments (e.g., `venv`, `node_modules`) and the installation of necessary binaries (e.g., Playwright browsers).
 
 ### 2.3. `start_services.sh`
@@ -74,3 +74,7 @@ This is the primary script for executing the full suite of automated system test
 
 ### 2.6. `scripts/verification/run_verification_test.sh`
 This is the primary script for the Verification Phase, designed to be parameterized to run specific tests based on a requirement ID.
+
+### 2.7. `scripts/verification/verify_artifacts.sh`
+This script performs automated analysis of the `test_outs/` directory.
+- **Protocol:** It must verify that every requirement ID tested by the runner has produced the required artifacts defined in the `result_manifest.json`.

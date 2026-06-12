@@ -43,6 +43,7 @@ Agents without direct execution capabilities (such as conversational AI assistan
 
 ### 2.3. Mandate for Quality and Completeness
 **MANDATE: All work must be implemented to the fullest, most robust, and most complete potential.**
+-   **Sole Responsibility:** The agent is solely responsible for the technical quality and completeness of its work. If information is insufficient, the agent MUST ask the user well-formed questions to elicit the required detail.
 -   **Maximal Implementation:** Stub implementations, partial solutions, or "good enough" functionality are explicitly forbidden.
 -   **Pre-Commit Documentation Integrity:** No commit shall be made until all relevant documentation, including checklists and handoff files, is verifiably up-to-date.
 
