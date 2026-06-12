@@ -14,7 +14,7 @@ v.0.0.01
 ## 1. Introduction
 This guide provides specific operational patterns for agents operating in Advisory Mode - agents that provide expert guidance and generate artifacts but cannot directly execute commands or modify files in the user's environment.
 
-**IMPORTANT:** This guide is supplementary. All mandates, quality standards, and protocols from the core guides (AGENTS.md, SCRIPT_RULES.md, phase guides) remain in full effect.
+**IMPORTANT:** This guide is supplementary. All mandates, quality standards, and protocols from the core guides (AGENTS.md, agents/SCRIPT_RULES.md, phase guides) remain in full effect.
 
 ## 2. Scope
 This guide applies when the agent:
@@ -55,6 +55,9 @@ When encountering tool references (from PREFERRED_TOOLS.md):
 
 **MANDATE:** Agents operating in Advisory Mode must maintain all the same quality standards, mandates, and rigor as Autonomous Mode agents. The difference is only in the mechanism of execution, not the standards of work.
 
+**MANDATE: Logic Disclosure**
+In Advisory Mode, the agent MUST explicitly disclose the rationale behind any request for information or action. The agent must explain which protocol, phase, or technical requirement necessitates the request (e.g., "I need the output of `ls -R` to perform the File Discovery step required by `agents/DESIGN.md`").
+
 ## 4. Operational Patterns
 
 ### 4.1. File Reading Pattern
@@ -90,7 +93,7 @@ When instructed to execute a command:
 4. Request that the user paste the complete, unmodified output
 5. Analyze the output according to Command Output Verification rules
 6. Determine success/failure and provide next steps
-7. If output is ambiguous, treat as failure per Section 1.1 of SCRIPT_RULES.md
+7. If output is ambiguous, treat as failure per Section 1.1 of agents/SCRIPT_RULES.md
 
 ### 4.5. Build Cycle Pattern
 For the iterative build-fix loop:

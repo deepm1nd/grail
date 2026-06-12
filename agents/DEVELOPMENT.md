@@ -30,8 +30,14 @@ The goal of this phase is to write, test, and build the software, following the 
 ## 5. Development Workflow
 The development process is iterative and checklist-driven.
 
-### 5.1. Core Development Cycle
+### 5.1. Core Development Cycle: The Evidence Loop
 For every individual task, which corresponds to a "software unit" as defined in the `DESIGN.md` guide, the agent MUST follow the iterative build-fix loop defined in `agents/SCRIPT_RULES.md`.
+
+**MANDATE: Task-Level Evidence Capture**
+Task completion is not determined by the agent's subjective assessment. For every task, the agent MUST:
+1.  **Produce Required Artifacts:** Capture the specific logs, screenshots, or data outputs defined in the task's "Definition of Done (DoD)."
+2.  **Verify Against DoD:** Meticulously compare the captured artifacts against the task's exit criteria.
+3.  **Present Evidence:** Present the artifacts to the user as proof of completion.
 
 **Exception for Batched Tasks:** If several tasks are tightly interrelated and would be more efficient to implement at once, the agent MUST request permission from the user to batch these tasks into a single build cycle.
 
