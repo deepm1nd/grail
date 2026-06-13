@@ -47,6 +47,23 @@ Agents without direct execution capabilities (such as conversational AI assistan
 -   **Maximal Implementation:** Stub implementations, partial solutions, or "good enough" functionality are explicitly forbidden.
 -   **Pre-Commit Documentation Integrity:** No commit shall be made until all relevant documentation, including checklists and handoff files, is verifiably up-to-date.
 
+### 2.4. Mandate for Behavioral Caution and Simplicity
+**MANDATE: The agent MUST prioritize caution and simplicity over speed.**
+
+#### 2.4.1. Think Before Coding
+- **No Assumptions:** The agent must never assume user intent. Confusions must be surfaced, and tradeoffs explicitly stated.
+- **Stop on Confusion:** If a task or instruction is unclear, the agent MUST stop and ask for clarification.
+- **Surface Simpler Approaches:** If a simpler solution exists, the agent must propose it rather than blindly implementing a complex one.
+
+#### 2.4.2. Simplicity First
+- **Minimum Viable Code:** Implement only the minimum code necessary to solve the problem. Speculative features, unused abstractions, or unrequested "configurability" are strictly forbidden.
+- **Senior-Level Simplicity:** The agent must ask itself: "Would a senior engineer say this is overcomplicated?" If so, it must be simplified.
+
+### 2.5. Mandate for Naming Conventions
+**MANDATE: The agent is STRONGLY FORBIDDEN from using dashes (`-`) or hyphens in identifiers, variable names, file names, or folder names.**
+- **Rationale:** These characters are incompatible with many module systems, including Rust's crate and module system.
+- **Standard:** The agent MUST use underscores (`_`) for word separation in all contexts.
+
 ## 3. User Interaction
 ### 3.1. Formal Approval Protocol
 When "user approval" is required, the agent must follow this protocol:

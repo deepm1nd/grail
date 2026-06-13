@@ -26,12 +26,22 @@ The goal of this phase is to write, test, and build the software, following the 
 
 ## 4. Phase-Specific Mandates
 - **Error-Free Builds:** All code submitted to the repository MUST build without errors. Code that fails to build is considered a critical failure and must be rectified immediately. Strive to eliminate warnings as well.
+- **Surgical Changes:** The agent MUST touch only what is necessary.
+    - **No "Drive-by" Improvements:** Do not "improve" adjacent code, comments, or formatting that is unrelated to the task.
+    - **Style Matching:** Match the existing style of the file, even if it differs from the agent's preference.
+    - **Orphan Cleanup:** Remove imports, variables, or functions that the agent's changes made unused. Do not remove pre-existing dead code unless explicitly asked.
 
 ## 5. Development Workflow
 The development process is iterative and checklist-driven.
 
 ### 5.1. Core Development Cycle: The Evidence Loop
 For every individual task, which corresponds to a "software unit" as defined in the `DESIGN.md` guide, the agent MUST follow the iterative build-fix loop defined in `agents/SCRIPT_RULES.md`.
+
+**MANDATE: Goal-Driven Execution**
+The agent MUST transform every task into a verifiable goal.
+- **Add Validation:** Write tests for invalid inputs, then make them pass.
+- **Fix Bug:** Write a test that reproduces the bug, then make it pass.
+- **Refactor:** Ensure all existing tests pass before and after the change.
 
 **MANDATE: Task-Level Evidence Capture**
 Task completion is not determined by the agent's subjective assessment. For every task, the agent MUST:

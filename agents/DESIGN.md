@@ -44,9 +44,10 @@ The design process is a highly iterative, evidence-based lifecycle.
 2.  **Architecture Pass 1 (Draft):** The agent creates the first draft of the `Architecture Specification` using the template at `agents/exemplars/architecture_specification_template.md`. This pass focuses on high-level structure and system boundaries.
 
 ### 5.2. User Story Elicitation Loop
-1.  **Elicit Stories:** The agent MUST ask the user for several **User Stories**.
-2.  **Interaction Sequences:** For each story, the agent MUST elicit detailed interaction sequences (happy paths, edge cases, error conditions).
-3.  **Architecture Pass 2 (Refinement):** The agent performs a second pass on the `Architecture Specification`, incorporating the user stories into Section 2.2 and making any structural modifications (additions, removals, changes) implied by the stories.
+1.  **Iterative Elicitation:** The agent MUST ask the user for **User Stories**. This process is iterative. The agent is responsible for determining if a sufficient number of stories have been gathered for a robust requirements development cycle.
+2.  **Sufficiency & Override:** The agent must continue to elicit stories until it feels the functional scope is well-understood. The user may explicitly override this by indicating they have no more stories or by instructing the agent to proceed.
+3.  **Interaction Sequences:** For every story provided, the agent MUST elicit detailed interaction sequences (happy paths, edge cases, error conditions).
+4.  **Architecture Pass 2 (Refinement):** The agent performs a second pass on the `Architecture Specification`, incorporating the user stories into Section 2.2 and making any structural modifications (additions, removals, changes) implied by the stories.
 
 ### 5.3. Progressive Elaboration & Decomposition Loop
 The agent is solely responsible for ensuring requirements reach atomic stability.
@@ -55,8 +56,9 @@ The agent is solely responsible for ensuring requirements reach atomic stability
     -   **Pass 2: Logical Decomposition.**
     -   **Pass 3: Detailed Specification.** (May be relaxed for simple projects).
 2.  **Requirement Smell Detection:** Scan for subjective terms (e.g., "fast," "easy") and ask questions to replace them with quantified metrics.
-3.  **Iteration & Questioning:** The agent repeatedly asks the user questions to refine functional/non-functional requirements and to identify specific **Test Cases**, **Definitions of Done (DoD)**, and **Verification Criteria**.
-4.  **The Decomposition Gate:** The agent MUST NOT proceed until requirements are atomic and verifiable, unless the user explicitly overrides this rigor.
+3.  **Iterative Decomposition:** The agent repeatedly asks the user questions to refine requirements and identify specific **Test Cases**, **Definitions of Done (DoD)**, and **Verification Criteria**.
+4.  **The Decomposition Gate:** The agent MUST NOT proceed to Step 5.4 until it has verified that the decomposition is sufficiently detailed for all requirements.
+5.  **User Override:** The user may explicitly override the agent's assessment and declare the decomposition phase complete if they are satisfied with the current level of detail.
 
 **MANDATE: Requirement Quality Criteria**
 Every requirement MUST be: Necessary, Atomic, Unambiguous, Verifiable, Feasible, Complete, Consistent, Design-independent, and Traceable.
