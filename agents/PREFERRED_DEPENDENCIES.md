@@ -6,6 +6,7 @@
 
 ### Rust
 - **Rust Edition:** The agent MUST prefer the latest stable Rust edition (e.g., 2021 or 2024) that is supported by the project's current toolchain and library ecosystem.
+- **Naming Conventions:** The agent is **STRONGLY FORBIDDEN** from using dashes (`-`) or hyphens in identifiers, variable names, file names, or folder names. These characters are incompatible with Rust's module and crate system. The agent MUST use underscores (`_`) for word separation in all contexts.
 
 ## Dependencies
 
