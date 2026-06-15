@@ -1,12 +1,12 @@
 # Design and Planning Phase Guide
-v.0.0.03
+v.0.2.00
 
 ## Table of Contents
 - [1. Introduction](#1-introduction)
 - [2. Goal](#2-goal)
 - [3. Core Design Principles](#3-core-design-principles)
 - [4. Agent Responsibilities](#4-agent-responsibilities)
-- [5. The Design and Planning Workflow](#5-the-design-and-planning-workflow)
+- [5. The Integrated Design & Planning Workflow](#5-the-integrated-design--planning-workflow)
 - [Appendix R - Revision History](#appendix-r---revision-history)
 
 ---
@@ -17,65 +17,78 @@ This guide outlines the unified Design and Planning Phase. This is the most crit
 **MANDATE:** The agent MUST create the Architecture Specification in compliance with the inlined quality criteria defined in Section 5. Reference to external guides (e.g., Jama Software Requirements Management Guide) is supplementary.
 
 ## 2. Goal
-The goal of this phase is to produce two key artifacts, derived from user input:
+The goal of this phase is to produce three key artifacts, derived from user input:
 1.  A comprehensive **Architecture Specification**.
-2.  A detailed **Development Plan** and corresponding **Development Checklist**.
-
-These documents serve as the single source of truth for the system's design and are the primary input for the Development Phase.
+2.  A detailed **Development Plan**.
+3.  A granular **Development Checklist**.
 
 ## 3. Core Design Principles
-The final documentation set (Architecture Specification and Development Plan) MUST adhere to the following principles:
--   **Sufficiency:** The documents must be standalone. Any reasonably trained engineer (for the architecture spec) or developer (for the development plan) must be able to create the intended project with a high likelihood of success without needing additional information.
--   **Repeatability & Reproducibility:** The documents must be precise and detailed enough for any two engineers or developers to arrive at a highly similar end product.
--   **Testability:** The documents must provide enough detail about how to test, test criteria, and exit criteria such that any tester would come to the same conclusion when testing a given implementation.
--   **Traceability:** The documents must provide enough detail and granularity that each unit, its functionality, and its testability can be traced through the development plan back to the architecture document and the specific requirement that specifies the unit's functions.
+The final documentation set MUST adhere to the following principles:
+-   **Sufficiency:** Standalone documents that enable any trained engineer/developer to succeed without additional info.
+-   **Repeatability & Reproducibility:** Precise enough for different teams to arrive at highly similar end product.
+-   **Testability:** Clear test criteria and exit criteria ensuring objective pass/fail assessment.
+-   **Traceability:** Every unit and test must be traceable back to a specific requirement ID.
 
 ## 4. Agent Responsibilities
--   **Sole Responsibility:** The agent is solely responsible for the technical quality, completeness, and rigor of its work. If information is insufficient, the agent MUST ask the user well-formed questions to elicit the required detail.
--   **Elicit Detail:** If the user's initial input is insufficient to meet the criteria defined in this guide, the agent MUST provide guidance and feedback to the user to elicit more details.
--   **Major Change Notification:** Throughout the design process, the agent MUST notify the user if any input or iteration causes a "Major Change" to the architecture. The agent has the discretion to determine what constitutes a major change.
--   **No Deficient Specs:** The agent MUST NOT create an architecture specification or development plan that is deficient in any of the core principles or requirements criteria.
+-   **Sole Responsibility:** The agent is solely responsible for the technical quality, completeness, and rigor of the design.
+-   **Proactive Elicitation:** If information is insufficient, the agent MUST ask well-formed questions to elicit the required detail.
+-   **Major Change Notification:** The agent MUST notify the user if any iteration causes a "Major Change" to the architecture.
+-   **Gated Iteration:** The agent must not exit a workflow step without explicit user approval.
 
-## 5. The Design and Planning Workflow
-The design process is a highly iterative, evidence-based lifecycle.
+## 5. The Integrated Design & Planning Workflow
+The Design Phase is a gated, 8-step lifecycle. **MANDATE: User Approval is required after every step.** The user may explicitly approve a step or request to return to any previous step to refine the design.
 
-### 5.1. Phase Initiation & Concept Intake
-1.  **Concept Statement:** The user starts the session by providing a concept statement or pointing to existing concept documents in the repository.
-2.  **Architecture Pass 1 (Draft):** The agent creates the first draft of the `Architecture Specification` using the template at `agents/exemplars/architecture_specification_template.md`. This pass focuses on high-level structure and system boundaries.
+### 5.1. Step 1: Concept Intake & Context Mapping
+- **Input:** User provides a concept statement or references repository documents.
+- **Process:** The agent maps the "Problem Space" and identifies system boundaries.
+- **Output:** **Architecture Pass 1 (Draft)** – High-level structural topology.
+- **GATE:** Await User Approval or request to return.
 
-### 5.2. User Story Elicitation Loop
-1.  **Iterative Elicitation:** The agent MUST ask the user for **User Stories**. This process is iterative. The agent is responsible for determining if a sufficient number of stories have been gathered for a robust requirements development cycle.
-2.  **Sufficiency & Override:** The agent must continue to elicit stories until it feels the functional scope is well-understood. The user may explicitly override this by indicating they have no more stories or by instructing the agent to proceed.
-3.  **Interaction Sequences:** For every story provided, the agent MUST elicit detailed interaction sequences (happy paths, edge cases, error conditions).
-4.  **Architecture Pass 2 (Refinement):** The agent performs a second pass on the `Architecture Specification`, incorporating the user stories into Section 2.2 and making any structural modifications (additions, removals, changes) implied by the stories.
+### 5.2. Step 2: The User Story Elicitation Loop
+- **Process:** Iterative elicitation of User Stories (happy paths, edge cases, failure modes).
+- **Mandate:** Agent determines sufficiency for requirements mapping.
+- **Output:** **Architecture Pass 2 (Behavioral)** – Interaction sequences in Section 2.2.
+- **GATE:** Await User Approval or request to return.
 
-### 5.3. Progressive Elaboration & Decomposition Loop
-The agent is solely responsible for ensuring requirements reach atomic stability.
-1.  **Three-Pass Decomposition:** The agent breaks high-level goals into:
-    -   **Pass 1: Functional Scope.**
-    -   **Pass 2: Logical Decomposition.**
-    -   **Pass 3: Detailed Specification.** (May be relaxed for simple projects).
-2.  **Requirement Smell Detection:** Scan for subjective terms (e.g., "fast," "easy") and ask questions to replace them with quantified metrics.
-3.  **Iterative Decomposition:** The agent repeatedly asks the user questions to refine requirements and identify specific **Test Cases**, **Definitions of Done (DoD)**, and **Verification Criteria**.
-4.  **The Decomposition Gate:** The agent MUST NOT proceed to Step 5.4 until it has verified that the decomposition is sufficiently detailed for all requirements.
-5.  **User Override:** The user may explicitly override the agent's assessment and declare the decomposition phase complete if they are satisfied with the current level of detail.
+### 5.3. Step 3: Recursive Requirement Decomposition (The Three-Pass Loop)
+- **Process:** Agent decomposes high-level goals into atomic, verifiable units.
+- **Mandate:** Scan for "Requirement Smells" (subjective terms) and replace with quantified metrics.
+- **Three Passes:** 1. Functional Scope; 2. Logical Decomposition; 3. Detailed Specification.
+- **Output:** Draft Requirements List.
+- **GATE:** Await User Approval or request to return.
 
-**MANDATE: Requirement Quality Criteria**
-Every requirement MUST be: Necessary, Atomic, Unambiguous, Verifiable, Feasible, Complete, Consistent, Design-independent, and Traceable.
+### 5.4. Step 4: Iterative Questioning & Test Identification
+- **Process:** Agent asks well-formed questions to identify Test Cases, Definitions of Done (DoD), and Verification Criteria for every requirement.
+- **Output:** Test Strategy Mapping.
+- **GATE:** Await User Approval or request to return.
 
-### 5.4. Final Architecture & Verification Review
-1.  **Architecture Pass 3 (Final):** The agent performs a final pass of updates to the `Architecture Specification`, ensuring all atomic requirements and test cases are fully mapped.
-2.  **Verification Feasibility Study:** For every requirement, the agent must identify the tool (Playwright, `grep`) and artifact (screenshot, log segment) that will prove completion.
-3.  **Deficiency Audit:** The agent performs a final review of the spec looking for gaps in testing, validation, or structural integrity.
+### 5.5. Step 5: The Decomposition Gate & Verification Feasibility
+- **The Gate:** Agent verifies "Atomic Stability."
+- **Feasibility:** Identify specific tools (Playwright, etc.) and artifacts for every requirement.
+- **Output:** Verified Requirements & V&V Protocol.
+- **GATE:** Await User Approval or request to return.
 
-### 5.5. Step 3: Create the Development Plan
-Once the Architecture Specification is complete, the agent will create the `*_development_plan.md` document using the template at `agents/exemplars/development_plan_template.md`.
+### 5.6. Step 6: Final Architecture Synthesis (ISO 42010 Viewpoints)
+- **Process:** Final update to the Architecture Specification with mandatory viewpoints:
+    - **Functional View:** Responsibilities and sequences.
+    - **Information View:** **Data Dictionary** and schemas.
+    - **Deployment View:** Service boundaries and environment mapping.
+    - **Interface Control (ICD):** Formalized contracts for all module interactions.
+- **Output:** Final Architecture Specification.
+- **GATE:** Await User Approval or request to return.
 
-**MANDATE: Unit-Level Decomposition**
-The development plan MUST decompose the architecture into **units** based on logical responsibility and testability. Each unit must have specific, traceable requirements.
+### 5.7. Step 7: Spec Audit & Major Change Notification
+- **Process:** "Blind spot" review. Notify user of any "Major Changes" resulting from iterations.
+- **Output:** Audit Report/Final Spec.
+- **GATE:** Await User Approval or request to return.
+
+### 5.8. Step 8: Development Plan & Checklist Generation
+- **Plan:** Decompose into logical Units linked to Requirement IDs. Specify Required Artifacts (Logs/Screenshots) for every task.
+- **Checklist:** Generate task-level checklist (per the `development_checklist_template.md`).
+- **GATE:** Await Final Approval or request to return.
 
 ## 6. Phase Completion Criteria
-This phase is complete when the approved Architecture Specification, Development Plan, and Development Checklist are committed to the repository.
+Phase is complete ONLY when all approved artifacts (Spec, Plan, Checklist) are committed to the repository.
 
 ---
 
@@ -85,3 +98,4 @@ This phase is complete when the approved Architecture Specification, Development
 | 0.0.01  | 2025-10-10 | Jules       | Initial creation of the unified guide. |
 | 0.0.02  | 2025-10-10 | Jules       | Complete overhaul to enforce rigor.   |
 | 0.0.03  | 2025-10-12 | Jules       | Integrated iterative 6-step workflow. |
+| 0.2.00  | 2025-10-12 | Jules       | DESIGN v2.0: 8-Step Gated Protocol.   |
