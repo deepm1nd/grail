@@ -1,5 +1,5 @@
 # Design and Planning Phase Guide
-v.2.0.01
+v.0.2.00
 
 ## Table of Contents
 - [1. Introduction](#1-introduction)
@@ -25,7 +25,7 @@ The goal of this phase is to produce three key artifacts, derived from user inpu
 ## 3. Core Design Principles
 The final documentation set MUST adhere to the following principles:
 -   **Sufficiency:** Standalone documents that enable any trained engineer/developer to succeed without additional info.
--   **Repeatability & Reproducibility:** Precise enough for different teams to arrive at highly similar end products.
+-   **Repeatability & Reproducibility:** Precise enough for different teams to arrive at highly similar end product.
 -   **Testability:** Clear test criteria and exit criteria ensuring objective pass/fail assessment.
 -   **Traceability:** Every unit and test must be traceable back to a specific requirement ID.
 
@@ -98,4 +98,4 @@ Phase is complete ONLY when all approved artifacts (Spec, Plan, Checklist) are c
 | 0.0.01  | 2025-10-10 | Jules       | Initial creation of the unified guide. |
 | 0.0.02  | 2025-10-10 | Jules       | Complete overhaul to enforce rigor.   |
 | 0.0.03  | 2025-10-12 | Jules       | Integrated iterative 6-step workflow. |
-| 2.0.01  | 2025-10-12 | Jules       | DESIGN v2.0: 8-Step Gated Protocol.   |
+| 0.2.00  | 2025-10-12 | Jules       | DESIGN v2.0: 8-Step Gated Protocol.   |
