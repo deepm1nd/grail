@@ -41,7 +41,7 @@ The Design Phase is a gated, 8-step lifecycle. **MANDATE: User Approval is requi
 ### 5.1. Step 1: Concept Intake & Context Mapping
 - **Input:** User provides a concept statement or references repository documents.
 - **Process:** The agent maps the "Problem Space" and identifies system boundaries.
-- **Output:** **Architecture Pass 1 (Draft)** – High-level structural topology.
+- **Output:** **Architecture Pass 1 (Draft)** – The agent MUST create the first draft of the `Architecture Specification` using the template at `agents/exemplars/architecture_specification_template.md`.
 - **GATE:** Await User Approval or request to return.
 
 ### 5.2. Step 2: The User Story Elicitation Loop
@@ -69,8 +69,8 @@ The Design Phase is a gated, 8-step lifecycle. **MANDATE: User Approval is requi
 - **GATE:** Await User Approval or request to return.
 
 ### 5.6. Step 6: Final Architecture Synthesis (ISO 42010 Viewpoints)
-- **Process:** Final update to the Architecture Specification with mandatory viewpoints:
-    - **Functional View:** Responsibilities and sequences.
+- **Process:** Final update to the Architecture Specification using **SysML and formal engineering notation** where appropriate. Mandatory viewpoints:
+    - **Functional View:** Responsibilities, sequences, and behavioral diagrams.
     - **Information View:** **Data Dictionary** and schemas.
     - **Deployment View:** Service boundaries and environment mapping.
     - **Interface Control (ICD):** Formalized contracts for all module interactions.
@@ -83,8 +83,8 @@ The Design Phase is a gated, 8-step lifecycle. **MANDATE: User Approval is requi
 - **GATE:** Await User Approval or request to return.
 
 ### 5.8. Step 8: Development Plan & Checklist Generation
-- **Plan:** Decompose into logical Units linked to Requirement IDs. Specify Required Artifacts (Logs/Screenshots) for every task.
-- **Checklist:** Generate task-level checklist (per the `development_checklist_template.md`).
+- **Plan:** The agent MUST create the `*_development_plan.md` using the template at `agents/exemplars/development_plan_template.md`. Decompose into logical Units linked to Requirement IDs. Specify Required Artifacts (Logs/Screenshots) for every task.
+- **Checklist:** The agent MUST generate a task-level checklist using the style and format defined in `agents/exemplars/development_checklist_template.md`.
 - **GATE:** Await Final Approval or request to return.
 
 ## 6. Phase Completion Criteria
