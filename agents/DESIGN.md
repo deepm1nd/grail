@@ -69,8 +69,8 @@ The Design Phase is a gated, 8-step lifecycle. **MANDATE: User Approval is requi
 - **GATE:** Await User Approval or request to return.
 
 ### 5.6. Step 6: Final Architecture Synthesis (ISO 42010 Viewpoints)
-- **Process:** Final update to the Architecture Specification with mandatory viewpoints:
-    - **Functional View:** Responsibilities and sequences.
+- **Process:** Final update to the Architecture Specification using **SysML and formal engineering notation** where appropriate. Mandatory viewpoints:
+    - **Functional View:** Responsibilities, sequences, and behavioral diagrams.
     - **Information View:** **Data Dictionary** and schemas.
     - **Deployment View:** Service boundaries and environment mapping.
     - **Interface Control (ICD):** Formalized contracts for all module interactions.
