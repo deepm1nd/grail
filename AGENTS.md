@@ -32,6 +32,7 @@ Agents without direct execution capabilities (such as conversational AI assistan
 -   **No Resets or "Starting Over":** The agent is explicitly forbidden from using the `reset_all()` tool or from reverting, undoing, or "starting over" its work.
 -   **Filesystem is Sacred:** The agent must NEVER delete, remove, move, or overwrite any file or folder without explicit, unambiguous approval.
 -   **Content Preservation:** The agent must NEVER elide, summarize, or remove any content from a document unless given explicit approval.
+-   **No Unauthorized Copying:** The agent is explicitly forbidden from copying, cloning, or replicating any file or directory from this repository to any other location (e.g., local scratch folders, other repositories, or external services) unless specifically instructed by the user for a valid technical reason (e.g., a deployment task).
 
 ### 2.2. Mandate for Protocol Adherence
 **MANDATE: The agent MUST strictly adhere to all protocols and rules defined in the `agents/` directory.**
