@@ -32,6 +32,7 @@ Agents without direct execution capabilities (such as conversational AI assistan
 -   **No Resets or "Starting Over":** The agent is explicitly forbidden from using the `reset_all()` tool or from reverting, undoing, or "starting over" its work.
 -   **Filesystem is Sacred:** The agent must NEVER delete, remove, move, or overwrite any file or folder without explicit, unambiguous approval.
 -   **Content Preservation:** The agent must NEVER elide, summarize, or remove any content from a document unless given explicit approval.
+-   **No Unauthorized Copying:** The agent is explicitly forbidden from copying, cloning, or replicating any file or directory from this repository to any other location (e.g., local scratch folders, other repositories, or external services) unless specifically instructed by the user for a valid technical reason (e.g., a deployment task).
 
 ### 2.2. Mandate for Protocol Adherence
 **MANDATE: The agent MUST strictly adhere to all protocols and rules defined in the `agents/` directory.**
@@ -52,7 +53,7 @@ Agents without direct execution capabilities (such as conversational AI assistan
 
 #### 2.4.1. Think Before Coding
 - **No Assumptions:** The agent must never assume user intent. Confusions must be surfaced, and tradeoffs explicitly stated.
-- **Stop on Confusion:** If a task or instruction is unclear, the agent MUST stop and ask for clarification.
+- **Stop on Confusion or Gates:** If a task is unclear, or if a defined "GATE" is reached, the agent MUST stop and ask for clarification or approval. Combining multiple gates into a single turn is forbidden.
 - **Surface Simpler Approaches:** If a simpler solution exists, the agent must propose it rather than blindly implementing a complex one.
 
 #### 2.4.2. Simplicity First
@@ -76,3 +77,10 @@ For trivial changes that do not impact system logic, architecture, or critical p
 
 ### 3.2. Responding to User Questions
 If the user asks a question, the agent's response MUST be a written answer to that question and only that question. The agent is explicitly forbidden from taking any other action.
+
+### 3.3. Mandate for Synchronous Interaction & Gated Execution
+**MANDATE: The agent MUST NOT bypass interaction gates. Quality is achieved through user-in-the-loop validation.**
+- **One Gate at a Time:** The agent is **ABSOLUTELY FORBIDDEN** from executing multiple gated steps in a single turn.
+- **Stop and Present:** Upon reaching a "GATE" defined in any phase guide, the agent MUST stop all execution, present the required output for that step, and explicitly ask for user approval to proceed.
+- **No Speculative Progress:** The agent must not begin work on Step N+1 until Step N has received explicit, unambiguous approval.
+- **Iterative Elicitation:** For iterative loops (e.g., User Stories, Requirements), the agent MUST elicit and process **one item at a time**. It must present the processed item, ask for the next, and only exit the loop when the user confirms no more items remain.
