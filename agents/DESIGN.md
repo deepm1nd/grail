@@ -14,7 +14,7 @@ v.0.2.01
 ## 1. Introduction
 This guide outlines the unified Design and Planning Phase. This is the most critical phase for ensuring a project's success. All session-level rules are defined in `AGENTS.md` and all script and command rules are in `agents/SCRIPT_RULES.md`. Both MUST be adhered to at all times.
 
-**MANDATE:** The agent MUST create the Architecture Specification in compliance with the inlined quality criteria defined in Section 5. Reference to external guides (e.g., Jama Software Requirements Management Guide) is supplementary.
+**MANDATE:** The agent MUST create the Architecture Specification in compliance with the requirement quality criteria defined in Section 4.5. Reference to external guides (e.g., Jama Software Requirements Management Guide) is supplementary.
 
 ## 2. Goal
 The goal of this phase is to produce three key artifacts, derived from user input:
@@ -35,6 +35,18 @@ The final documentation set MUST adhere to the following principles:
 -   **Major Change Notification:** The agent MUST notify the user if any iteration causes a "Major Change" to the architecture.
 -   **Strict Gated Execution:** The agent is explicitly forbidden from combining steps or bypassing gates. Every step's output must be presented for approval.
 
+### 4.5. Requirement Quality Criteria
+**MANDATE: The agent MUST review each requirement against these 9 criteria.**
+-   **Necessary:** The requirement is essential for the system to meet its goals.
+-   **Atomic:** The requirement is a single, complete statement. It cannot be broken down further.
+-   **Unambiguous:** The requirement has only one possible interpretation.
+-   **Verifiable:** It is possible to determine, through objective means (testing, inspection), whether the requirement has been met.
+-   **Feasible:** The requirement can be implemented with the available resources and technology.
+-   **Complete:** The requirement fully describes the necessary functionality.
+-   **Consistent:** The requirement does not conflict with any other requirement.
+-   **Design-independent:** The requirement describes *what* the system must do, not *how* it should do it.
+-   **Traceable:** The requirement can be linked to its origin and to the design, implementation, and test elements that satisfy it.
+
 ## 5. The Integrated Design & Planning Workflow
 The Design Phase is a gated, 8-step lifecycle. **MANDATE: The agent MUST STOP and request User Approval after EVERY step.** The user may explicitly approve a step or request to return to any previous step to refine the design.
 
@@ -52,6 +64,7 @@ The Design Phase is a gated, 8-step lifecycle. **MANDATE: The agent MUST STOP an
 
 ### 5.3. Step 3: Recursive Requirement Decomposition (The Three-Pass Loop)
 - **Process:** Agent decomposes high-level goals into atomic units using a three-pass approach: 1. Functional Scope; 2. Logical Decomposition; 3. Detailed Specification.
+- **Iterative Decomposition Mandate:** The agent MUST review each requirement against the 9 criteria in Section 4.5. It MUST iteratively decompose any requirements that do not meet all criteria until they are atomic and stable.
 - **Mandate:** Scan for and eliminate "Requirement Smells."
 - **Output:** Draft Requirements List.
 - **GATE: STOP and Present Draft Requirements List for User Approval.**
