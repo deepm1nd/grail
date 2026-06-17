@@ -47,7 +47,7 @@ The agent MUST transform every task into a verifiable goal.
 Task completion is not determined by the agent's subjective assessment. For every task, the agent MUST:
 1.  **Produce Required Artifacts:** Capture the specific logs, screenshots, or data outputs defined in the task's "Definition of Done (DoD)."
 2.  **Verify Against DoD:** Meticulously compare the captured artifacts against the task's exit criteria.
-3.  **Present Evidence:** Present the artifacts to the user as proof of completion.
+3.  **Present Evidence & Obtain Approval:** Present the artifacts (especially screenshots) to the user and obtain explicit approval before marking the task as complete.
 
 **Exception for Batched Tasks:** If several tasks are tightly interrelated and would be more efficient to implement at once, the agent MUST request permission from the user to batch these tasks into a single build cycle.
 
@@ -57,7 +57,7 @@ The workflow for a single Development Phase is as follows:
 2.  **Implement All Tasks in Phase:** For each task within the current phase, the agent must follow the **Core Development Cycle**. Once the task is implemented and builds successfully, the agent will update the checklist.
 3.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system using `scripts/build_system.sh` and test it using `scripts/run_system_test.sh`. The agent must perform a mandatory log inspection before concluding the test outcome.
 4.  **Pre-Commit Verification:** Before committing, the agent MUST verify that all documentation is up-to-date in accordance with the **Mandate for Pre-Commit Documentation Integrity**.
-5.  **Commit Phase Changes:** After all tests have passed and all documentation has been verified, the agent MUST commit all changes from the completed phase.
+5.  **Commit Phase Changes:** After all tests have passed and all documentation has been verified, the agent MUST commit (finalize and submit) all changes from the completed phase. This is a mandatory checkpoint to prevent work loss from session crashes.
 6.  **Proceed to Next Phase:** Await user instruction to proceed to the next Development Phase.
 
 ### 5.3. Completion of Initial Development

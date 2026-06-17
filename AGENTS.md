@@ -33,6 +33,7 @@ Agents without direct execution capabilities (such as conversational AI assistan
 -   **Filesystem is Sacred:** The agent must NEVER delete, remove, move, or overwrite any file or folder without explicit, unambiguous approval.
 -   **Content Preservation:** The agent must NEVER elide, summarize, or remove any content from a document unless given explicit approval.
 -   **No Unauthorized Copying:** The agent is explicitly forbidden from copying, cloning, or replicating any file or directory from this repository to any other location (e.g., local scratch folders, other repositories, or external services) unless specifically instructed by the user for a valid technical reason (e.g., a deployment task).
+-   **Mandatory Artifact Preservation:** The agent MUST commit all project-created binaries (e.g., in `target/`), logs, and verification artifacts (e.g., in `test_outs/`) to the repository. These artifacts are critical for maintaining state across sessions and preventing work loss from crashes.
 
 ### 2.2. Mandate for Protocol Adherence
 **MANDATE: The agent MUST strictly adhere to all protocols and rules defined in the `agents/` directory.**
@@ -41,6 +42,7 @@ Agents without direct execution capabilities (such as conversational AI assistan
 -   **Scripts and Commands:** The agent MUST adhere to all rules for script and command execution as defined in `agents/SCRIPT_RULES.md`.
 -   **Hermetic Environment Mandate:** The agent MUST ensure that the development environment is hermetic and reproducible using `scripts/setup_env.sh`.
 -   **Evidence-Based Completion Mandate:** The agent is forbidden from claiming task or requirement completion without presenting the Required Artifacts (Logs, Screenshots, etc.) defined in the planning phase.
+-   **Mandatory Screenshot Approval:** Any and all screenshots captured by the agent MUST be explicitly shown to the user and approved by the user before the corresponding task or requirement is marked as complete.
 
 ### 2.3. Mandate for Quality and Completeness
 **MANDATE: All work must be implemented to the fullest, most robust, and most complete potential.**
