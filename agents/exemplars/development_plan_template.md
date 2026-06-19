@@ -25,7 +25,7 @@ v.0.0.01
 (Provide a tree-view of the proposed folder structure.)
 
 ## 4. Phases and Milestones
-(Break down the development work into logical phases with clear milestones.)
+(Break down the development work into logical phases with clear milestones. **MANDATE:** Each phase must be sized to comfortably fit within a single agent session, including a buffer for complications.)
 
 ## 5. Risk Management & Mitigation
 (Identify high-risk units, such as complex algorithms or 3rd-party integrations, and plan their development/mitigation.)

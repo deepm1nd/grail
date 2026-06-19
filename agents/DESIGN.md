@@ -86,13 +86,16 @@ The Design Phase is a gated, 8-step lifecycle. **MANDATE: The agent MUST STOP an
 - **Output:** Final Architecture Specification.
 - **GATE: STOP and Present Final Architecture Specification for User Approval.**
 
-### 5.7. Step 7: Spec Audit & Major Change Notification
-- **Process:** "Blind spot" review. Notify user of any "Major Changes" resulting from iterations.
+### 5.7. Step 7: Spec Audit & Phase-End Quality Assurance
+- **Process:** "Blind spot" review and comprehensive Assurance Review. Ensure all User Stories are mapped to requirements and all requirements are atomic.
+- **Anti-Stub Mandate:** Specifically verify that no logical gaps exist that could lead to stubbed or partial implementations during development.
+- **Notification:** Notify user of any "Major Changes" resulting from iterations.
 - **Output:** Final Deficiency Audit Report.
 - **GATE: STOP and Present Audit Report for User Approval.**
 
 ### 5.8. Step 8: Development Plan & Checklist Generation
 - **Plan:** The agent MUST create the `*_development_plan.md` using the template at `agents/exemplars/development_plan_template.md`.
+- **Phase Sizing Mandate:** The Development Plan MUST be subdivided into phases where each phase represents a volume of work that can be comfortably completed within a single agent session. The agent MUST include a sufficient margin (buffer) in its estimation to account for unexpected technical complications or debugging cycles.
 - **Checklist:** The agent MUST generate a task-level checklist using the style and format defined in `agents/exemplars/development_checklist_template.md`.
 - **Output:** Development Plan and Checklist.
 - **GATE: STOP and Await Final Approval of all design artifacts.**

@@ -61,6 +61,8 @@ This stage is an iterative cycle focused on producing a stable, high-quality, an
 -   **UAT Promotion:** User acceptance of all verified requirements promotes the build to the next stage (e.g., `beta`, `rc`), triggering User Acceptance Testing (UAT).
 
 ## 5. Phase Completion Criteria
+**MANDATE: Phase-End Quality Assurance.** Before finalizing, the agent MUST review the verification results to ensure no requirement was "verified" using stubs or incomplete evidence.
+
 This phase is complete when all requirements listed in the `verification_checklist.md` have been successfully verified and approved by the user, and the project is ready to proceed to the Release Phase.
 
 ---

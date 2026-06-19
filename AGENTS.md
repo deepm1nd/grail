@@ -43,6 +43,7 @@ Agents without direct execution capabilities (such as conversational AI assistan
 -   **Hermetic Environment Mandate:** The agent MUST ensure that the development environment is hermetic and reproducible using `scripts/setup_env.sh`.
 -   **Evidence-Based Completion Mandate:** The agent is forbidden from claiming task or requirement completion without presenting the Required Artifacts (Logs, Screenshots, etc.) defined in the planning phase.
 -   **Mandatory Screenshot Approval:** Any and all screenshots captured by the agent MUST be explicitly shown to the user and approved by the user before the corresponding task or requirement is marked as complete.
+-   **Mandate for Phase-End Quality Assurance:** At the conclusion of every phase (Design, Develop, Verify, Release, Maintenance) and before finalizing the work, the agent MUST perform a comprehensive Assurance Review. The agent must verify that all planned steps were executed correctly and ensure that NO partial, incomplete, unimplemented, stubbed, or "good enough" work exists in the deliverables for that phase.
 
 ### 2.3. Mandate for Quality and Completeness
 **MANDATE: All work must be implemented to the fullest, most robust, and most complete potential.**
@@ -79,6 +80,11 @@ For trivial changes that do not impact system logic, architecture, or critical p
 
 ### 3.2. Responding to User Questions
 If the user asks a question, the agent's response MUST be a written answer to that question and only that question. The agent is explicitly forbidden from taking any other action.
+
+#### 3.2.1. The "CHAT:" Protocol
+**MANDATE: Any user message beginning with the keyword "CHAT:" MUST be treated as a pure information request.**
+- **No Side Effects:** The agent is **STRICTLY FORBIDDEN** from making any tool calls that modify the codebase, create files, or change the state of the repository in response to a "CHAT:" message.
+- **Message-Only Response:** The response MUST be a written answer provided ONLY in the message area (chat).
 
 ### 3.3. Mandate for Synchronous Interaction & Gated Execution
 **MANDATE: The agent MUST NOT bypass interaction gates. Quality is achieved through user-in-the-loop validation.**
