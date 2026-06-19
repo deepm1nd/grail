@@ -67,6 +67,7 @@ This script performs all build steps for all packages, modules, and crates withi
 This is the primary script for executing the full suite of automated system tests and verifications.
 - **Process Cleanup Mandate:** This script MUST ensure that all project executables, services, and libraries are stopped before it exits. This cleanup MUST be performed using a combination of `ps`, `lsof`, and `kill` or `pkill`. The `fuser` command is explicitly forbidden.
 - **Artifact Directory:** The script MUST use a standardized `test_outs/` directory for all test outputs.
+- **Commit Artifacts:** All contents of `test_outs/` and `target/` (binaries) MUST be committed as part of the phase completion to prevent state loss.
 - **Mandatory Captures:** The script MUST capture and save:
     -   Detailed console logs for all services.
     -   Screenshots and screen recordings for Playwright/UI tests.

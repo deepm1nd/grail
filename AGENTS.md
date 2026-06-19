@@ -31,8 +31,10 @@ Agents without direct execution capabilities (such as conversational AI assistan
 -   **Additive-Only Operations:** The agent's operations MUST be strictly additive. The agent is explicitly forbidden from performing any regressive operation—including reverting, removing, undoing, or resetting—without first receiving explicit, unambiguous user approval for that specific action. Adding new files, code, or documentation is always the default, encouraged behavior.
 -   **No Resets or "Starting Over":** The agent is explicitly forbidden from using the `reset_all()` tool or from reverting, undoing, or "starting over" its work.
 -   **Filesystem is Sacred:** The agent must NEVER delete, remove, move, or overwrite any file or folder without explicit, unambiguous approval.
--   **Content Preservation:** The agent must NEVER elide, summarize, or remove any content from a document unless given explicit approval.
+-   **Content Preservation & Continuity:** The agent must NEVER elide, summarize, or remove any content from a document unless given explicit approval. During iterations (especially of architecture specifications), the agent MUST ensure technical continuity. All existing detail must be preserved; any additions or modifications must be strictly additive by default. Removing or "cleaning up" previously approved technical detail is forbidden without an unambiguous user instruction to delete a specific section.
+-   **No Self-Referential Elision:** The agent is **ABSOLUTELY FORBIDDEN** from replacing document sections with references to "previous versions" or "Section X of version Y." Since older versions are not persistently available for reference, every document MUST remain self-contained and fully detailed.
 -   **No Unauthorized Copying:** The agent is explicitly forbidden from copying, cloning, or replicating any file or directory from this repository to any other location (e.g., local scratch folders, other repositories, or external services) unless specifically instructed by the user for a valid technical reason (e.g., a deployment task).
+-   **Mandatory Artifact Preservation:** The agent MUST commit all project-created binaries (e.g., in `target/`), logs, and verification artifacts (e.g., in `test_outs/`) to the repository. These artifacts are critical for maintaining state across sessions and preventing work loss from crashes.
 
 ### 2.2. Mandate for Protocol Adherence
 **MANDATE: The agent MUST strictly adhere to all protocols and rules defined in the `agents/` directory.**
@@ -41,6 +43,8 @@ Agents without direct execution capabilities (such as conversational AI assistan
 -   **Scripts and Commands:** The agent MUST adhere to all rules for script and command execution as defined in `agents/SCRIPT_RULES.md`.
 -   **Hermetic Environment Mandate:** The agent MUST ensure that the development environment is hermetic and reproducible using `scripts/setup_env.sh`.
 -   **Evidence-Based Completion Mandate:** The agent is forbidden from claiming task or requirement completion without presenting the Required Artifacts (Logs, Screenshots, etc.) defined in the planning phase.
+-   **Mandatory Screenshot Approval:** Any and all screenshots captured by the agent MUST be explicitly shown to the user and approved by the user before the corresponding task or requirement is marked as complete.
+-   **Mandate for Phase-End Quality Assurance:** At the conclusion of every phase (Design, Develop, Verify, Release, Maintenance) and before finalizing the work, the agent MUST perform a comprehensive Assurance Review. The agent must verify that all planned steps were executed correctly and ensure that NO partial, incomplete, unimplemented, stubbed, or "good enough" work exists in the deliverables for that phase.
 
 ### 2.3. Mandate for Quality and Completeness
 **MANDATE: All work must be implemented to the fullest, most robust, and most complete potential.**
@@ -77,6 +81,11 @@ For trivial changes that do not impact system logic, architecture, or critical p
 
 ### 3.2. Responding to User Questions
 If the user asks a question, the agent's response MUST be a written answer to that question and only that question. The agent is explicitly forbidden from taking any other action.
+
+#### 3.2.1. The "CHAT:" Protocol
+**MANDATE: Any user message beginning with the keyword "CHAT:" MUST be treated as a pure information request.**
+- **No Side Effects:** The agent is **STRICTLY FORBIDDEN** from making any tool calls that modify the codebase, create files, or change the state of the repository in response to a "CHAT:" message.
+- **Message-Only Response:** The response MUST be a written answer provided ONLY in the message area (chat).
 
 ### 3.3. Mandate for Synchronous Interaction & Gated Execution
 **MANDATE: The agent MUST NOT bypass interaction gates. Quality is achieved through user-in-the-loop validation.**

@@ -52,6 +52,7 @@ This stage is an iterative cycle focused on producing a stable, high-quality, an
     -   **MANDATE: The agent is explicitly forbidden from marking any test, acceptance criterion, or requirement as complete.** This decision rests solely with the user.
     -   **Visual Verification (Preferred):** For user-facing features, the agent SHOULD provide visual evidence using Playwright-generated screenshots or screen recordings. Use `frontend_verification_complete(screenshot_path: "path/to/screenshot.png")`.
     -   **MANDATE: Evidence-Based Verification.** The agent MUST provide verifiable proof for every requirement. This proof can be a Playwright screenshot, a filtered log capture, or a structured data output that clearly demonstrates the requirement being met.
+-   **MANDATE: Screenshot Approval.** All screenshots captured MUST be explicitly shown to and approved by the user.
     -   For textual evidence, the agent MUST use `message_user(message: str, continue_working: bool)`.
 -   **User Approval and Iteration:**
     -   The agent must wait for the user to explicitly approve the evidence.
@@ -60,6 +61,8 @@ This stage is an iterative cycle focused on producing a stable, high-quality, an
 -   **UAT Promotion:** User acceptance of all verified requirements promotes the build to the next stage (e.g., `beta`, `rc`), triggering User Acceptance Testing (UAT).
 
 ## 5. Phase Completion Criteria
+**MANDATE: Phase-End Quality Assurance.** Before finalizing, the agent MUST review the verification results to ensure no requirement was "verified" using stubs or incomplete evidence.
+
 This phase is complete when all requirements listed in the `verification_checklist.md` have been successfully verified and approved by the user, and the project is ready to proceed to the Release Phase.
 
 ---

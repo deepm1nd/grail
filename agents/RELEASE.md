@@ -38,6 +38,8 @@ Once a release candidate is UAT-approved, this stage manages the final packaging
 After deployment, the team actively monitors system health, performance metrics, and user feedback.
 
 ## 5. Phase Completion Criteria
+**MANDATE: Phase-End Quality Assurance.** Before finalizing, the agent MUST perform a final audit to ensure all release artifacts (docs, metadata, binaries) are complete and free of placeholder content.
+
 This phase is complete when the final release package has been successfully deployed to production and all marketing and communication activities have been executed.
 
 ---
