@@ -88,6 +88,7 @@ The Design Phase is a gated, 8-step lifecycle. **MANDATE: The agent MUST STOP an
 
 ### 5.7. Step 7: Spec Audit & Phase-End Quality Assurance
 - **Process:** "Blind spot" review and comprehensive Assurance Review. Ensure all User Stories are mapped to requirements and all requirements are atomic.
+- **Content Continuity Check:** Verify that no previously approved technical detail, diagrams, or requirements were accidentally removed, elided, or summarized during the iteration passes. The iteration process MUST be strictly additive unless deletion was explicitly requested. Ensure that no sections have been replaced with references to "previous versions."
 - **Anti-Stub Mandate:** Specifically verify that no logical gaps exist that could lead to stubbed or partial implementations during development.
 - **Notification:** Notify user of any "Major Changes" resulting from iterations.
 - **Output:** Final Deficiency Audit Report.
