@@ -35,6 +35,11 @@
 - gloo-utils
 - gloo-storage
 
+## WASM Threading
+- wasm-bindgen-rayon  # Preferred for data-parallel work. SharedArrayBuffer-backed; requires COOP/COEP headers on the hosting page. See agents/RUST_PREFERENCES.md Section 3.
+- wasm_thread  # Preferred for long-running background workers (std::thread-like API). SharedArrayBuffer-backed; same COOP/COEP requirement. NOTE: do NOT combine with wasm-bindgen-rayon within the same component — both own a Worker pool and will contend for the same SharedArrayBuffer memory and core count at runtime; this is not caught at compile time. See agents/RUST_PREFERENCES.md Section 3.
+- gloo-worker  # Message-passing only (postMessage); no SharedArrayBuffer, no COOP/COEP requirement, no conflict with the other two. May be freely combined with either above when a component's concurrency needs differ.
+
 ## Data & Serialization
 - serde
 - serde_json
