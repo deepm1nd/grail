@@ -157,20 +157,26 @@ WASM" framing that does not reflect this project's actual goals.
     open flagged assumption that blocks that component's Step 5 sign-off, the same as any
     other unresolved feasibility question — Claude does not assume an answer either way and
     move on.
-- **Recommended threading crates and a real compatibility note.** `agents/
-  PREFERRED_DEPENDENCIES.md`'s WASM & Gloo section does not currently list any
-  threading-specific crate. The following are reasonable candidates, ranked by general
-  fit for a web framework wanting threading wherever possible — this is a recommendation
-  list, not a pre-approval; each still requires explicit user approval before being added
-  to `PREFERRED_DEPENDENCIES.md` and treated as part of a plan, per that file's own rule
-  and `AGENTS.md`'s "Dependency and Tool Selection" mandate:
+- **Recommended threading crates — ordered to match this project's stated default, not just
+  general capability.** `agents/exemplars/architecture_specification_template.md` §4.7 and
+  §4.9 establish a specific preference order for this project: **message-passing via Web
+  Workers is the default/preferred model; `SharedArrayBuffer`-based shared-memory threading
+  is an approved exception, used only where message-passing is demonstrably insufficient**
+  (e.g. genuine data-parallel performance needs that copying would defeat). The crate
+  recommendations below are ordered to match that stance — default option first — rather
+  than by raw feature power, since leading with the most capable option would silently
+  contradict the architecture's own stated default. `agents/PREFERRED_DEPENDENCIES.md`'s
+  WASM & Gloo section does not currently list any threading-specific crate; the following
+  are reasonable candidates, not a pre-approval — each still requires explicit user approval
+  before being added to `PREFERRED_DEPENDENCIES.md` and treated as part of a plan, per that
+  file's own rule and `AGENTS.md`'s "Dependency and Tool Selection" mandate:
 
-  | Rank | Crate | Concurrency model | Notes |
+  | Order | Crate | Concurrency model | When to reach for it |
   |---|---|---|---|
-  | 1 | `wasm-bindgen-rayon` | `SharedArrayBuffer`-backed work-stealing pool (rayon API) | Best fit for data-parallel work (parallel iteration over collections); most actively maintained bridge of a familiar native API to WASM. |
-  | 2 | `wasm_thread` | `SharedArrayBuffer`-backed, one Worker per `spawn()` | Closest to a literal `std::thread` shape; better fit for long-running background workers than data-parallel bursts. Less mature than rayon's bridge. |
-  | 3 | `web-sys` raw `Worker`/`SharedArrayBuffer` bindings | Either, fully manual | Not a higher-level crate; the fallback when neither of the above fits a component's interaction pattern, or when message-passing-only is specifically desired for simplicity. Already a transitive dependency of all the others. |
-  | 4 | `gloo-worker` | Message-passing only (`postMessage`), no shared memory | Does not use `SharedArrayBuffer` at all — no COOP/COEP requirement, no Worker-pool contention with the others. Good fit for "delegate this unit of work, get a typed response back." |
+  | 1 (default) | `gloo-worker` | Message-passing only (`postMessage`), no shared memory | Start here for most components. No `SharedArrayBuffer`, no COOP/COEP requirement, no Worker-pool contention with anything else. Good fit for "delegate this unit of work, get a typed response back" — which covers most multithreading needs in a web framework context. |
+  | 2 (exception — data-parallel) | `wasm-bindgen-rayon` | `SharedArrayBuffer`-backed work-stealing pool (rayon API) | Use only when a component has a genuine data-parallel workload (parallel iteration over large collections) where message-passing's copy overhead would be demonstrably insufficient — per the architecture's stated exception criterion, not as a default. Requires the COOP/COEP trigger below to be resolved first. |
+  | 3 (exception — long-running worker) | `wasm_thread` | `SharedArrayBuffer`-backed, one Worker per `spawn()` | Use only when a component needs a genuinely long-running background thread with a `std::thread`-like API and message-passing has been ruled out for the same reason as above. Less mature than rayon's bridge; also requires COOP/COEP. |
+  | 4 (manual fallback) | `web-sys` raw `Worker`/`SharedArrayBuffer` bindings | Either, fully manual | Not a higher-level crate; use only when none of the above fit a component's interaction pattern. Already a transitive dependency of all the others. |
 
   **Compatibility note — these are not mutually exclusive, but two of them conflict at
   runtime if used carelessly together:** `wasm-bindgen-rayon` and `wasm_thread` each want to
@@ -182,9 +188,10 @@ WASM" framing that does not reflect this project's actual goals.
   Section 4 below, Step 5's feasibility check includes confirming that a component does not
   already use one Worker-pool-owning crate before introducing a second. `gloo-worker` has no
   such conflict with either, since it doesn't compete for the same primitive — it may be
-  freely combined with rank 1 or 2 in the same component if their concurrency needs differ
-  (e.g. rayon for parallel computation, gloo-worker for a separate delegate-and-respond
-  task), though this combination should still be confirmed per component, not assumed.
+  freely combined with `wasm-bindgen-rayon` or `wasm_thread` in the same component if their
+  concurrency needs differ (e.g. rayon for parallel computation, gloo-worker for a separate
+  delegate-and-respond task), though this combination should still be confirmed per
+  component, not assumed.
 - **Filesystem/network access in WASM remains browser-mediated**, independent of the
   threading question above: a WASM component (whether on the main thread or in a Worker)
   does not get raw filesystem or socket access — only what the browser exposes (`gloo-net`,
@@ -227,3 +234,4 @@ consistent with `CLAUDE.md` Section 3's propose-with-flagged-assumptions model.
 |---------|------------|---------|
 | 0.1.0   | 2026-06-19 | Initial creation. Naming/keyword constraints, type-system/ownership constraints, and WASM concurrency constraints (corrected to reflect Web Worker-based multithreading as a supported goal, not a limitation, per user direction). |
 | 0.1.1   | 2026-06-19 | Replaced the general COOP/COEP feasibility note with a concrete, blocking trigger condition (flag immediately, ask about deployment model, require a documented fallback or treat as an open assumption blocking sign-off). Replaced the generic dependency-list-gap bullet with a ranked recommended-crates table (`wasm-bindgen-rayon`, `wasm_thread`, raw `web-sys` bindings, `gloo-worker`) and an explicit runtime Worker-pool-ownership conflict note between the top two ranked crates. Updated Section 4's Step 5 summary to name these checks directly. |
+| 0.2.0   | 2026-06-20 | Found and fixed a real conflict during final review: the crate table previously ranked `wasm-bindgen-rayon` (SharedArrayBuffer-based) #1 by general capability, but the now-provided architecture template (§4.7, §4.9) explicitly establishes message-passing via Web Workers as this project's *default*, with `SharedArrayBuffer`-based threading as an *approved exception* only when message-passing is demonstrably insufficient. Reordered the table to lead with `gloo-worker` as the default and reframed the other entries as exception cases, matching the architecture's own stated stance rather than silently contradicting it. |

@@ -53,18 +53,49 @@ packaged, not how many gates there are.
 
 ### 2.1. Templates
 
-`DESIGN.md` references three template files that do not yet exist in this repo:
-- `agents/exemplars/architecture_specification_template.md`
-- `agents/exemplars/development_plan_template.md`
-- `agents/exemplars/development_checklist_template.md`
+All three templates referenced by `DESIGN.md` have been provided and are now the binding
+structure for their respective artifacts:
+- `agents/exemplars/architecture_specification_template.md` (complex/multi-phase Rust variant)
+- `agents/exemplars/development_plan_template.md` (complex/multi-phase Rust variant)
+- `agents/exemplars/development_checklist_template.md` (complex/multi-phase Rust variant)
 
-The user is creating these. Until a template is provided:
-- Claude will structure documents directly from `DESIGN.md`'s own mandates (ISO 42010
-  viewpoints, the 9 requirement-quality criteria, V&V protocol structure, etc.) and state
-  plainly that it is doing so in lieu of a template.
-- Once the user provides a template (pasted, uploaded, or linked), Claude will conform new
-  and *already-produced* documents to it, and will explicitly flag any restructuring this
-  requires as a Major Change per Section 4 of `DESIGN.md`, subject to the same approval gate.
+Claude structures all Architecture Specification, Development Plan, and Development
+Checklist content according to these templates' own section numbering, ID schemes, and
+companion relationships (the Plan and Checklist are explicitly designed to stay in lockstep
+— "exactly one checklist line per task DoD item, no drift" — and Claude maintains that
+lockstep as both evolve together, not as an afterthought reconciliation pass).
+
+**If a future revision changes a template** (pasted, uploaded, or linked), Claude conforms
+new and *already-produced* documents to it, and explicitly flags any restructuring this
+requires as a Major Change per Section 4 of `DESIGN.md`, subject to the same approval gate
+— restructuring is never applied silently to already-approved content.
+
+**Stable ID assignment from first draft.** The templates define specific ID schemes that
+are explicitly designed never to be renumbered once assigned (e.g. `US-[DOMAIN]-NNN` for
+User Stories, `[PROJ]-FUNC-[DOMAIN]-NNNN` for functional requirements, `TEST-NNN` for test
+cases, `THREAT-[DOMAIN]-NNN` for threats, `ADR-NNN` for architecture decisions, `[DOMAIN]-NNN`
+for Plan tasks). Claude assigns a stable ID to every User Story, requirement, test case,
+threat, decision, and task **at first draft**, in Step 2 onward — never deferring ID
+assignment to a later "finalization" pass, since that would force renumbering and break
+traceability links already written into other documents. If an item is later rejected or
+merged during a correction round, its ID is retired (noted as superseded), not reassigned
+to a different item.
+
+**File-split boundaries follow the templates' own section structure, not an invented
+split.** Both the Architecture Specification and Development Plan templates state their own
+top-level sections are natural file-split boundaries with section numbering stable across
+the split. Claude uses *those* boundaries — see Section 4 below — rather than the
+illustrative filenames used earlier in this document's drafting.
+
+**No separate Requirements & Traceability document exists.** Confirmed by explicit user
+direction: this engagement produces exactly 3 artifacts (Spec, Plan, Checklist), never 4.
+The exemplar templates have been corrected accordingly — the Development Plan template's §0
+no longer lists a separate "Requirements & Traceability Backfill" row; its project note and
+§15's Definition-of-Done checks, and the Checklist template's Final Verification checks, all
+point directly at **Architecture Specification §3 (Acceptance Criteria & Traceability)** as
+the sole, authoritative traceability source. If a future template revision reintroduces
+language implying a separate traceability file, Claude will flag it rather than silently
+generating a document outside this engagement's scope.
 
 ### 2.2. Rust-Specific Constraints on Document Content
 
@@ -257,6 +288,22 @@ this engagement's multi-file scope.
   Story maps to a requirement; every requirement is atomic; no previously approved content
   was elided, summarized, or replaced with a "see previous version" reference; no logical
   gaps exist that could lead to stubbed/partial implementation downstream.
+- **Step 8 includes an environment/configuration elicitation sub-step before drafting the
+  Plan.** The Development Plan template's §4 (Environment & Prerequisites Setup) and §5
+  (Development & Test Configuration) require concrete facts about the user's actual
+  environment — installed toolchains, available local infrastructure, CI setup, existing
+  config conventions — that nothing in Steps 1–7 elicits, since those steps are about *what*
+  the system does, not *where/how it gets built*. Before drafting the Plan's §4/§5 content,
+  Claude:
+  - Asks the user directly for the concrete environment facts those sections require, rather
+    than inferring plausible-sounding defaults (e.g. assuming a specific OS, CI provider, or
+    local service setup the user never confirmed).
+  - Where the user hasn't specified something and a reasonable default exists (e.g. a
+    standard `cargo` workspace layout), Claude proposes the default and flags it as an
+    assumption needing confirmation — same propose-with-flagged-assumptions pattern as
+    Steps 1–5 — rather than silently asserting it as fact in the Plan.
+  - This sub-step happens once per Plan, not once per phase, since the environment is a
+    property of the project, not of an individual phase.
 - **Clarification ≠ approval.** If the user's reply to a gate is a question or a request
   for a change, Claude treats that as feedback to incorporate, then re-presents the revised
   output for approval again — it does not treat the reply itself as a green light to proceed.
@@ -291,26 +338,58 @@ ready for a given gate and spans multiple files:
 
 - **All files for one artifact are assumed to live in the same flat directory.**
   No subfolder nesting is assumed in the links below unless the user changes this.
-- **File naming** uses a numeric prefix + short slug, e.g.:
-  - `01_architecture_overview.md`
-  - `02_functional_viewpoint.md`
-  - `03_information_viewpoint_data_dictionary.md`
-  - `04_deployment_viewpoint.md`
-  - `05_interface_control_document.md`
-  (Actual names will be finalized once the real section breakdown is known — this is
-  illustrative, not committed.)
+- **File-split boundaries follow the templates' actual top-level sections, not an invented
+  scheme.** Both templates state their own top-level sections are natural file-split
+  boundaries with section numbering stable across the split. Grouped toward the 3–5 file
+  target (rather than one file per section, which would overshoot it), the default split is:
+
+  **Architecture Specification** (11 template sections → 4 files):
+  - `01_architecture_overview.md` — §1 Introduction, §2 Product & User Requirements,
+    §3 Acceptance Criteria & Traceability
+  - `02_architecture_viewpoints.md` — §4 System Architecture (all four ISO 42010
+    viewpoints: Functional, Information/Data Dictionary, Deployment, Interface Control) —
+    by far the largest section in the template, and likely to be the largest file on its
+    own; if it alone exceeds what's reasonable for one file, Claude will flag this and
+    propose splitting it into its own sub-set (e.g. one file per viewpoint) rather than
+    silently overrunning the 1000+ line target without saying so.
+  - `03_architecture_interfaces_and_stack.md` — §5 External Interfaces & Integrations,
+    §6 Technology Stack & Dependencies (including §6.5 CI/CD Pipeline)
+  - `04_architecture_constraints_and_roadmap.md` — §7 Constraints & Assumptions,
+    §8 Risks & Technical Debt, §9 Implementation Roadmap & Build Order, §10 Public API &
+    Framework Consumer Contract, §11 Appendices
+
+  **Development Plan** (15 template sections → 4 files):
+  - `01_plan_overview.md` — §0 Architecture Cross-Reference, §1 Introduction,
+    §2 Technology Stack, §3 Project Folder Structure
+  - `02_plan_environment_and_phases.md` — §4 Environment & Prerequisites Setup,
+    §5 Development & Test Configuration, §6 Phases and Milestones
+  - `03_plan_tasks_and_testing.md` — §7 Risk Management & Mitigation, §8 Task
+    Decomposition, §9 Test Strategy & Plan, §10 Logging Strategy
+  - `04_plan_protocols_and_dod.md` — §11 Session Handoff Protocol, §12 Abort/Rollback
+    Protocol, §13 Escalation Triggers, §14 Change Control for This Plan, §15 Plan-Level
+    Definition of Done
+
+  This grouping is a starting proposal, not fixed in stone — Claude will revisit it once
+  real content volume per section is known (Step 6 for the Spec, Step 8 for the Plan) and
+  flag if a different grouping serves the 1000+-line/3–5-file target better, rather than
+  forcing content into a grouping decided before any content existed.
 - **The first file in each set acts as an index/entry point.** It contains a short overview
   and a linked table of contents to every other file in the set, using relative Markdown
-  links (e.g. `[Functional Viewpoint](./02_functional_viewpoint.md)`), since all files are
-  assumed co-located.
+  links (e.g. `[Architecture Viewpoints](./02_architecture_viewpoints.md)`), since all files
+  are assumed co-located.
 - **Every other file links back to the index file** near the top (e.g. a breadcrumb line:
   `← [Back to Architecture Specification Index](./01_architecture_overview.md)`), and
   **links forward/sideways to adjacent or referenced files** wherever it makes a substantive
-  cross-reference (e.g. the Interface Control file linking to the specific Data Dictionary
-  entries it depends on, not just to the index).
-- **Cross-links are based on actual content dependency, not just sequence.** If
-  Section 4 of the ICD references a type defined in the Data Dictionary, that's a direct
-  link to that file (and ideally that section/anchor), not just "see index."
+  cross-reference (e.g. the Roadmap section in `04_architecture_constraints_and_roadmap.md`
+  linking to the specific requirement it implements in `01_architecture_overview.md`, not
+  just to that file's top).
+- **Cross-links are based on actual content dependency, not just sequence.** If the
+  Interface Control viewpoint references a type defined in the Information/Data Dictionary
+  viewpoint — both currently grouped within `02_architecture_viewpoints.md` per the split
+  above — that's an in-file anchor link to the specific section, not a cross-file link;
+  cross-*file* links are used where the dependency actually crosses the file boundary (e.g.
+  a Roadmap item in `04_architecture_constraints_and_roadmap.md` referencing a specific
+  requirement defined in `01_architecture_overview.md`'s Acceptance Criteria section).
 - **Anchors** use standard Markdown heading-derived anchors (e.g. `#3-2-data-types`) so
   cross-file links can point at a specific section, not just the top of a file.
 - This same convention applies independently to the Development Plan's file set (its own
@@ -371,3 +450,7 @@ revises documents during this phase:
 | 0.1.5   | 2026-06-19 | Added Step 1 (Concept Intake) propose-with-flagged-assumptions treatment; added notation-judgment flagging to Step 6; added explicit backtracking mechanism bullet (naming originating step, user choice between local patch vs. re-open, additive preservation of later approved work); fixed a broken line wrap in Step 5; tightened Section 6's naming-convention note. |
 | 0.1.6   | 2026-06-19 | Added Section 2.2 referencing new `agents/RUST_PREFERENCES.md`, which captures Rust naming/keyword constraints, type-system/ownership constraints, and WASM/Web Worker concurrency constraints — including correcting an earlier "no threads in WASM" framing to reflect that this project specifically supports multithreading via Web Workers wherever possible, on both native and WASM targets. |
 | 0.1.7   | 2026-06-19 | Synced Section 2.2's Step 5 summary with `RUST_PREFERENCES.md` v0.1.1's now-concrete COOP/COEP trigger condition and Worker-pool-ownership conflict check. |
+| 0.2.0   | 2026-06-20 | Integrated the now-provided exemplar templates (architecture spec, development plan, development checklist — complex/multi-phase Rust variant): updated Section 2.1 from placeholder to confirmed-templates state; added stable-ID-from-first-draft rule; replaced the illustrative file-split in Section 4 with one derived from the templates' actual top-level sections; clarified that the Plan template's "Requirements & Traceability" references mean Architecture Spec §3, not a 4th document; added a Step 8 environment/configuration elicitation sub-step to source the Plan's §4/§5 content. |
+| 0.2.1   | 2026-06-20 | Per explicit user confirmation, removed the leftover "Requirements & Traceability Backfill" row from the Plan template's §0 table (previously only annotated around); updated Section 2.1 to describe the corrected state rather than an ongoing flag-and-annotate behavior. |
+| 0.2.2   | 2026-06-20 | Final review pass against all provided templates: fixed a stale Section 4 cross-link example still describing the pre-grouping one-file-per-viewpoint scheme; found and helped resolve a real default-vs-exception drift between `RUST_PREFERENCES.md`'s threading-crate ranking and the architecture template's explicit "message-passing is default, `SharedArrayBuffer` is an approved exception" stance (see `RUST_PREFERENCES.md` v0.2.0 and `PREFERRED_DEPENDENCIES.md` updates). No other content issues found across CLAUDE.md, RUST_PREFERENCES.md, PREFERRED_DEPENDENCIES.md, or the three exemplar templates. |
+| 0.2.3   | 2026-06-20 | Gap-finding pass (missing content categories, not consistency): per user direction, architecture template gained §6.5 CI/CD Pipeline, a new top-level §10 Public API & Framework Consumer Contract (SemVer/MSRV/consumer DX — framework-specific, not covered by an application-oriented template), and a Migration Safety & Rollback Policy addition to §4.5. Former §10 Appendices renumbered to §11. Updated Section 4's Architecture Specification file-split grouping (now 11 sections → still 4 files) to fold the new §10 into file 4 alongside §7–§9 and the renumbered §11. |
