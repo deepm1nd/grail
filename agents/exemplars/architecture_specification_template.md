@@ -152,9 +152,41 @@ multi-target Rust component — native/WASM/mobile), Interoperability, Complianc
 ### 2.5. Out-of-Scope Features
 (Explicitly enumerate what this system does NOT do, especially anything a reader might
 reasonably assume is in scope given the problem statement. Each out-of-scope item should state
-*why* — deferred to a later version, owned by a different system, not validated as a real need —
-distinguishing "we decided not to" from "we haven't decided yet," since the latter is an open
-question that belongs in §7.3 Assumptions or as an explicit escalation, not a quiet omission.)
+*why* it is excluded — owned by a different system, not validated as a real need, or rejected
+outright — distinguishing "we decided not to, ever" from "we haven't decided yet" (the latter is
+an open question that belongs in §7.3 Assumptions or as an explicit escalation, not a quiet
+omission) and from "we want this, just not now" (which belongs in §2.6 Future Features below,
+not here — an item the project actually wants is not the same as one it has rejected, even
+though both are excluded from the current build).
+
+### 2.6. Future Features (Deferred Scope)
+**MANDATE:** any feature, User Story, or requirement the user explicitly indicates should be
+deferred — built in a future version rather than the current one, including but not limited to
+an MVP's excluded-for-now scope — is recorded here, not silently dropped from the document and
+not merged into §2.5's Out-of-Scope list. The distinction matters operationally: an Out-of-Scope
+item is something this architecture does not address at all; a Future Features item is something
+the user wants, with intent, just not in the build this Design Phase pass is producing — losing
+that distinction means a real future commitment looks identical to a rejected idea, and the
+former is exactly the kind of thing a later session or a different team needs to be able to find
+without re-deriving it from a chat transcript.
+
+For each deferred item, record:
+- **Originating ID, if any:** the User Story or Requirement ID it was deferred from, if it had
+  already been assigned one before deferral (per the stable-ID rule — an ID already assigned is
+  never reassigned to something else just because its item moved here).
+- **What it is:** a description sufficient for a future session to act on without re-deriving
+  context from this Design Phase's conversation — the same sufficiency bar as the rest of this
+  document, not a one-line placeholder.
+- **Why it was deferred:** the stated reason (e.g. "out of MVP scope; revisit post-launch,"
+  "depends on infrastructure not yet built," "wanted, but lower priority than Core scope").
+- **Any dependency or precondition** for revisiting it, if known (e.g. "requires the
+  multi-tenant work in [ADR-NNN] to land first").
+
+This section is additive-only across Design Phase sessions, consistent with `AGENTS.md`
+§2.1's content-preservation rules — items are appended here as they're identified; an item
+already recorded here is not silently removed in a later pass, only explicitly promoted into
+current scope (and removed from here) or explicitly dropped (moved to §2.5) by direct user
+instruction.
 
 ---
 
@@ -528,6 +560,56 @@ explicitly rather than leaving this section silently empty.)
   alerting thresholds, and distributed tracing strategy if the system spans multiple components.
 
 
+### 4.15. Deferred Implementation Alternatives (Noted, No Commitment)
+> Distinct from §4.11's ADR "Paths Not Taken" field: an ADR's rejected paths are closed —
+> reversing them costs real rework. The alternatives recorded here are not rejected at all;
+> they were credible at the decision point and may genuinely be adopted later, but nothing
+> about the current implementation is built to make that swap easier than building it fresh
+> would be. This subsection exists so that choice doesn't get re-derived from scratch in a
+> future session, not because the architecture commits to anything about it now. (Contrast
+> with §4.16, where the architecture *does* commit to an extension point.)
+
+Sub-grouped by the requirement, topic, or assumption that triggered the choice — not as one
+flat list — so a future reader filtering by a specific requirement ID finds everything
+relevant to it in one place.
+
+#### Originating: `[REQ-ID or topic]`
+- **Decision point:** what was being chosen (e.g. "search algorithm for [component]").
+- **Option taken:** the option implemented now, briefly, with a pointer to where it's
+  specified in full (the relevant Functional/Process View subsection).
+- **Option(s) deferred, noted only:** each deferred option, with the analysis already done
+  at decision time (why it's credible, what it would cost or gain versus the chosen option)
+  so a future session can pick this back up without re-analyzing from zero.
+- **Revisit trigger, if known:** what would prompt reconsidering this (e.g. "if profiling
+  shows the chosen approach is a bottleneck under [condition]") — optional, but valuable
+  where the trigger is already foreseeable.
+
+### 4.16. Deferred Implementation Alternatives (Extensibility Commitment Required)
+> The stronger case: the user wants to ship one option now while ensuring the others can be
+> added or swapped in later **without rearchitecting** — meaning the current implementation
+> must expose a real extension point today, even though only one variant ships today. This
+> is an actual requirement on the current implementation, not a note for later, and MUST be
+> reflected as such in §4.4 (Functional View) and/or §4.9 (Rust-Specific Architectural
+> Conventions, e.g. a trait boundary) wherever the chosen implementation is specified —
+> this subsection is the index that ties the commitment back to its originating decision; it
+> is not a substitute for specifying the extension point itself where the code-level design
+> actually lives.
+
+Sub-grouped by the requirement, topic, or assumption that triggered the choice, same as §4.15.
+
+#### Originating: `[REQ-ID or topic]`
+- **Decision point:** what was being chosen.
+- **Option taken (shipped now):** the option implemented now, with a pointer to its full
+  specification.
+- **Option(s) deferred, with extension point required:** each deferred option, plus the
+  **specific extension mechanism** the current implementation must expose to support adding
+  it later (e.g. "implemented behind a `[TraitName]` boundary so an alternative strategy can
+  be substituted without changing callers" — name the actual trait/interface if it's already
+  decided, or state that naming it is a precondition of closing this entry).
+- **Where the commitment is specified:** cross-reference to the exact §4.4/§4.9 location
+  where the extension point is actually defined — an entry here with no such cross-reference
+  is incomplete; the commitment must exist somewhere real, not only as a note in this index.
+
 ---
 
 ## 5. External Interfaces & Integrations
@@ -713,7 +795,10 @@ concrete step list, so the *reasoning* survives even if the concrete list needs 
 (If this system is delivered in stages — an MVP exit criterion, a beta milestone, a GA
 definition-of-done — state each milestone and which Build Order steps it requires. This is the
 architecture-level statement of "done"; the Development Plan's own Plan-Level Definition of Done
-governs the *planning documents'* completeness, a related but distinct concept.)
+governs the *planning documents'* completeness, a related but distinct concept. If a later
+milestone is expected to bring in items currently sitting in §2.6 Future Features, name them
+explicitly here rather than leaving the connection implicit — this is what makes §2.6 something
+this document actually acts on later, not just a place deferred ideas quietly accumulate.)
 
 ---
 
@@ -834,5 +919,7 @@ a reader can scan for relevance before opening the full record.)
 | Version | Date | Author | Changes |
 |---|---|---|---|
 | 0.2.00  | 2026-06-20 | Claude | Added §6.5 (CI/CD Pipeline) and a new top-level §10 (Public API & Framework Consumer Contract: SemVer/breaking-change policy, MSRV policy, consumer-facing rustdoc/examples conventions) per gap-finding review. Renumbered former §10 Appendices to §11 (and its subsections 10.1–10.4 to 11.1–11.4) to accommodate the new top-level section without disturbing §1–§9's existing numbering or any of their internal cross-references. Added a Migration Safety & Rollback Policy subsection to §4.5, distinct from the existing migration-ordering content, covering rollback of a deployed service version after a migration has already run. |
+| 0.2.01  | 2026-06-20 | Claude | Added §2.6 Future Features (Deferred Scope), distinct from §2.5 Out-of-Scope Features: records items the user wants but has explicitly deferred to a future version, with originating ID, description, deferral reason, and any revisit precondition — additive-only across sessions. Tightened §2.5's own language to distinguish "rejected outright" from "deferred" (now routed to §2.6) from "not yet decided" (routed to §7.3/escalation), since the prior wording listed all three as one undifferentiated bucket. Added a cross-reference from §9.3 Phased Delivery Milestones to §2.6, so a later milestone explicitly names which deferred items it brings back into scope. |
 | 0.1.01  | 2026-06-20 | Claude | Fixed a stale `development_plan_template_complex.md` filename reference in the header note (actual companion file is `development_plan_template.md`); updated the same note's mention of a "Requirements & Traceability Backfill artifact" to reflect that no separate traceability document is produced — §3 of this document is the sole, authoritative traceability source, consumed directly by the Plan template's §0. |
 | 0.1.00  | YYYY-MM-DD | [author] | Initial creation of complex/multi-domain Rust variant, extending the base `architecture_specification_template.md` with: Solution Strategy, Security Architecture & Threat Model (STRIDE), Rust-Specific Architectural Conventions, promoted Technology Stack & Dependencies, promoted Architecture Decision Records with mandatory Paths-Not-Taken field, Risks & Technical Debt, Implementation Roadmap & Build Order, Configuration Reference, Quality Attribute Scenarios (stimulus/response NFR format), and the 9 Requirement Quality Criteria / Rust-specific Requirement Smells self-check tables. |
+| 0.2.02  | 2026-06-20 | Claude | Added §4.15 Deferred Implementation Alternatives (Noted, No Commitment) and §4.16 Deferred Implementation Alternatives (Extensibility Commitment Required), both sub-grouped by originating requirement/topic/assumption ID, per user direction covering implementation-choice deferral (e.g. algorithm or parameter-strategy selection) distinct from feature-level Future Features (§2.6). §4.15 is a pure record for re-derivation avoidance; §4.16 is a real requirement on the current implementation (an extension point that must be specified in §4.4/§4.9, not just noted here) — explicitly distinguished from each other and from §4.11 ADR's "Paths Not Taken," which records closed/rejected paths rather than intentionally-kept-open ones. |

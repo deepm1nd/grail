@@ -180,19 +180,105 @@ this engagement's multi-file scope.
   - Claude drafts a full candidate batch of User Stories directly from the approved Pass 1
     output — organized by actor/persona and by theme (happy path, edge case, error/failure
     state, admin/operational, etc.) — and presents the whole batch at once, numbered for
-    easy reference.
-  - The user reviews the batch in bulk: striking stories that don't apply, editing ones that
-    are close but wrong, confirming ones that are right, and adding any Claude missed.
-  - After incorporating the user's corrections, Claude explicitly asks whether anything is
-    still missing — preserving the spirit of `DESIGN.md`'s "any more to capture?" check —
-    and treats the **user's confirmation, not Claude's own sense of coverage, as the actual
-    completeness signal.** Claude does not declare the set "sufficient" on its own judgment.
-  - This loop (propose batch → user corrects → confirm completeness) may repeat more than
-    once if the user's corrections reveal a substantially different shape to the problem
-    than the first batch assumed.
-  - This replaces strict one-story-at-a-time dictation, but preserves the underlying
-    guarantee `DESIGN.md` is protecting: every story is individually visible and
-    individually confirmed or rejected by the user before the set is treated as final.
+    easy reference. Where drafting a story required inferring something Pass 1 didn't
+    actually state (a persona's specific need, an edge case's exact boundary), Claude
+    attaches that as a flagged assumption on the story, per the same flagged-assumption
+    principle used in Steps 1, 3, 4, and 5 — not every story will carry one.
+  - Review and resolution of this batch — both the story-level pass and the
+    assumption/deferred/ambiguous-item closing passes that follow it — are governed by the
+    **Grouped Closing Protocol**, defined immediately below, which applies to Step 2 and to
+    the analogous batch-producing loop in every subsequent step (Steps 3-8).
+
+### Grouped Closing Protocol (Step 2 and subsequent Steps)
+
+This protocol governs how Claude closes out a batch produced by Step 2's User Story
+elicitation, and by the analogous batch-producing work in Steps 3 through 8 (requirement
+decomposition batches, test-identification batches, tool/dependency-choice batches, etc.).
+It replaces strict one-item-at-a-time dictation, but preserves the underlying guarantee
+`DESIGN.md` is protecting: every item is individually visible and individually confirmed or
+rejected by the user before the set is treated as final.
+
+**Grouping.** Claude organizes the full batch into groups at draft time (e.g. by
+actor/persona and theme for User Stories; by sub-topic for requirements or test cases) —
+grouping is decided once, up front, not discovered incrementally as items are resolved.
+
+**Per group, in order, the following stages run in sequence — Claude does not move to the
+next group until the current group's stages are settled:**
+
+1. **Pass A — item-level review (batch content itself).** Claude presents this group's
+   batch of items (e.g. User Stories) as plain numbered text. The user reviews in bulk:
+   striking, editing, confirming, or adding items. This settles *which items exist and in
+   what form* for this group — it does not yet require resolving any attached assumptions.
+2. **Stage 1 — Assumption table.** Claude presents a table for this group: **Item —
+   Choices — Recommendation**, covering every flagged assumption still attached to a
+   surviving item from Pass A (an item struck in Pass A drops its assumption automatically).
+   The user responds in bulk text: striking/editing/confirming entries, or naming specific
+   items to see the analysis for (e.g. "show me the analysis for items 6, 9, and 13").
+   - For each item the user named, Claude presents that item's full analysis and
+     recommendation, then poses a selectable-options question for it — **without an
+     "analysis" option of any kind, since the analysis was just given as the reason the
+     question exists; offering to provide what is already being provided is a dead,
+     confusing option, not rigor.** The question keeps Defer (a live, distinct outcome:
+     "I still don't want to decide this even with the analysis in hand") and the
+     substantive choices, recommendation listed first and labeled, per Section 5's standing
+     convention minus the analysis option specifically.
+   - Anything resolved through bulk text is done. Anything still open after this round
+     (explicitly Deferred, or still ambiguous despite the individual round) **flows forward
+     into Stage 2 — it is not held back or re-litigated within Stage 1.**
+3. **Stage 2 — Deferred-items table.** Once Stage 1 is as resolved as it will get, Claude
+   presents a separate table (visually distinct from Stage 1's, not merged into it) of
+   items explicitly marked Defer — from this group's bulk replies or individual rounds, in
+   Stage 1 or carried in from elsewhere. Same pattern as Stage 1: bulk resolution first,
+   then individual analysis+selectable-options (no analysis option) for whatever remains,
+   with leftovers flowing forward into Stage 3.
+4. **Stage 3 — Remaining-ambiguous table.** Once Stage 2 is as resolved as it will get,
+   Claude presents a separate table of items still ambiguous after Stages 1-2. Same
+   bulk-then-individual pattern. Whatever is still unresolved after this stage is the
+   genuine residue carried into end-of-loop/end-of-step handling (e.g. genuinely
+   unresolved Defers that get revisited per Section 5's standing Defer mechanism, at the
+   appropriate later step).
+5. **Next group.** Once Stage 3 is settled for the current group, Claude moves to the next
+   group and restarts at Pass A (or, for steps without a Pass-A-equivalent batch-content
+   review, at Stage 1 directly).
+
+**Completeness signal.** After the last group's Stage 3 is settled, Claude asks explicitly
+whether anything is still missing from the batch as a whole — the user's confirmation, not
+Claude's own sense of coverage, is what closes the loop, consistent with Section 5's general
+completeness rule.
+
+**Early resolution exception (carried from the original Pass A/Pass B design).** If the
+user's Pass A (or equivalent) reply explicitly resolves an item's flagged assumption
+alongside a content-level edit — not merely touching the item incidentally, but stating the
+assumption's answer directly (e.g. "keep #4, and yes 30 minutes is correct") — Claude does
+not re-present that resolved assumption in Stage 1; re-asking something already explicitly
+answered is friction, not rigor. This exception is narrow: if the edit resolves the original
+assumption but introduces a *new* one in its place, the new assumption still goes through
+Stage 1 — only assumptions actually, explicitly settled are skipped.
+
+**Bulk-reply pattern, applied at every bulk-text point above.** The user has three ways to
+respond to a bulk-text table, and Claude follows whichever is actually given:
+- **A single covering reply** (e.g. "all accepted") resolves every entry in that table at
+  once — Claude does not ask for item-by-item confirmation after a clear blanket statement.
+- **A bulk reply addressing some items** resolves exactly those addressed; the rest remain
+  open for that stage's individual round.
+- **An explicit request to review individually** (without naming specific analysis-requested
+  items first) is Claude's signal to move straight to the individual round for the whole
+  table, skipping further bulk-text attempts for it.
+Claude never switches to individual treatment on its own initiative, and never treats an
+ambiguous bulk reply as an automatic trigger for it — an ambiguous reply gets a plain
+clarifying question first, per this document's "Clarification ≠ approval" rule below and
+`AGENTS.md` §3.1's Formal Approval Protocol.
+
+**Expected list size at each individual round.** Bulk resolution is expected to shrink each
+stage's list enough that the individual round covers only a handful of items — this is an
+expectation, not a hard rule; if a stage doesn't shrink much, the individual round still
+runs against whatever remains rather than being artificially capped.
+
+**Interactive format generally.** Aside from the no-analysis-option rule for these specific
+individual rounds (above), the standing convention in Section 5 (mandatory pre-analysis,
+recommendation-first and labeled, the Defer option, the tool-capacity fallback ladder, and
+the 3+-options rarity flag) applies to every selectable-options question this protocol uses.
+
 - **Step 3 uses a propose-with-flagged-assumptions model, splitting decomposition mechanics
   from content correctness.** These are different axes: whether a requirement is *atomic,
   unambiguous, verifiable*, etc. is checkable against the 9 criteria almost mechanically, and
@@ -328,6 +414,148 @@ this engagement's multi-file scope.
 - **Major Changes are flagged explicitly**, by name, the moment Claude recognizes one
   resulting from any iteration — not just backtracking — and not buried in a diff or
   folded silently into the next deliverable.
+- **Scope decisions are a three-way question, not a binary one.** Whenever a feature, User
+  Story, or requirement's inclusion is being discussed — including but not limited to MVP
+  scoping — "is this in scope" has a real third answer beyond yes/no: the user may want it,
+  just not in this build. Claude does not collapse that into a plain exclusion. Concretely:
+  - When the user indicates something should be excluded from current scope, Claude asks
+    directly which of two things is meant: **not wanted at all** (belongs in Architecture
+    Spec §2.5, Out-of-Scope Features) versus **wanted, just deferred to a future version**
+    (belongs in §2.6, Future Features) — Claude does not guess between these, since they
+    have materially different downstream handling and an unflagged wrong guess here is the
+    same category of error this entire framework exists to prevent.
+  - Once the answer is "deferred," Claude records the item in Architecture Spec §2.6
+    per that section's own recording mandate (originating ID if one exists, a sufficient
+    description, the stated reason for deferral, and any known dependency/precondition) —
+    not just a one-line mention in conversation that never makes it into a durable document.
+  - If the user has already clearly stated which of the two is meant in the same message
+    that raises the exclusion (e.g. "let's defer that to v2"), Claude does not ask the
+    question redundantly — it records the answer already given, consistent with the
+    Grouped Closing Protocol's early-resolution exception (Section 3's note on Step 2).
+  - **Category-specific default: feature/story-level stackable or incremental scope
+    choices.** When a selectable-options question is a choice among stackable/incremental
+    *feature* levels (commonly an MVP-floor decision about what the product does), Claude
+    defaults the **unchosen, richer feature levels to Future Features (§2.6)** rather than
+    asking the three-way question fresh each time — the shape of this category of choice
+    ("ship the simpler feature now") usually implies the richer level was sequenced later,
+    not rejected on merits. This default is stated explicitly in the same response, not
+    applied silently (e.g. "the richer level will be recorded in Future Features unless
+    you'd rather drop it entirely"), and the user can override it in the same reply (e.g.
+    "actually, drop that entirely") — at which point Claude routes it to §2.5 Out-of-Scope
+    instead. This default is for genuine feature/product-scope choices only — it does not
+    cover implementation-level choices (see the next bullet), and does not change the
+    general three-way question for scope exclusions arising any other way.
+  - **Implementation-level choices (algorithm, parameter strategy, and similarly-shaped
+    assumption clarification) are a distinct category, with their own destination and their
+    own analysis obligation.** A choice of *algorithm* or *implementation strategy* for an
+    already-in-scope requirement is not a feature/scope decision at all — the requirement is
+    in scope either way; what's being decided is *how* to satisfy it. Routing a deferred
+    algorithm to §2.6 Future Features would misrepresent it as a product feature rather than
+    an implementation choice, so this category routes instead to the Architecture
+    Specification's **§4.15 (Deferred Implementation Alternatives — Noted, No Commitment)**
+    or **§4.16 (Deferred Implementation Alternatives — Extensibility Commitment Required)**,
+    which are explicitly distinct from each other:
+    - **Claude actively weighs both destinations as part of the analysis itself, not only
+      after the user has already picked an option.** When a question presents a simpler
+      option alongside one or more more-complex alternatives, Claude's pre-analysis (per
+      Section 5's mandatory-analysis rule) explicitly considers whether "ship the simple
+      option, but commit to an extension point so the complex one can be added later
+      without rearchitecting" is itself a candidate path — not merely something to file
+      away once the user has separately chosen the simple option. This matters most, and is
+      not optional to skip, whenever one of the options under consideration has a real scope
+      or implementation-effort impact (e.g. the complex option would require a different
+      data flow, a new dependency, or a structural change if bolted on later rather than
+      planned for) — in exactly that situation, the cost of bolting it on later versus
+      committing a cheap extension point now is itself one of the tradeoffs the analysis
+      must weigh and surface, not an afterthought.
+    - If the user defers an alternative with **no request that it remain easily addable
+      later**, it goes to §4.15 as a pure record (the analysis already done, so a future
+      session doesn't re-derive it from scratch).
+    - If the user defers an alternative **wanting to ensure it can be added or swapped in
+      later without rearchitecting**, it goes to §4.16, and Claude treats the required
+      extension point as a real requirement on the current implementation — it must
+      actually be specified in §4.4 (Functional View) and/or §4.9 (Rust-Specific
+      Architectural Conventions), not merely noted in §4.16's index. Claude asks which of
+      these two is meant when it isn't already clear from how the user phrased the
+      deferral, the same way the feature-level default above asks rather than guesses
+      whenever genuinely ambiguous.
+    - Each entry is sub-grouped by its originating requirement/topic/assumption ID, per
+      §4.15/§4.16's own structure — Claude does not let these accumulate as a flat,
+      unsorted list.
+- **Standing convention for the selectable-options interaction.** Wherever Claude uses the
+  selectable-options/multiple-choice tool anywhere in this workflow (a genuinely discrete
+  choice — see Section 3's note on Step 2 for what does *not* qualify), the following apply
+  to every use, not just specific steps:
+  - **Tool-capacity constraint, checked before applying the rest of this convention.** The
+    underlying tool allows at most 4 options per question. Defer and "Provide analysis and
+    recommendation" (below) are both meant to be standing, always-present options — but 2
+    standing options plus 3 or more substantive choices would exceed that ceiling. When a
+    question genuinely has 3 substantive options, Claude drops "Provide analysis and
+    recommendation" from the option list itself (keeping Defer, since declining to decide
+    now is more often needed than declining to decide ever) and instead **states the
+    analysis inline as part of the question's framing text**, immediately before the
+    substantive options are listed — the user gets the same analysis either way; only its
+    delivery mechanism (a selectable option vs. framing text) changes based on how much
+    room the question has left. When a question has 4 or more substantive options, even
+    Defer alone would exceed the ceiling; in that case Claude first tries to consolidate the
+    options to 3 or fewer genuinely distinct choices (4+ live alternatives is often a sign
+    the question itself is underspecified, not that it truly needs that many branches) and
+    only if that consolidation is not honestly possible does Claude fall back to plain text
+    for that question instead of the tool, stating the analysis and recommendation inline
+    and noting that Defer is still available by saying so in reply. The mandatory
+    pre-analysis requirement below applies in full regardless of which delivery mechanism
+    is used.
+  - **This is expected to be rare, and Claude flags it explicitly when it happens, rather
+    than letting it pass as an unremarked default.** Most apparent 3+-option questions
+    should collapse to 2 genuine choices once the mandatory analysis actually weighs
+    correctness, feasibility, and maintenance cost — a "3rd option" surviving real scrutiny
+    is the exception, not the norm, and an unflagged pattern of frequent 3+-option
+    questions would suggest the analysis isn't being done rigorously rather than that the
+    underlying decisions are genuinely that open. Whenever 3 or more substantive options
+    survive the analysis, Claude says so directly and briefly (e.g. "this is one of the
+    rarer cases where the tradeoff is genuinely three-way, not just unresolved") so the user
+    can distinguish a true fork — most commonly an architectural tradeoff with no dominant
+    option (e.g. performance vs. compatibility vs. simplicity) where the right answer
+    depends on a priority only the user can weigh — from Claude having simply failed to
+    narrow the question properly.
+  - **Claude performs a real comparative analysis before presenting the question, every
+    time — not only when the analysis option is selected.** Before building the question,
+    Claude works out the actual pros/cons of the substantive options and arrives at a
+    recommendation from that analysis, rather than picking a recommendation first and
+    rationalizing it afterward only if asked. This is required unconditionally; the
+    analysis option below makes that pre-existing work *visible* to the user on request, it
+    does not create the obligation to do the work in the first place. **Exception:** the
+    Grouped Closing Protocol's individual-item rounds (Section 3's note on Step 2) omit the
+    analysis option entirely, since by that point the analysis has already been shown as the
+    explicit reason the item reached individual treatment — offering to provide what's
+    already provided is dead weight, not rigor. That exception is local to this specific
+    situation and does not relax the unconditional analysis requirement itself.
+  - **Claude's recommended option is listed first (option #1), and is explicitly labeled as
+    Claude's recommendation**, reflecting the analysis above — position alone never implies
+    endorsement silently; the label makes clear that #1 reflects Claude's judgment, which
+    the user is free to override, not a ranking of objective correctness. This matters here
+    specifically because most questions reach this interaction *because* the answer depends
+    on something only the user knows — listing a recommendation first is a convenience, not
+    a claim that Claude's guess is more likely right than the alternatives.
+  - **A standing "Defer" option is included** alongside the substantive choices. Selecting
+    it means: don't answer this now. Claude records the deferred item so nothing has to be
+    re-derived later. Resolution of deferred items happens via the **Grouped Closing
+    Protocol's Stage 2** (see Section 3's note on Step 2) — a per-group, visually distinct
+    table, resolved bulk-first with individual treatment only on explicit request — not via
+    an ad hoc, engagement-wide list reviewed informally. A deferred item is never simply
+    dropped — it is resolved or explicitly re-deferred to a specific later step where it's
+    more naturally resolved (e.g. a tooling question more naturally answered once Step 5
+    feasibility is being checked), never silently lost.
+  - **A standing, fixed-last option, labeled "Provide analysis and recommendation," is
+    always the final choice in the list.** Selecting it does not answer or close the
+    question — it surfaces the comparative analysis Claude already performed while building
+    the question (per the first bullet above) — the substantive options' pros/cons, plus
+    Claude's recommendation and the reasoning behind it — and then **re-presents the same
+    selectable-options question**, including Defer and this option again, so the user can
+    now choose with that analysis in hand. This option can be selected more than once in a
+    row if the first pass didn't fully resolve the user's uncertainty, though Claude should
+    note if a repeated request suggests the question itself needs reframing rather than
+    another round of the same analysis.
 
 ---
 
@@ -454,3 +682,13 @@ revises documents during this phase:
 | 0.2.1   | 2026-06-20 | Per explicit user confirmation, removed the leftover "Requirements & Traceability Backfill" row from the Plan template's §0 table (previously only annotated around); updated Section 2.1 to describe the corrected state rather than an ongoing flag-and-annotate behavior. |
 | 0.2.2   | 2026-06-20 | Final review pass against all provided templates: fixed a stale Section 4 cross-link example still describing the pre-grouping one-file-per-viewpoint scheme; found and helped resolve a real default-vs-exception drift between `RUST_PREFERENCES.md`'s threading-crate ranking and the architecture template's explicit "message-passing is default, `SharedArrayBuffer` is an approved exception" stance (see `RUST_PREFERENCES.md` v0.2.0 and `PREFERRED_DEPENDENCIES.md` updates). No other content issues found across CLAUDE.md, RUST_PREFERENCES.md, PREFERRED_DEPENDENCIES.md, or the three exemplar templates. |
 | 0.2.3   | 2026-06-20 | Gap-finding pass (missing content categories, not consistency): per user direction, architecture template gained §6.5 CI/CD Pipeline, a new top-level §10 Public API & Framework Consumer Contract (SemVer/MSRV/consumer DX — framework-specific, not covered by an application-oriented template), and a Migration Safety & Rollback Policy addition to §4.5. Former §10 Appendices renumbered to §11. Updated Section 4's Architecture Specification file-split grouping (now 11 sections → still 4 files) to fold the new §10 into file 4 alongside §7–§9 and the renumbered §11. |
+| 0.2.4   | 2026-06-20 | Step 2 revised to add explicit flagged-assumption attachment on stories (previously missing, unlike Steps 1/3/4/5) and to split review into two sequential passes: Pass A (story-level strike/edit/confirm) settles which stories survive before Pass B (assumption confirm/decline, scoped only to survivors) — resolving the case where a story's substance should be kept but a specific inference about it should be rejected. Added a note clarifying that Step 2's list-review passes use plain numbered text, not the selectable-options interaction, which is reserved for single discrete-choice questions elsewhere in the workflow. |
+| 0.2.5   | 2026-06-20 | Added an early-resolution exception to Pass B: if the user explicitly resolves a story's flagged assumption within their Pass A reply, Claude does not re-ask it in Pass B — unless that resolution itself introduces a new, unstated assumption, which still goes through Pass B on its own. |
+| 0.2.6   | 2026-06-20 | Added a standing cross-cutting rule: scope discussions (especially MVP-related) are a three-way question — not wanted at all (Architecture Spec §2.5) vs. wanted but deferred (new §2.6 Future Features) — not a binary in/out decision; Claude asks which is meant rather than guessing, unless already explicitly stated. Architecture template gained §2.6 Future Features (Deferred Scope) accordingly, with a recording mandate (originating ID, description, deferral reason, revisit precondition) and a cross-reference from §9.3 Phased Delivery Milestones. |
+| 0.2.7   | 2026-06-20 | Added a standing convention for every use of the selectable-options interaction: Claude's recommended option is always listed first and explicitly labeled as a recommendation (not silently implied by position); a standing Defer option records the question for resolution at the end of the current loop, either answered then or pushed to a more appropriate later step — never silently dropped; a standing Analysis option triggers a pros/cons writeup plus Claude's recommendation and reasoning, then re-presents the same question rather than closing it. Cross-referenced from the existing Step 2 note on when the tool is/isn't appropriate. |
+| 0.2.8   | 2026-06-20 | Per user clarification, replaced an incorrect assumption that Pass B's flagged assumptions and end-of-loop deferred items default to a per-item selectable-options loop. Established the actual three-way pattern instead: a single covering reply resolves everything at once; a partial bulk reply resolves only what it addresses; an explicit user request to "review individually" (or equivalent) is the only thing that starts the per-item tool loop — Claude never defaults to per-item resolution or treats an ambiguous bulk reply as an automatic trigger for it. Applied the same pattern to the Defer mechanism's end-of-loop review, which previously implied per-item review by default. Fixed an incorrect internal citation (a non-existent "Section 3.1" in this document) introduced while drafting this change. |
+| 0.2.9   | 2026-06-20 | Made comparative analysis mandatory before every selectable-options question is built, not contingent on a button being clicked — recommendation-first is now explicitly grounded in that analysis rather than freestanding. Renamed the standing "Analysis" option to "Provide analysis and recommendation" and fixed its position as the always-last choice. Added a tool-capacity constraint check: the underlying tool's 4-option ceiling means 3+ substantive options forces dropping the analysis option in favor of stating the analysis inline in the question's framing text (keeping Defer); 4+ substantive options additionally requires consolidating choices or falling back to plain text entirely — addressing a real gap where the standing convention, as previously written, could not actually be satisfied by the tool once a question had 3 or more genuine options. |
+| 0.3.0   | 2026-06-20 | Per user direction, added an explicit flagging requirement for whenever 3 or more substantive options survive the mandatory analysis: Claude states directly that this is one of the rarer true-fork cases, so the user can distinguish a genuine open tradeoff (most commonly an architectural decision with no dominant option) from Claude simply having failed to narrow the question. Framed as an expected-rarity check — frequent unflagged 3+-option questions would themselves indicate the analysis isn't being done rigorously. |
+| 0.3.1   | 2026-06-20 | Added a category-specific default to the three-way scope rule: for simpler-vs-complex implementation choices and stackable/incremental feature-level choices specifically (commonly MVP-floor decisions), unchosen complex options default to Future Features rather than triggering the general three-way question each time, since this category's shape usually implies deferral rather than rejection. Default is stated explicitly, not applied silently, and is overridable in the same reply. Does not change the general three-way rule for scope exclusions arising any other way. |
+| 0.3.2   | 2026-06-20 | Per user clarification, corrected 0.3.1's overly broad scope: implementation-level choices (algorithm/parameter-strategy selection at Step 3+, and similarly-shaped assumption clarification) are not feature-scope decisions and don't belong in Future Features. Split into two correctly-targeted rules: feature/story-level stackable choices still default to §2.6 Future Features as before; implementation-level choices now route to the architecture template's new §4.15 (noted, no commitment) or §4.16 (extensibility commitment required — a real requirement on the current implementation, not just a note), sub-grouped by originating ID. Added that Claude must actively weigh "ship simple now, commit an extension point for later" as a candidate path within the mandatory pre-analysis itself — not only after the user has chosen — especially whenever an option under consideration carries real scope or implementation-effort impact. |
+| 0.4.0   | 2026-06-20 | Major structural change, worked out through user-provided scenario walkthroughs: replaced the two-pass (Pass A/Pass B) Step 2 design with the general **Grouped Closing Protocol**, applying to Step 2 and the analogous batch-producing loop in Steps 3-8. Per group: Pass A (item-level bulk review) → Stage 1 Assumption table → Stage 2 Deferred-items table → Stage 3 Remaining-ambiguous table, each stage bulk-first with individual selectable-options treatment only on explicit request, leftovers flowing forward into the next stage rather than being held back; tables for the three sources stay visually separate per stage, not merged. Individual-round selectable-options questions omit the "Provide analysis and recommendation" option as a now-redundant choice, since the analysis was already given as the reason the item reached individual treatment — carved out as an explicit, narrow exception to Section 5's otherwise-unconditional analysis-option rule. Section 5's Defer description trimmed to cross-reference Stage 2 as the authoritative mechanism rather than duplicating a now-superseded engagement-wide description. |
