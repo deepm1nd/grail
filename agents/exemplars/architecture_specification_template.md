@@ -1,15 +1,18 @@
 # Architecture Specification: [Project Name]
-v.0.1.00 — Complex/Multi-Domain Rust Project Variant
+Complex/Multi-Domain Rust Project Variant
 
 > **When to use this template:** use this template for Rust projects substantial enough to
 > warrant a multi-document Architecture Specification — multiple services/components, a
 > security-sensitive surface, a persistence layer with real schema evolution, or any project
-> where `DESIGN.md`'s 8-step gated workflow (Concept Intake → User Stories → Requirement
+> where `agents/DESIGN.md`'s 9-step gated workflow (Concept Intake → User Stories → Requirement
 > Decomposition → Test Identification → Verification Feasibility → Architecture Synthesis →
-> Audit → Plan Generation) is being run in full rather than abbreviated. It is the architecture
-> counterpart to `development_plan_template.md` and is designed to be consumed by that
-> template's §0 (Architecture Cross-Reference), which points directly at this document's §3
-> (Acceptance Criteria & Traceability) as the sole, authoritative traceability source — no
+> Audit → Plan Generation → Plan/Checklist Audit) is being run in full rather than abbreviated.
+> It is the architecture
+> counterpart to `agents/exemplars/development_plan_template.md` and is designed to be consumed
+> by that template's §0 (Architecture Cross-Reference), which points directly at this document's
+> §3 (Acceptance Criteria & Traceability) as the sole, authoritative traceability source —
+> physically split, per `CLAUDE.md` §4.1, across the `_04_test_strategy` and
+> `_05_verified_traceability` files — no
 > separate Requirements & Traceability Backfill document is produced.
 >
 > **Scope:** Rust-only, consistent with this repository's Rust-first mandate. It supports any
@@ -18,16 +21,17 @@ v.0.1.00 — Complex/Multi-Domain Rust Project Variant
 > multi-target project expresses target-specific concerns without duplicating shared ones.
 >
 > **Multi-file packaging:** this template is written as a single logical document but is
-> expected to be split across multiple physical files for large projects (see the working
-> arrangement governing this engagement, e.g. `CLAUDE.md` §4, for the cross-linking convention).
-> Each top-level section below is a natural file-split boundary; section numbering is stable
-> across a split so cross-references remain valid regardless of how files are divided.
+> expected to be split across multiple physical files for large projects (see `CLAUDE.md` §4
+> for the binding cross-linking and file naming convention:
+> `[projectname]_architecture_NN_topic_v[N].md`). Each top-level section below is a natural
+> file-split boundary; section numbering is stable across a split so cross-references remain
+> valid regardless of how files are divided.
 >
 > **Traceability is load-bearing throughout this document.** Every requirement, every
 > architectural decision, every interface, and every quality attribute scenario carries a
-> stable, unique ID. IDs are never reused or renumbered (see Appendix R and the companion
-> Development Plan's Change Control section). This is what makes Steps 3–8 of the gated
-> workflow mechanically checkable rather than a matter of editorial judgment.
+> stable, unique ID. IDs are never reused or renumbered (see the companion Development Plan's
+> Change Control section). This is what makes Steps 3–8 of the gated workflow mechanically
+> checkable rather than a matter of editorial judgment.
 
 ## Table of Contents
 - [1. Introduction](#1-introduction)
@@ -41,7 +45,6 @@ v.0.1.00 — Complex/Multi-Domain Rust Project Variant
 - [9. Implementation Roadmap & Build Order](#9-implementation-roadmap--build-order)
 - [10. Public API & Framework Consumer Contract](#10-public-api--framework-consumer-contract)
 - [11. Appendices](#11-appendices)
-- [Appendix R - Revision History](#appendix-r---revision-history)
 
 ---
 
@@ -50,9 +53,9 @@ v.0.1.00 — Complex/Multi-Domain Rust Project Variant
 ### 1.1. Document Purpose and Audience
 (State who this document is for — senior Rust engineers, AI agents implementing the system,
 architects/reviewers — and what decisions it is and is not authoritative for. State explicitly
-that this document, once approved per `DESIGN.md` Step 6/7, is the binding source of truth for
-the Development Plan; see the Plan template's §0 Architecture Cross-Reference and §14 Change
-Control, which state the precedence rule from the Plan's side.)
+that this document, once approved per `agents/DESIGN.md` Step 6/7, is the binding source of
+truth for the Development Plan; see the Plan template's §0 Architecture Cross-Reference and §14
+Change Control, which state the precedence rule from the Plan's side.)
 
 ### 1.2. Product/System Overview
 (Concise description of what the system is and does. This is the output of Step 1's structural
@@ -73,10 +76,9 @@ local shorthand within this document belong here only.)
 
 ### 1.6. References
 (Links/citations to the originating concept statement, any prior-version specifications being
-superseded or reconciled, any governing process documents such as `AGENTS.md`/`DESIGN.md`/the
-working-arrangement file for this engagement, and any external standards referenced elsewhere in
-this document — ISO/IEC/IEEE 42010, the relevant RFCs for any protocol this system implements,
-etc.)
+superseded or reconciled, any governing process documents such as `AGENTS.md`/`agents/DESIGN.md`/
+`CLAUDE.md`, and any external standards referenced elsewhere in this document — ISO/IEC/IEEE
+42010, the relevant RFCs for any protocol this system implements, etc.)
 
 ---
 
@@ -86,7 +88,7 @@ etc.)
 (Who uses this system, directly or as another system integrating with it. Include
 machine/service personas — e.g. "an AI agent executing orchestration steps" — not just human
 personas, where the system has non-human callers; this project's own consuming agents are a
-persona in their own right per `DESIGN.md`'s Anti-Stub Mandate motivation.)
+persona in their own right per `agents/DESIGN.md`'s Anti-Stub Mandate motivation.)
 
 ### 2.2. User Stories & Interaction Sequences
 (Output of Step 2 — the propose-then-correct loop. Organize by persona, then by theme: happy
@@ -202,7 +204,7 @@ Requirements & V&V Protocol) recombined into the final specification.
 Every requirement in §2.3 and §2.4 MUST satisfy all nine of the following before being
 considered final. This table is the mechanical check Step 3/5 runs against every candidate
 requirement; restated here so the finished specification carries its own quality bar rather than
-requiring a reader to go find it in `DESIGN.md`.
+requiring a reader to go find it in `agents/DESIGN.md`.
 
 | # | Criterion | Failure mode it catches |
 |---|---|---|
@@ -237,8 +239,8 @@ Verification Protocol one-liner.
 ### 3.3. Requirement Smells (Rust-Specific)
 
 Beyond the 9 generic criteria, requirement language that does not map cleanly onto Rust's type
-system is flagged as a smell rather than passed through as-is, per this project's Rust-specific
-process constraints:
+system is flagged as a smell rather than passed through as-is, per `agents/RUST_PREFERENCES.md`
+§2's process constraints:
 
 | Smell | Why it's a smell in Rust | Preferred reframing |
 |---|---|---|
@@ -338,10 +340,11 @@ lives in the viewpoints below and in §6.)
   names, column/field names and types, indexes (and what query pattern each index serves), and
   migration ordering if the schema evolves in numbered steps. If more than one storage
   technology is used for different data (e.g. a relational store plus a graph store plus a
-  vector store for the same logical entity), state explicitly which technology is the source of
-  truth and how consistency across the others is maintained (synchronous write, eventual
-  consistency with reconciliation, etc.) — this is itself an architectural decision and should
-  also appear in §4.11 ADRs if it was non-obvious.
+  vector store for the same logical entity — see `agents/PREFERRED_SERVICES.md` for the
+  approved options), state explicitly which technology is the source of truth and how
+  consistency across the others is maintained (synchronous write, eventual consistency with
+  reconciliation, etc.) — this is itself an architectural decision and should also appear in
+  §4.11 ADRs if it was non-obvious.
 - **Migration Safety & Rollback Policy:** distinct from migration *ordering* above — this
   states what happens when a deployed service version needs to be rolled back *after* a
   migration has already run against live data, which forward-ordering alone does not answer.
@@ -370,7 +373,8 @@ lives in the viewpoints below and in §6.)
 - **Description:** Describes the physical/runtime environment(s) in which the system is
   deployed — for a multi-target Rust project, this includes every target (native service
   deployment, WASM hosting environment, mobile/desktop shell distribution), not just the
-  primary one.
+  primary one. Infrastructure services (databases, object storage, etc.) are deployed per
+  `agents/PREFERRED_SERVICES.md` — Docker/docker-compose, definitions in `deploy/`.
 - **Diagrams:** Physical View (Deployment Diagram), Network Topology, and — for any WASM web
   component — the hosting/serving topology (CDN, origin server headers, etc.).
 - **Per-Target Deployment Detail:** one subsection per deployment target.
@@ -388,6 +392,11 @@ lives in the viewpoints below and in §6.)
   - **Mobile/desktop shell target(s), if any:** distribution mechanism, platform-specific
     constraints, and how the shell's Rust core relates to the native/WASM components above
     (shared crate, FFI boundary, etc.).
+  - **Infrastructure services:** for each service from `agents/PREFERRED_SERVICES.md` this
+    project depends on, the compose file (`deploy/docker-compose.dev.yml` for dev-only
+    dependencies, `deploy/docker-compose.yml` for the project's own containerized services),
+    its port (use the service's documented default unless there's a stated reason not to),
+    and HTTP-over-HTTPS for local/dev exposure unless the project has a stated TLS requirement.
 - **Configuration Reference:** see §11.3 Appendix for the full configuration schema; this
   subsection states only the deployment-relevant high points (which values are
   environment-specific, which are secrets sourced from a secret manager rather than
@@ -459,6 +468,11 @@ lives in the viewpoints below and in §6.)
   apply across components, stated once here rather than re-derived ad hoc in each viewpoint
   above. Every other viewpoint may reference this subsection rather than restating these
   conventions locally.
+- **Edition and MSRV:** state the workspace's Rust edition (2024, per
+  `agents/PREFERRED_DEPENDENCIES.md`) and the workspace MSRV as determined at Design Step 5
+  (per `agents/RUST_PREFERENCES.md` §0) — the specific version, the tools/dependencies that
+  drove that floor, and, if this project has a publishable library crate, that crate's
+  separate, lower consumer MSRV and the CI stage that enforces it (cross-reference §10.2).
 - **Error Handling Strategy:** the project's `Result<T, E>` / error-type conventions — whether
   errors are modeled as a layered hierarchy (e.g. a domain-layer error type distinct from an
   API-layer error type, with an explicit mapping between them), which crate (if any) is used for
@@ -487,10 +501,11 @@ lives in the viewpoints below and in §6.)
   If `unsafe` is categorically forbidden (e.g. via `#![forbid(unsafe_code)]`), state that
   explicitly as a hard constraint, cross-referenced from §7.1.
 - **WASM-Specific Conventions, if applicable:** target triple(s) supported
-  (`wasm32-unknown-unknown`, etc.), the build tool used to produce the deployable artifact, and
-  any API surface that is conditionally compiled per target (`#[cfg(target_arch = "wasm32")]`)
-  — state the convention for keeping conditional-compilation forks from silently diverging in
-  behavior (e.g. a shared trait both targets implement, tested on both targets in CI).
+  (`wasm32-unknown-unknown`, etc.), the build tool used to produce the deployable artifact
+  (per `agents/PREFERRED_TOOLS.md` — `trunk` is fully preferred), and any API surface that is
+  conditionally compiled per target (`#[cfg(target_arch = "wasm32")]`) — state the convention
+  for keeping conditional-compilation forks from silently diverging in behavior (e.g. a shared
+  trait both targets implement, tested on both targets in CI).
 
 ### 4.10. Interface Control Document (ICD)
 - **Description:** Formalized contracts for all internal and external system interfaces — the
@@ -542,6 +557,28 @@ cross-referenced to the User Stories in §2.2, accessibility requirements, and �
 components — which UI framework/crate is used and any architectural implication of that choice,
 e.g. virtual-DOM diffing strategy. If this system has no human-facing interface, state that
 explicitly rather than leaving this section silently empty.)
+
+**Asset Manifest.** Per `CLAUDE.md` §2.2/§3.8, every user-supplied HTML, image, and (where
+relevant) audio/video asset is tracked here, in its permanent home (relocated at Step 6 from
+wherever it was first logged — see `CLAUDE.md` §4.1's file-ownership table). Table columns:
+`Filename | Type (html / image / audio / video) | Repository Target Path | What It's
+Authoritative/Informative For | Provided At (Step)`. Filenames are immutable once logged and
+match, verbatim, the filenames the user places in the project's GitHub repository under
+`assets/html/`, `assets/images/`, `assets/audio/`, `assets/video/` for the development
+agent's direct consumption — no translation step exists between what Claude cites here and
+what the development agent finds on disk. HTML assets are presumptively authoritative for
+the structure/behavior of the screen/component they represent (cite the specific asset by
+filename in this section's user-flow and information-architecture content, not just in the
+manifest table); image assets are the source for this section's Design System content
+(branding, iconography, typography, color palette, pattern/texture tiles) and are informative
+rather than structurally binding. Every asset logged in the manifest MUST be referenced by
+filename somewhere substantive in this section (a user flow, a component description, the
+Design System content) — an asset that only appears in the manifest table with no downstream
+reference is a completeness gap Step 7's audit checks for.
+
+| Filename | Type | Repository Target Path | Authoritative/Informative For | Provided At (Step) |
+|---|---|---|---|---|
+| `[filename.ext]` | [html / image / audio / video] | `assets/[type]/[filename.ext]` | [what it governs] | [Step N] |
 
 ### 4.14. Logging and Monitoring
 - **Logging Strategy:** This subsection must detail the system-wide logging strategy.
@@ -642,13 +679,15 @@ change is needed.)
 
 > Promoted to a top-level section (rather than a single bullet under System Architecture)
 > because dependency selection is itself an architectural decision with real constraints — see
-> the project's dependency-preference policy (e.g. `agents/PREFERRED_DEPENDENCIES.md` if this
-> repository has one) for the binding rules this section's choices must satisfy.
+> `agents/PREFERRED_DEPENDENCIES.md` (library dependencies), `agents/PREFERRED_TOOLS.md`
+> (development tools), and `agents/PREFERRED_SERVICES.md` (infrastructure services) for the
+> binding rules this section's choices must satisfy.
 
 ### 6.1. Core Technologies
-(Language version/edition, async runtime if applicable, web framework, and any other foundational
-technology used across most/all components — the equivalent of mmoMental-style "Core
-Technologies" table: Category | Technology | Version | Rationale.)
+(Language version/edition, MSRV (per `agents/RUST_PREFERENCES.md` §0 and §4.9 above), async
+runtime if applicable, web framework, and any other foundational technology used across
+most/all components — the equivalent of a "Core Technologies" table: Category | Technology |
+Version | Rationale.)
 
 | Category | Technology | Version | Rationale |
 |---|---|---|---|
@@ -663,18 +702,18 @@ truth; the Plan's §2 should be derived from this, not an independent decision.)
 
 ### 6.3. External Dependencies (Infrastructure)
 (Databases, message brokers, caches, object storage, and any other infrastructure dependency —
-mirroring mmoMental/mmoSecure-style "External Dependencies" tables: Component | Technology |
-Notes.)
+drawn from `agents/PREFERRED_SERVICES.md` — mirroring an "External Dependencies" table:
+Component | Technology | Notes.)
 
 | Component | Technology | Notes |
 |---|---|---|
 
 ### 6.4. Dependency Governance
 (How new dependencies are vetted before being added — license compatibility, supply-chain
-security scanning (`cargo audit`/`cargo deny` or equivalent), and the approval tiering if this
-project has a preferred/forbidden/requires-approval dependency policy. State explicitly which
-CI gates enforce this, cross-referencing the Development Plan's Environment & Prerequisites
-Setup section for the tooling this requires.)
+security scanning (`cargo audit`/`cargo deny` per `agents/PREFERRED_TOOLS.md`), and the approval
+tiering per `agents/PREFERRED_DEPENDENCIES.md`'s preferred/forbidden/requires-approval policy.
+State explicitly which CI gates enforce this, cross-referencing the Development Plan's
+Environment & Prerequisites Setup section for the tooling this requires.)
 
 ### 6.5. CI/CD Pipeline
 > Referenced piecemeal elsewhere in this document (dependency-graph checks, MSRV enforcement,
@@ -711,8 +750,8 @@ Setup section for the tooling this requires.)
 - **Required CI Gates (Consolidated):** a single list cross-referencing every CI-enforced gate
   named elsewhere in this document, so a reader doesn't have to hunt through every section to
   assemble the full picture: dependency-graph/license check (§6.4), vulnerability scan (§6.4),
-  MSRV-pinned build (§10.2), doctest execution (§10.3), and any project-specific gate not
-  already covered above.
+  MSRV-pinned build (§10.2), doctest execution (§10.3), the workspace pre-flight version sanity
+  check (`agents/PREFERRED_TOOLS.md`), and any project-specific gate not already covered above.
 
 ---
 
@@ -786,6 +825,18 @@ subsection covers things arguably in scope that this architecture handles poorly
 adapters," "identity before authorization before accounting" — stated as principles before the
 concrete step list, so the *reasoning* survives even if the concrete list needs to be revised.)
 
+**Frontend Targeted Interleaving, where a human-facing UI component exists:** the Build
+Order below does NOT sequence all backend deliverables before any frontend deliverable, and
+does NOT place a screen/component's frontend implementation ahead of the real (non-mock)
+backend endpoint or data source it depends on. Each UI screen/component's Build Order step is
+sequenced immediately alongside (same step, or the step directly following) the backend
+deliverable that supplies its real data — never earlier (which would force building against
+a stub/mock later reworked, contradicting the Anti-Stub Mandate) and never batched into a
+single trailing "frontend" step once all backend steps are done. See §4.13's Asset Manifest
+for which screens/components already have a tracked HTML/image reference asset to build
+against, and `agents/exemplars/development_plan_template.md` §6 for how this principle
+constrains Phase Index construction downstream.
+
 ### 9.2. Build Order
 
 | Step | Deliverable | Component(s) | Exit Criteria |
@@ -839,19 +890,24 @@ needs, not the general SemVer spec:
   convention here means every release reinvents the format.
 
 ### 10.2. Minimum Supported Rust Version (MSRV) Policy
-- **Current MSRV:** the specific Rust version this project commits to supporting, stated
-  explicitly (not "latest stable") so a consumer on an older toolchain knows immediately
-  whether this framework is usable for them.
-- **MSRV bump policy:** under what conditions the MSRV is allowed to increase (e.g. only on a
-  minor/major version bump, never on a patch release), how far behind the latest stable
-  release the project commits to staying (e.g. "supports the last N stable releases"), and how
-  an MSRV bump is communicated (changelog entry, is it itself treated as a breaking change per
-  §10.1 — state this explicitly, since projects differ on this and an unstated answer is a
-  real consumer-facing ambiguity).
-- **MSRV enforcement:** how the project verifies it actually still builds on its stated MSRV
-  (e.g. a dedicated CI job pinned to that toolchain version — cross-reference §6.5 CI/CD
-  Pipeline) rather than letting MSRV silently drift upward as new code accidentally relies on
-  a newer language feature.
+- **Current consumer MSRV:** the specific Rust version this project's publishable crate(s)
+  commit to supporting, stated explicitly (not "latest stable"), so a consumer on an older
+  toolchain knows immediately whether this framework is usable for them. Per
+  `agents/RUST_PREFERENCES.md` §0's dual-MSRV pattern, this is independent of, and may be
+  materially lower than, the workspace development MSRV stated in §4.9/§6.1 above — state
+  both explicitly and the relationship between them, never just one.
+- **MSRV bump policy:** under what conditions the consumer MSRV is allowed to increase (e.g.
+  only on a minor/major version bump, never on a patch release), how far behind the latest
+  stable release the project commits to staying, and how an MSRV bump is communicated
+  (changelog entry, is it itself treated as a breaking change per §10.1 — state this
+  explicitly, since projects differ on this and an unstated answer is a real consumer-facing
+  ambiguity).
+- **MSRV enforcement:** the dedicated CI stage that installs the consumer MSRV toolchain and
+  compiles *only* the publishable crate and its dependencies at that version (cross-reference
+  §6.5 CI/CD Pipeline) — this is what actually enforces the contract, not the workspace
+  toolchain pin. State the constraint this places on the publishable crate's own dependency
+  list (kept minimal; any new dependency re-verified against the consumer MSRV before it's
+  added) per `agents/RUST_PREFERENCES.md` §0.
 
 ### 10.3. Consumer-Facing Documentation & Examples Convention
 - **Rustdoc conventions:** the project's standing requirement for `pub` item documentation —
@@ -915,11 +971,5 @@ a reader can scan for relevance before opening the full record.)
 
 ---
 
-## Appendix R - Revision History
-| Version | Date | Author | Changes |
-|---|---|---|---|
-| 0.2.00  | 2026-06-20 | Claude | Added §6.5 (CI/CD Pipeline) and a new top-level §10 (Public API & Framework Consumer Contract: SemVer/breaking-change policy, MSRV policy, consumer-facing rustdoc/examples conventions) per gap-finding review. Renumbered former §10 Appendices to §11 (and its subsections 10.1–10.4 to 11.1–11.4) to accommodate the new top-level section without disturbing §1–§9's existing numbering or any of their internal cross-references. Added a Migration Safety & Rollback Policy subsection to §4.5, distinct from the existing migration-ordering content, covering rollback of a deployed service version after a migration has already run. |
-| 0.2.01  | 2026-06-20 | Claude | Added §2.6 Future Features (Deferred Scope), distinct from §2.5 Out-of-Scope Features: records items the user wants but has explicitly deferred to a future version, with originating ID, description, deferral reason, and any revisit precondition — additive-only across sessions. Tightened §2.5's own language to distinguish "rejected outright" from "deferred" (now routed to §2.6) from "not yet decided" (routed to §7.3/escalation), since the prior wording listed all three as one undifferentiated bucket. Added a cross-reference from §9.3 Phased Delivery Milestones to §2.6, so a later milestone explicitly names which deferred items it brings back into scope. |
-| 0.1.01  | 2026-06-20 | Claude | Fixed a stale `development_plan_template_complex.md` filename reference in the header note (actual companion file is `development_plan_template.md`); updated the same note's mention of a "Requirements & Traceability Backfill artifact" to reflect that no separate traceability document is produced — §3 of this document is the sole, authoritative traceability source, consumed directly by the Plan template's §0. |
-| 0.1.00  | YYYY-MM-DD | [author] | Initial creation of complex/multi-domain Rust variant, extending the base `architecture_specification_template.md` with: Solution Strategy, Security Architecture & Threat Model (STRIDE), Rust-Specific Architectural Conventions, promoted Technology Stack & Dependencies, promoted Architecture Decision Records with mandatory Paths-Not-Taken field, Risks & Technical Debt, Implementation Roadmap & Build Order, Configuration Reference, Quality Attribute Scenarios (stimulus/response NFR format), and the 9 Requirement Quality Criteria / Rust-specific Requirement Smells self-check tables. |
-| 0.2.02  | 2026-06-20 | Claude | Added §4.15 Deferred Implementation Alternatives (Noted, No Commitment) and §4.16 Deferred Implementation Alternatives (Extensibility Commitment Required), both sub-grouped by originating requirement/topic/assumption ID, per user direction covering implementation-choice deferral (e.g. algorithm or parameter-strategy selection) distinct from feature-level Future Features (§2.6). §4.15 is a pure record for re-derivation avoidance; §4.16 is a real requirement on the current implementation (an extension point that must be specified in §4.4/§4.9, not just noted here) — explicitly distinguished from each other and from §4.11 ADR's "Paths Not Taken," which records closed/rejected paths rather than intentionally-kept-open ones. |
+## Appendix
+See `CHANGELOG.md` for this file's full version history.

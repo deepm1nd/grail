@@ -1,694 +1,898 @@
 # CLAUDE.md — Design Phase Working Arrangement
 
-This file governs how Claude operates when assisting with the **Design and Planning Phase**
-of this repository, per `AGENTS.md` and `agents/DESIGN.md`. It is scoped narrowly: Claude's
-role here is the Design Phase only (producing the Architecture Specification, Development
-Plan, and Development Checklist). It does not cover Development, Verification, Release, or
-Maintenance phases.
+See `CHANGELOG.md` for full version history. This file is binding agent instruction;
+`CHANGELOG.md` is for human reference only and agents do not need to read it.
 
-If anything in this file conflicts with a future revision of `AGENTS.md` or `agents/DESIGN.md`,
-those source documents win. This file is a working-arrangement summary, not a replacement.
+Governs how Claude operates on the **Design Phase** of this repository, per `AGENTS.md` and
+`agents/DESIGN.md`. Scope: producing the Architecture Specification, Development Plan, and
+Development Checklist only — not Development Phase execution.
+Where this file conflicts with a future revision of `AGENTS.md`/`agents/DESIGN.md`, those
+win; this is a working-arrangement summary, not a replacement.
 
 ---
 
 ## 1. Operating Mode: Advisory
 
-Claude is operating in **Advisory Mode** (per `AGENTS.md` Section 1.5.2), not Autonomous Mode.
-Concretely, this means:
+Per `AGENTS.md` §1.5.2, not Autonomous. Concretely:
 
-- Claude has no persistent access to this repository. It cannot read repo state, commit,
-  push, or verify that prior files exist on disk unless the user pastes content, uploads
-  a file, or provides a fetchable URL in the conversation.
-- Claude produces deliverables as downloadable files at the end of each approved step.
-  The user is responsible for adding them to the repository and committing them.
-- Wherever `agents/DESIGN.md` or `AGENTS.md` says "the agent must commit," "the agent must
-  ensure the repository state," or similar, read this as: **Claude prepares the artifact;
-  the user commits it.** Phase Completion Criteria (`DESIGN.md` Section 6) are satisfied
-  once the user has committed the approved artifacts — Claude cannot verify this and won't
-  claim it on the user's behalf.
-- Session Initialization steps that assume shell access (running `scripts/start_services.sh`,
-  `scripts/check_env.sh`) do not apply. Claude will not simulate running them.
-- If a mandate assumes filesystem/tool access Claude doesn't have in this chat context,
-  Claude will say so explicitly rather than silently skipping or silently improvising.
-
----
-
-## 2. Scope of This Engagement
-
-Per the user's direction, this working arrangement covers **only the Design Phase**, and
-specifically the production of:
-
-1. **Architecture Specification** — expected to span **3–5 separate Markdown files**,
-   each approximately 1000+ lines, multiple sections each.
-2. **Development Plan** — expected to span **3–5 separate Markdown files**, same sizing
-   expectation.
-3. **Development Checklist** — expected as a single file unless the content volume
-   genuinely warrants splitting, in which case Claude will flag this and propose a split
-   before proceeding.
-
-This sizing expectation (3–5 files, ~1000+ lines each, for the Spec and Plan) is a
-**user-specified scoping decision**, supplementary to `DESIGN.md`'s own structure. It does
-not override the gated workflow below — it determines how the deliverable at each gate is
-packaged, not how many gates there are.
-
-### 2.1. Templates
-
-All three templates referenced by `DESIGN.md` have been provided and are now the binding
-structure for their respective artifacts:
-- `agents/exemplars/architecture_specification_template.md` (complex/multi-phase Rust variant)
-- `agents/exemplars/development_plan_template.md` (complex/multi-phase Rust variant)
-- `agents/exemplars/development_checklist_template.md` (complex/multi-phase Rust variant)
-
-Claude structures all Architecture Specification, Development Plan, and Development
-Checklist content according to these templates' own section numbering, ID schemes, and
-companion relationships (the Plan and Checklist are explicitly designed to stay in lockstep
-— "exactly one checklist line per task DoD item, no drift" — and Claude maintains that
-lockstep as both evolve together, not as an afterthought reconciliation pass).
-
-**If a future revision changes a template** (pasted, uploaded, or linked), Claude conforms
-new and *already-produced* documents to it, and explicitly flags any restructuring this
-requires as a Major Change per Section 4 of `DESIGN.md`, subject to the same approval gate
-— restructuring is never applied silently to already-approved content.
-
-**Stable ID assignment from first draft.** The templates define specific ID schemes that
-are explicitly designed never to be renumbered once assigned (e.g. `US-[DOMAIN]-NNN` for
-User Stories, `[PROJ]-FUNC-[DOMAIN]-NNNN` for functional requirements, `TEST-NNN` for test
-cases, `THREAT-[DOMAIN]-NNN` for threats, `ADR-NNN` for architecture decisions, `[DOMAIN]-NNN`
-for Plan tasks). Claude assigns a stable ID to every User Story, requirement, test case,
-threat, decision, and task **at first draft**, in Step 2 onward — never deferring ID
-assignment to a later "finalization" pass, since that would force renumbering and break
-traceability links already written into other documents. If an item is later rejected or
-merged during a correction round, its ID is retired (noted as superseded), not reassigned
-to a different item.
-
-**File-split boundaries follow the templates' own section structure, not an invented
-split.** Both the Architecture Specification and Development Plan templates state their own
-top-level sections are natural file-split boundaries with section numbering stable across
-the split. Claude uses *those* boundaries — see Section 4 below — rather than the
-illustrative filenames used earlier in this document's drafting.
-
-**No separate Requirements & Traceability document exists.** Confirmed by explicit user
-direction: this engagement produces exactly 3 artifacts (Spec, Plan, Checklist), never 4.
-The exemplar templates have been corrected accordingly — the Development Plan template's §0
-no longer lists a separate "Requirements & Traceability Backfill" row; its project note and
-§15's Definition-of-Done checks, and the Checklist template's Final Verification checks, all
-point directly at **Architecture Specification §3 (Acceptance Criteria & Traceability)** as
-the sole, authoritative traceability source. If a future template revision reintroduces
-language implying a separate traceability file, Claude will flag it rather than silently
-generating a document outside this engagement's scope.
-
-### 2.2. Rust-Specific Constraints on Document Content
-
-Beyond dependency selection (`agents/PREFERRED_DEPENDENCIES.md`, applied in Step 5 per
-Section 3 below), the Rust language and this project's WASM/Web Worker target impose
-constraints on what the Architecture Specification and Development Plan can validly say —
-not just how the resulting code is styled. These are captured in full in
-**[`agents/RUST_PREFERENCES.md`](agents/RUST_PREFERENCES.md)** and apply throughout the
-gated workflow, most directly at:
-
-- **Step 3** — requirement language using nullable/inheritance/exception framing that
-  doesn't map cleanly onto Rust's `Option<T>`/trait-composition/`Result<T,E>` model is
-  flagged as a Requirement Smell under the 9 criteria, not passed through as-is.
-- **Step 5** — feasibility checks include per-component concurrency model selection
-  (message-passing vs. `SharedArrayBuffer` for WASM/Web Worker targets); a hard trigger to
-  flag and ask about COOP/COEP header feasibility the moment `SharedArrayBuffer`-based
-  threading is implied, with a documented fallback required if any deployment context can't
-  guarantee those headers; and confirming no single component combines two
-  Worker-pool-owning threading crates without an explicit decision to do so.
-- **Step 6** — the Deployment and Interface Control viewpoints are where target-specific
-  concurrency implementation, ownership/lifetime relationships at component boundaries, and
-  WASM hosting constraints (e.g. COOP/COEP headers) get formally recorded.
-
-**Project-specific note carried from `RUST_PREFERENCES.md`:** this project is a Rust web
-framework intended to support **multithreading wherever possible, across both native and
-WASM targets** — via Web Workers on WASM, not via an unsupported `std::thread` mapping.
-This is a goal to design toward, not a constraint to design around; see
-`agents/RUST_PREFERENCES.md` Section 3 for the concurrency-model and feasibility details
-this implies.
+- No persistent repo access. Claude can't read repo state, commit, or verify prior files
+  exist unless pasted, uploaded, or linked in-conversation.
+- Claude produces deliverables as downloadable files; **the user commits them.** Anywhere
+  `AGENTS.md`/`agents/DESIGN.md` says "the agent must commit" or "ensure repository state,"
+  read: Claude prepares, the user commits. `agents/DESIGN.md` §6 Phase Completion is
+  satisfied once the user has actually committed — Claude can't verify this and won't claim
+  it.
+- Session-Initialization steps assuming shell access (`scripts/start_services.sh`, etc.)
+  don't apply; Claude won't simulate running them.
+- If a mandate assumes access Claude doesn't have here, Claude says so rather than silently
+  skipping or improvising.
+- **Every Step, and every repeated run of a Step (whether user-requested per §3.10 or
+  automatically triggered, e.g. a Step 7 re-audit per §3.12), runs in its own, separate chat
+  session. This is a hard rule, not a default or a convenience.** Step 2 (User Story
+  Elicitation) is a single session, not split into named passes — see §3.4's Step 2 row.
+  Nothing "earlier in this conversation" can be referred back to once a new session starts;
+  whatever the new session needs from a prior Step must be re-provided to it directly
+  (uploaded, pasted, or linked), the same way any other file dependency works in Advisory
+  Mode. A direct consequence: **every Step Approval Gate (§3.4) is therefore not just a
+  review checkpoint but a session-boundary packaging point** — the act of presenting a
+  step's output for approval always means packaging every file and handoff note the next
+  session could need, never just the step's headline deliverable. See §3.11 for what this
+  requires Claude to produce as files, not chat text, as a consequence, §3.12 for how this
+  applies specifically to Step 7 re-runs (Step 9's own backtrack mechanics, per
+  `agents/DESIGN.md` §5.9, mirror §3.12's pattern), and §3.13 for the open-items review every
+  gate must also carry forward.
 
 ---
 
-## 3. The Gated Workflow (Non-Negotiable)
+## 2. Scope, Templates, and Project-Specific Constraints
 
-Per `DESIGN.md` Section 5, Design is an **8-step gated lifecycle**. Claude will follow it
-exactly as written, with no step-skipping, no step-combining, and no proceeding past a gate
-without explicit approval. Each step is reproduced below with the file-packaging note for
-this engagement's multi-file scope.
+**Artifacts (3 total, per user direction — never a 4th):** Architecture Specification spans
+**8 files, one per originating Design Step** (Steps 1–6; see §4 for the full mapping and
+rationale — this supersedes any earlier 3–5-file grouping). Development Plan spans 3–5
+files, ~1000+ lines each. Development Checklist is one file unless content genuinely
+warrants a split (Claude flags and proposes before splitting). This sizing is a user scoping
+choice, not an `agents/DESIGN.md` requirement — it determines packaging, not how many gates
+exist. The Architecture Specification's finer 8-way split (versus the Plan's coarser 3–5) is
+a deliberate, content-driven difference, not an inconsistency: each Architecture Spec file
+tracks exactly one Design Step's output through that Step's own session-versioning history
+(§4), which only works cleanly at one-file-per-Step granularity; the Development Plan has no
+equivalent per-step authorship history to preserve.
 
-| Step | Name | Output | Gate |
+**Templates (all four provided, binding):**
+`agents/exemplars/architecture_specification_template.md`,
+`agents/exemplars/development_plan_template.md`,
+`agents/exemplars/development_checklist_template.md`,
+`agents/exemplars/dev_agent_kickoff_prompt_template.md` (complex/multi-phase Rust variant).
+Plan and Checklist stay in lockstep (one checklist line per task DoD item). If a template is
+later revised, Claude conforms existing documents to it and flags the restructuring as a
+Major Change (§3.6) — never silently.
+
+**Stable IDs, assigned at first draft, never renumbered** (`US-`, `REQ-`, `TEST-`,
+`THREAT-`, `ADR-`, task IDs per template schemas). A rejected/merged item's ID is retired,
+not reassigned. This is what keeps cross-document traceability links from breaking.
+
+**No separate Requirements & Traceability document.** Confirmed by the user: every such
+reference (template or conversation) resolves to the Architecture Spec's Traceability
+content (§3 of the template — see §4 for which physical file currently holds it). Templates
+have been corrected accordingly.
+
+**File-split boundaries follow each template's own top-level sections** (templates state
+this themselves), grouped toward whatever file-count target is in force for that artifact —
+see §4 for the Architecture Specification's concrete grouping and naming convention, which
+is now Step-aligned rather than topic-grouped.
+
+### 2.1. Rust/WASM-Specific Constraints
+
+Full detail lives in `agents/RUST_PREFERENCES.md` (naming/keywords, type-system/ownership
+mapping, WASM/Web Worker concurrency, edition and MSRV policy), `agents/PREFERRED_DEPENDENCIES.md`
+(Rust library dependency policy, checked directly in Step 5 below), `agents/PREFERRED_TOOLS.md`
+(development tool policy, including the MSRV-determination mechanics referenced from
+`agents/RUST_PREFERENCES.md` §0), and `agents/PREFERRED_SERVICES.md` (infrastructure
+service policy — Docker-based deployment, `deploy/` directory conventions). This project is
+a Rust web framework: a design goal is **multithreading wherever possible, native and
+WASM**, via Web Workers — not a constraint to design around. Where requirement language uses
+null/inheritance/exception framing that doesn't map onto `Option<T>`/traits/`Result`, that's
+a Requirement Smell (§3, Step 3) needing translation, not pass-through.
+`agents/PREFERRED_TOOLS.md` is relevant to this engagement (development tool/MSRV policy);
+`agents/SCRIPT_RULES.md` is not relevant to this engagement (Advisory Mode runs no scripts).
+
+### 2.2. Visual & Media Asset Input
+
+Where a project has a human-facing UI component, the user supplies reference **assets** —
+HTML, images, and optionally audio/video — that are tracked as first-class, filename-stable
+artifacts across both the Design Phase (this file's scope) and the later Development Phase,
+not consumed once and discarded. Full mechanism: §3.8. Physical tracking record: the
+**Asset Manifest**, a table inside the Architecture Specification (§3.8 states which file
+currently owns it under the §4 Step-aligned split).
+
+---
+
+## 3. Core Mechanisms and the Gated Workflow
+
+`agents/DESIGN.md` §5 defines a **9-step gated lifecycle** — no step-skipping, no
+combining, no proceeding past a gate without explicit approval (full-rigor, all-interactive
+baseline; see §3.7 for the user-invocable autonomy toggle and its two presets). §§3.1–3.3
+define mechanisms shared across multiple steps; §3.4 lists the steps themselves, each
+stating only what's specific to it.
+
+### 3.1. Propose-with-Flagged-Assumptions
+
+The principle behind Steps 1 and 3–5: within any step, some work is **mechanical** (checkable
+against an explicit, objective standard — e.g. the 9 requirement-quality criteria, deriving
+a test case from an already-verifiable requirement, matching a tool to a need category) and
+some is **substantive** (depends on facts about the user's actual needs/environment that
+Claude cannot verify — necessity, correctness, real feasibility). Claude does mechanical work
+unsupervised; for substantive work, Claude drafts its best answer but **explicitly flags every
+place it had to assume or infer rather than derive from something already stated.** The
+user's explicit confirmation — never Claude's own sense of "this is probably fine" — is what
+settles a flagged item. Concretely, per step, this means: draft fully, flag assumptions
+inline, route everything (batch + flagged items) through the Grouped Closing Protocol (§3.2)
+for resolution, and never declare a set "sufficient" or "done" on Claude's own judgment alone.
+
+### 3.2. The Grouped Closing Protocol
+
+How Claude closes out any batch this phase produces (User Stories in Step 2; requirements,
+test cases, tool choices, etc. in Steps 3–5) — governs **every** batch-producing step, not
+just Step 2. Replaces one-item-at-a-time dictation while preserving the same guarantee: every
+item individually visible, individually confirmed or rejected, before being treated as final.
+
+**Grouping:** the full batch is organized into groups at draft time (by actor/theme, by
+sub-topic, etc.) — decided once, not discovered incrementally.
+
+**Per group, in order, not advancing until each stage is settled:**
+1. **Content pass.** Present the group's batch as plain numbered text. User strikes/edits/
+   confirms/adds in bulk. Settles *what exists*, not yet any attached assumptions.
+2. **Assumption stage.** Table: **Item — Choices — Recommendation**, covering **every**
+   flagged assumption on a surviving item, with no exceptions — including items where the
+   resolution seems obvious or is just reuse of an already-accepted pattern. "This doesn't
+   need real deliberation" is not license to drop to prose instead of the table; a struck
+   item drops its assumption automatically, but a kept item's assumption always gets a row,
+   even a one-line one. User resolves in bulk, or names specific items for individual
+   treatment (e.g. "show me the analysis for items 6, 9, 13"). For named items: the full
+   research/analysis summary in prose (§3.3's three-layer requirement), then the full table
+   row(s) for that item, **then** the selectable-options question — no analysis option (it
+   was just given; offering to provide what's already provided is dead weight) — keeping
+   Defer and the substantive choices, recommendation first and labeled (§3.3). Anything
+   still open (Deferred, or still ambiguous) flows forward to the next stage, not
+   re-litigated here.
+3. **Deferred-items stage.** Separate table (not merged with the above) of everything marked
+   Defer, from any source. Same bulk-then-named-individual pattern; leftovers flow forward.
+4. **Remaining-ambiguous stage.** Separate table of whatever's still unresolved. Same pattern.
+   Genuine residue after this stage carries into later-step Defer resolution — and, per
+   §3.13, is surfaced again at every subsequent gate until resolved or explicitly accepted
+   as a standing open item.
+5. **Next group**, restarting at the content pass.
+
+**Bulk-reply handling, every stage — and any standalone flagged item outside the Grouped
+Closing Protocol entirely (e.g. Step 6's per-element notation judgment, Step 8's
+environment/config assumptions):** a single covering reply (e.g. "all accepted") closes the
+whole table at once. A partial reply closes only what it addresses — **whatever it leaves
+unresolved automatically proceeds into the per-item selectable-options loop (§3.3's
+three-layer presentation first, then the tool), with no separate explicit request required.**
+An explicit request to "review individually" still works, as an accelerator that skips the
+bulk-offer step entirely and goes straight to per-item — it's no longer the *only* door into
+per-item treatment, just the fastest one when the user already knows they want it. Claude
+never treats an ambiguous reply as a trigger for anything — an ambiguous reply gets a plain
+clarifying question first, per §3.1's general rule and `AGENTS.md` §3.1's Formal Approval
+Protocol; "ambiguous" here means genuinely unclear what was meant, not merely partial.
+
+**Early-resolution exception:** if a content-pass reply already explicitly answers a flagged
+assumption (not just touches the item), Claude doesn't re-ask it later — unless the answer
+itself raises a *new* unstated assumption, which still goes through the assumption stage.
+
+**Completeness:** after the last group's last stage, Claude asks once whether anything's
+missing from the batch as a whole — user confirmation closes it, not Claude's judgment.
+
+**Expected scale:** bulk resolution should shrink each stage's individual round to a handful
+of items — an expectation, not a hard cap; an unshrunk stage still runs against what remains.
+
+---
+
+### 3.3. The Selectable-Options Convention
+
+Applies wherever Claude uses the selectable-options/multiple-choice tool (a genuinely
+discrete choice — a multi-item list, like a Grouped Closing Protocol content pass, is plain
+text instead; see §3.2).
+
+- **Three-layer presentation, every time — precondition for everything below.** The
+  selectable-options tool is a picker, not a display surface: it truncates each option to
+  roughly one line, so it can never be the sole place substantive content lives. Before the
+  tool is ever invoked, for any decision — standalone or within a Grouped Closing Protocol
+  round — Claude presents, in order: (1) the full research/analysis summary in prose
+  (findings, reasoning — not compressed); (2) the full **Issue — Choices — Recommendation &
+  Rationale** table, complete sentences per cell, not truncated; (3) only then the
+  selectable-options prompt itself, which exists solely as the input mechanism for a
+  decision the user is already fully informed about from (1) and (2) — its own truncation is
+  fine specifically *because* it's no longer the only place the content lives.
+- **Mandatory pre-analysis.** Before building *any* such question, Claude works out real
+  pros/cons of the substantive options and derives its recommendation from that — never
+  picks a recommendation first and rationalizes after. This is unconditional, independent of
+  whether the analysis is ever shown. **Exception:** in a Grouped Closing Protocol individual
+  round (§3.2), the analysis option (below) is omitted — it was already shown as the reason
+  the item reached individual treatment, so re-offering it is dead weight.
+- **Research triggers — four categories, independent of decision "importance."** Not an
+  exhaustive list; the user may flag additional categories as real cases surface.
+  - **A — checkable/time-sensitive factual claims:** a specific tool/crate/library/version,
+    or a "current best practice" assertion that could be stale. (E.g.: naming a specific
+    crate without checking is exactly the kind of claim that goes stale silently. This
+    explicitly includes any specific Rust toolchain or development-tool version — see
+    `agents/RUST_PREFERENCES.md` §0, which is why no specific Rust version is ever hardcoded
+    into a process document; it's determined fresh per project at Step 5.)
+  - **B — under-determined design parameters with no objectively correct value:** research
+    grounds the choice in what comparable/competitive systems converged on, rather than
+    correcting a stale fact (e.g. an outage-detection threshold — no "true" answer exists,
+    but convergence across real systems is informative).
+  - **C — option-space completeness:** not "is this option stale" but "is Claude even aware
+    of the full set of real options" — training-era knowledge may miss a newer or
+    domain-specific approach a search would surface (e.g. serialization format, concurrency
+    pattern, auth scheme).
+  - **D — user-facing capability/feature-surface decisions:** opportunity-seeking, not
+    risk-avoidance. Even when Claude's answer is correct and not stale, research checks
+    whether a best-in-class/competitive-advantage/novel-capability option exists that
+    wouldn't otherwise get proposed. Distinct motivation from A–C (avoiding wrong) — this is
+    about not settling for adequate when better is reachable. Can overlap with B for
+    product-facing parameters.
+  A purely conceptual tradeoff fitting none of these doesn't need a search.
+- **Recommendation first, labeled.** Option #1 is Claude's recommendation, explicitly
+  labeled as such — position never silently implies endorsement. Most of these questions
+  exist *because* the answer depends on something only the user knows; listing a
+  recommendation is a convenience, not a claim of likely correctness.
+- **Standing "Defer" option.** Means: not now. Resolved via the Grouped Closing Protocol's
+  deferred-items stage (§3.2) — never an ad hoc engagement-wide list, never silently dropped,
+  and re-surfaced at every subsequent gate per §3.13 until closed.
+- **Standing "Provide analysis and recommendation" option, always listed last where present.**
+  Since the three-layer rule above already shows the analysis upfront, this option exists
+  for **re-surfacing** it (the user lost track, wants it restated) or for cases where the
+  tool-capacity ladder (below) dropped analysis from inline framing text back into its own
+  option. Doesn't close the question — re-presents the same question (Defer and this option
+  included again) after restating. Can be selected more than once; a repeated request may
+  mean the question itself needs reframing.
+- **Tool-capacity ceiling (checked before the above): max 4 options total.** Defer + the
+  analysis option are 2 standing slots, leaving room for only 2 substantive choices at full
+  capacity.
+  - **3 substantive options:** drop the analysis option from the list (keep Defer); state
+    the analysis inline in the question's framing text instead. Same information, different
+    delivery — pre-analysis still mandatory either way.
+  - **4+ substantive options:** even Defer alone would overflow. First try to consolidate to
+    ≤3 genuinely distinct choices (4+ live alternatives often means the question itself is
+    underspecified). If consolidation isn't honest, fall back to plain text entirely —
+    analysis and recommendation inline, Defer noted as available by reply.
+- **3+ surviving options is expected to be rare — flag it when it happens.** Real analysis
+  should usually collapse apparent 3-way choices to 2; a genuine 3-way survivor (most often
+  an architectural tradeoff with no dominant option, e.g. performance vs. compatibility vs.
+  simplicity) gets a brief explicit note distinguishing it from Claude having simply failed
+  to narrow the question. Frequent unflagged 3+-option questions would itself indicate the
+  analysis isn't being done rigorously.
+
+---
+
+### 3.4. The 9 Steps
+
+| # | Step | Output | Mechanism |
 |---|---|---|---|
-| 1 | Concept Intake & Context Mapping | Architecture Pass 1 (Draft) | STOP for approval |
-| 2 | User Story Elicitation Loop | Architecture Pass 2 (Behavioral) | STOP for approval |
-| 3 | Recursive Requirement Decomposition | Draft Requirements List | STOP for approval |
-| 4 | Iterative Questioning & Test Identification | Test Strategy Mapping | STOP for approval |
-| 5 | Decomposition Gate & Verification Feasibility | Verified Requirements & V&V Protocol | STOP for approval |
-| 6 | Final Architecture Synthesis (ISO 42010) | Final Architecture Specification | STOP for approval |
-| 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | STOP for approval |
-| 8 | Development Plan & Checklist Generation | Development Plan + Checklist | STOP for final approval |
+| 1 | Concept Intake & Context Mapping | Architecture file `_01_introduction` (Draft) | §3.1. Mechanical: organizing/structuring the concept statement into problem-space + boundaries. Substantive (flag, don't assume): what's actually in/out of scope, where real boundaries sit, which adjacent actors matter. The single highest-cost place in the workflow for an unflagged wrong guess, since every later step inherits it — never autonomous, in any mode (§3.7). **Always attempts deep web research and competitive analysis** (how comparable systems/frameworks solve the same problem), aiming at best-in-class/competitive-advantage/novel-capability framing — an honest "no meaningful competitive landscape exists for X, here's why" is an acceptable reported outcome; a fabricated comparison is not. **Actively solicits screen mockups, reference HTML, brand/image assets, and (if relevant) audio/video assets, as early as possible** (§3.8/§2.2) — not deferred to when UI work is imminent. |
+| 2 | User Story Elicitation | Architecture file `_02_user_stories` | §3.1 + §3.2 in full, run as a **single session** (no A/B pass split). Claude drafts the full candidate batch (organized by actor/theme) from `_01_introduction`; user runs the Grouped Closing Protocol over it in one pass, covering both the story list and each story's Interaction Sequence detail together, not as separate stages requiring separate sessions. |
+| 3 | Requirement Decomposition | Architecture file `_03_requirements` | §3.1 + §3.2. Mechanical: 3-pass decomposition (Functional → Logical → Detailed) and the 9-criteria/Requirement-Smell check (§4.5 of `agents/DESIGN.md`), run unsupervised — these are internal iteration passes within the one Step 3 session, not separate sessions. Substantive: necessity, correctness, completeness — flagged per requirement, resolved via §3.2. |
+| 4 | Test Identification | Architecture file `_04_test_strategy` | §3.1 + §3.2. Mechanical: deriving test cases from an already-verifiable requirement, plus the 9-criteria table and Rust-specific Requirement Smell catalog. Substantive: what bar a DoD must actually clear ("verifiable" only guarantees *some* objective test exists, not which one) — flagged, resolved via §3.2. |
+| 5 | Verification Feasibility | Architecture file `_05_verified_traceability` | §3.1 + §3.2. Mechanical: matching a need to a tool *category*; checking Rust dependencies directly against `agents/PREFERRED_DEPENDENCIES.md` (preferred-list used without confirmation; **Forbidden** never proposed, no exceptions; **Requires-Approval** or unlisted flagged for explicit approval; `tokio`+WASM is a hard incompatibility, never proposed together); checking development tools against `agents/PREFERRED_TOOLS.md`; checking infrastructure services against `agents/PREFERRED_SERVICES.md`; **setting the project's workspace MSRV** per `agents/RUST_PREFERENCES.md` §0 (and the dual-MSRV pattern if a publishable library crate exists) — recorded here as a flagged placeholder, relocated into `_07_interfaces_and_stack` §6 at Step 6 synthesis, since that file doesn't exist yet. Substantive: real environment feasibility (infra, budget, licensing, team familiarity) for anything not list-checkable — flagged, resolved via §3.2. Claude never certifies "technical sufficiency" unilaterally; it's a proposal pending confirmation. |
+| 6 | Final Architecture Synthesis (ISO 42010) | Architecture files `_06_viewpoints`, `_07_interfaces_and_stack`, `_08_constraints_and_roadmap` (created new this step); `_05_verified_traceability` (finalized — MSRV relocated out per Step 5's row above) | Mostly recombination of already-approved content from files `_01` through `_05` — less to delegate. One live judgment call: formal notation (SysML-style) vs. prose, per element. Claude states briefly *why* an element got one or the other, so the user can override per-element without re-litigating the viewpoint. Must cover all 4 mandatory viewpoints: Functional, Information (Data Dictionary), Deployment, Interface Control. This is also where the Asset Manifest (§3.8) content already accumulated in `_01` migrates into its permanent home in `_06`'s §4.13 (User Experience & UI Design). |
+| 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | **No propose-with-flagged-assumptions here — by design.** An audit's value depends on adversarial independence from the rest of the process, including Claude's own prior work; this is the last systematic check before anything is built on the Spec. Checks, on Claude's own analysis, not by asking the user to confirm assumptions: every User Story maps to a requirement; every requirement is atomic; no approved content was elided/summarized/replaced with a "see previous version" reference; no gap could force a stub/partial implementation downstream; every Asset Manifest entry is actually referenced somewhere it should be; **every deliverable file's name conforms to the §4 naming convention.** **A clean report (zero findings) closes Step 7 normally — proceed to Step 8. Any finding at all (even one) triggers the Step 7 Backtrack Workflow, §3.12, instead of normal gate approval.** |
+| 8 | Development Plan & Checklist | Development Plan + Checklist + Dev-Agent Kickoff Prompt | Before drafting Plan content on environment/config (toolchain, CI, local setup — not addressed by Steps 1–7, which are about *what*, not *where/how built*): elicit concrete facts directly; for anything unspecified with a reasonable default, propose the default as a flagged assumption (§3.1), once per Plan, not once per phase. **Phase Sizing:** each phase must be completable within one agent session, sized for an agent **less capable than Claude**, with margin for debugging/complications. Complexity is computed, not eyeballed: `Score = (task_count × 1) + (new_public_interfaces × 2) + (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)` — interfaces and cross-file coordination weighted higher since that's where a weaker agent is likeliest to err. Default ceiling **≤15**; user-tunable over time/as models improve — the formula's weighting is the stable part, the ceiling number is the adjustable part. **Frontend phase sequencing, where a UI component exists:** phase boundaries use *targeted interleaving* — each screen/component's frontend implementation task is placed in the same phase as the real (non-mock) backend/data dependency it needs, never earlier (which would force a throwaway stub) and never pushed wholesale into a trailing "frontend phase" — this is a Development Plan §9.1/§6 concern in detail; this file only states the principle Step 8 must apply when sizing/ordering phases. **Final deliverable:** a reusable kickoff prompt for the executing development agent, using `agents/exemplars/dev_agent_kickoff_prompt_template.md` — produced once, reused at the start of every Development-Phase session, not regenerated per session. |
+| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No propose-with-flagged-assumptions here either — by design, mirroring Step 7.** Step 8's output was produced by the same flagged-assumption mechanism as every other step; nothing so far has independently verified it. Step 9 runs `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist on Claude's own analysis: every Core requirement traced, no orphan citations, every phase has non-empty Entry/Exit Criteria, every task has a Verification Method and DoD, the Phase Dependency Graph is acyclic, Checklist/Plan lockstep with no drift, every filename conforms to §4. Also cross-checks Build Order fidelity against the finalized Architecture Specification and, where a UI component exists, that phase sequencing actually reflects Frontend Targeted Interleaving rather than a backend-then-frontend split. **A clean report closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only — reopen Step 8 alone, fix, re-package, re-audit — or (B) Spec-originating — reopen the relevant Architecture Specification step (1–6), re-clear Step 7 to a clean result, then return to Step 8** — never patch the Plan around a still-defective Spec. This repeats until a Step 9 run is clean. See `agents/DESIGN.md` §5.9 for the full backtrack mechanics, which mirror §3.12 below. |
 
-**Rules Claude will hold itself to:**
-
-- **Step 1 uses a propose-with-flagged-assumptions model, splitting structural mapping from
-  scope/boundary judgment.** Restructuring a concept statement into a coherent problem-space
-  description, and drafting a first-pass system-boundary diagram from what's explicitly
-  said, is largely mechanical — organizing and clarifying what the user already gave Claude.
-  Deciding what's actually *in scope*, where the system's real boundaries sit, and which
-  adjacent systems/actors matter is not mechanical — a concept statement is necessarily a
-  compressed signal, and Claude filling gaps plausibly is not the same as filling them
-  correctly. Concretely:
-  - Claude drafts Architecture Pass 1 directly from the concept statement (and any
-    referenced repository documents), including a first-pass problem-space description and
-    system-boundary mapping, using the architecture specification template once available
-    or `DESIGN.md`'s own structure otherwise (see Section 2.1).
-  - Claude **explicitly flags every boundary, scope inclusion/exclusion, or actor it had to
-    infer rather than derive from something the user actually stated** — e.g. "Treating
-    notification delivery as out of scope; the concept statement didn't address it, so this
-    is an assumption, not a stated boundary."
-  - The user corrects in bulk: confirming, adjusting, or rejecting flagged boundary
-    assumptions, and adding scope Claude didn't infer at all.
-  - Structural drafting stays delegated to Claude; **what's actually in scope and where the
-    real system boundaries sit is confirmed by the user, not assumed by Claude** — since this
-    determination shapes every downstream step, an unflagged wrong assumption here is the
-    most expensive place in the whole workflow for one to go unnoticed.
-- **One gate at a time.** Claude will not produce Step 2's output until Step 1 is explicitly
-  approved, etc. This also means Claude will not pre-draft "the whole spec" up front and
-  walk it back into steps — each step is genuinely built in sequence.
-- **Step 2 uses a propose-then-correct model, not blank-page elicitation.** Claude does not
-  treat the user as the sole source of User Stories, and does not treat itself as a reliable
-  judge of "sufficient" coverage either — neither generating a batch unchecked nor demanding
-  the user dictate every story from scratch reflects how this is meant to work. Instead:
-  - Claude drafts a full candidate batch of User Stories directly from the approved Pass 1
-    output — organized by actor/persona and by theme (happy path, edge case, error/failure
-    state, admin/operational, etc.) — and presents the whole batch at once, numbered for
-    easy reference. Where drafting a story required inferring something Pass 1 didn't
-    actually state (a persona's specific need, an edge case's exact boundary), Claude
-    attaches that as a flagged assumption on the story, per the same flagged-assumption
-    principle used in Steps 1, 3, 4, and 5 — not every story will carry one.
-  - Review and resolution of this batch — both the story-level pass and the
-    assumption/deferred/ambiguous-item closing passes that follow it — are governed by the
-    **Grouped Closing Protocol**, defined immediately below, which applies to Step 2 and to
-    the analogous batch-producing loop in every subsequent step (Steps 3-8).
-
-### Grouped Closing Protocol (Step 2 and subsequent Steps)
-
-This protocol governs how Claude closes out a batch produced by Step 2's User Story
-elicitation, and by the analogous batch-producing work in Steps 3 through 8 (requirement
-decomposition batches, test-identification batches, tool/dependency-choice batches, etc.).
-It replaces strict one-item-at-a-time dictation, but preserves the underlying guarantee
-`DESIGN.md` is protecting: every item is individually visible and individually confirmed or
-rejected by the user before the set is treated as final.
-
-**Grouping.** Claude organizes the full batch into groups at draft time (e.g. by
-actor/persona and theme for User Stories; by sub-topic for requirements or test cases) —
-grouping is decided once, up front, not discovered incrementally as items are resolved.
-
-**Per group, in order, the following stages run in sequence — Claude does not move to the
-next group until the current group's stages are settled:**
-
-1. **Pass A — item-level review (batch content itself).** Claude presents this group's
-   batch of items (e.g. User Stories) as plain numbered text. The user reviews in bulk:
-   striking, editing, confirming, or adding items. This settles *which items exist and in
-   what form* for this group — it does not yet require resolving any attached assumptions.
-2. **Stage 1 — Assumption table.** Claude presents a table for this group: **Item —
-   Choices — Recommendation**, covering every flagged assumption still attached to a
-   surviving item from Pass A (an item struck in Pass A drops its assumption automatically).
-   The user responds in bulk text: striking/editing/confirming entries, or naming specific
-   items to see the analysis for (e.g. "show me the analysis for items 6, 9, and 13").
-   - For each item the user named, Claude presents that item's full analysis and
-     recommendation, then poses a selectable-options question for it — **without an
-     "analysis" option of any kind, since the analysis was just given as the reason the
-     question exists; offering to provide what is already being provided is a dead,
-     confusing option, not rigor.** The question keeps Defer (a live, distinct outcome:
-     "I still don't want to decide this even with the analysis in hand") and the
-     substantive choices, recommendation listed first and labeled, per Section 5's standing
-     convention minus the analysis option specifically.
-   - Anything resolved through bulk text is done. Anything still open after this round
-     (explicitly Deferred, or still ambiguous despite the individual round) **flows forward
-     into Stage 2 — it is not held back or re-litigated within Stage 1.**
-3. **Stage 2 — Deferred-items table.** Once Stage 1 is as resolved as it will get, Claude
-   presents a separate table (visually distinct from Stage 1's, not merged into it) of
-   items explicitly marked Defer — from this group's bulk replies or individual rounds, in
-   Stage 1 or carried in from elsewhere. Same pattern as Stage 1: bulk resolution first,
-   then individual analysis+selectable-options (no analysis option) for whatever remains,
-   with leftovers flowing forward into Stage 3.
-4. **Stage 3 — Remaining-ambiguous table.** Once Stage 2 is as resolved as it will get,
-   Claude presents a separate table of items still ambiguous after Stages 1-2. Same
-   bulk-then-individual pattern. Whatever is still unresolved after this stage is the
-   genuine residue carried into end-of-loop/end-of-step handling (e.g. genuinely
-   unresolved Defers that get revisited per Section 5's standing Defer mechanism, at the
-   appropriate later step).
-5. **Next group.** Once Stage 3 is settled for the current group, Claude moves to the next
-   group and restarts at Pass A (or, for steps without a Pass-A-equivalent batch-content
-   review, at Stage 1 directly).
-
-**Completeness signal.** After the last group's Stage 3 is settled, Claude asks explicitly
-whether anything is still missing from the batch as a whole — the user's confirmation, not
-Claude's own sense of coverage, is what closes the loop, consistent with Section 5's general
-completeness rule.
-
-**Early resolution exception (carried from the original Pass A/Pass B design).** If the
-user's Pass A (or equivalent) reply explicitly resolves an item's flagged assumption
-alongside a content-level edit — not merely touching the item incidentally, but stating the
-assumption's answer directly (e.g. "keep #4, and yes 30 minutes is correct") — Claude does
-not re-present that resolved assumption in Stage 1; re-asking something already explicitly
-answered is friction, not rigor. This exception is narrow: if the edit resolves the original
-assumption but introduces a *new* one in its place, the new assumption still goes through
-Stage 1 — only assumptions actually, explicitly settled are skipped.
-
-**Bulk-reply pattern, applied at every bulk-text point above.** The user has three ways to
-respond to a bulk-text table, and Claude follows whichever is actually given:
-- **A single covering reply** (e.g. "all accepted") resolves every entry in that table at
-  once — Claude does not ask for item-by-item confirmation after a clear blanket statement.
-- **A bulk reply addressing some items** resolves exactly those addressed; the rest remain
-  open for that stage's individual round.
-- **An explicit request to review individually** (without naming specific analysis-requested
-  items first) is Claude's signal to move straight to the individual round for the whole
-  table, skipping further bulk-text attempts for it.
-Claude never switches to individual treatment on its own initiative, and never treats an
-ambiguous bulk reply as an automatic trigger for it — an ambiguous reply gets a plain
-clarifying question first, per this document's "Clarification ≠ approval" rule below and
-`AGENTS.md` §3.1's Formal Approval Protocol.
-
-**Expected list size at each individual round.** Bulk resolution is expected to shrink each
-stage's list enough that the individual round covers only a handful of items — this is an
-expectation, not a hard rule; if a stage doesn't shrink much, the individual round still
-runs against whatever remains rather than being artificially capped.
-
-**Interactive format generally.** Aside from the no-analysis-option rule for these specific
-individual rounds (above), the standing convention in Section 5 (mandatory pre-analysis,
-recommendation-first and labeled, the Defer option, the tool-capacity fallback ladder, and
-the 3+-options rarity flag) applies to every selectable-options question this protocol uses.
-
-- **Step 3 uses a propose-with-flagged-assumptions model, splitting decomposition mechanics
-  from content correctness.** These are different axes: whether a requirement is *atomic,
-  unambiguous, verifiable*, etc. is checkable against the 9 criteria almost mechanically, and
-  Claude can do this reliably unsupervised. Whether a requirement is *necessary, feasible, or
-  complete* depends on facts about the user's actual needs that Claude cannot verify on its
-  own — a requirement can be perfectly well-formed and still wrong. Concretely:
-  - For each confirmed User Story, Claude independently runs the three-pass decomposition
-    (Functional Scope → Logical Decomposition → Detailed Specification), producing candidate
-    atomic requirements that Claude has already self-checked against all 9 criteria and
-    scanned for "requirement smells" before presenting them.
-  - Claude presents the resulting requirements per story (or in clearly delineated batches
-    across closely related stories), **explicitly flagging every requirement where it had
-    to make an assumption** to make the requirement atomic, complete, or unambiguous — e.g.
-    "Added a requirement for session timeout behavior; the story didn't specify a duration,
-    so this is a placeholder assumption, not a stated need." Assumptions are never folded in
-    silently.
-  - The user corrects in bulk: confirming, editing, rejecting flagged assumptions, splitting
-    a requirement further, or merging/removing ones that don't apply.
-  - The 9-criteria check and requirement-smell scan stay delegated to Claude — that mechanical
-    quality bar does not require the user's sign-off to apply — but **whether a requirement is
-    correct, necessary, and complete is confirmed by the user, not assumed by Claude.**
-  - Coverage ("are there more requirements needed for this story, or for the story set as a
-    whole?") is asked back to the user the same way Step 2 handles story coverage — Claude's
-    own sense that decomposition is "done" is not the completeness signal.
-  - This loop may repeat per story or across the batch if corrections reveal that Claude's
-    reading of a story's scope was substantially off, not just locally wrong.
-- **Step 4 uses a propose-with-flagged-assumptions model, splitting test-case derivation
-  from acceptance-bar correctness.** Deriving plausible test cases from an already-atomic,
-  already-verifiable requirement (Step 3 enforced "Verifiable" as one of the 9 criteria) is
-  largely mechanical — boundary values, error paths, the obvious happy-path check. Deciding
-  what actually *counts* as Done for a given requirement is not mechanical: "verifiable"
-  only means some objective test exists, not what bar that test must clear, and the real
-  bar (passes a unit test vs. survives a security review vs. meets a regulatory standard)
-  depends on context Claude doesn't have. Concretely:
-  - For each requirement, Claude drafts candidate Test Cases, a proposed Definition of Done,
-    and Verification Criteria, working through requirements systematically rather than in
-    one undifferentiated batch.
-  - Claude presents these per requirement (or in clearly delineated batches across closely
-    related requirements), **explicitly flagging anywhere it had to assume what "done"
-    means** rather than derive it from something already stated — e.g. "Proposing 'passes
-    automated test suite' as DoD; the requirement doesn't specify whether manual review or
-    a higher assurance bar is also expected."
-  - The user corrects in bulk: confirming, tightening or loosening a DoD, rejecting a flagged
-    assumption, or adding test cases Claude missed.
-  - Test-case derivation mechanics stay delegated to Claude; **whether the acceptance bar is
-    actually the right one for this requirement is confirmed by the user, not assumed by
-    Claude.**
-- **Step 5 uses a propose-with-flagged-assumptions model, splitting tool identification from
-  environment feasibility.** Matching a test case to a category of tool (e.g. "this needs a
-  browser-automation tool," "this needs a load-testing harness") is reasonably mechanical.
-  Whether a specific tool/dependency is actually *feasible* — available infrastructure,
-  budget, license terms, team familiarity, and fit with the mandates in
-  `agents/PREFERRED_DEPENDENCIES.md` — depends partly on facts Claude can check directly
-  (the dependency lists in that file) and partly on facts about the user's real environment
-  that Claude cannot see or verify on its own. `agents/PREFERRED_TOOLS.md` is not relevant to
-  this engagement and is not referenced. Concretely:
-  - Claude identifies a specific tool/dependency and required artifacts per requirement.
-    Where the choice is a Rust dependency, Claude checks it against
-    `agents/PREFERRED_DEPENDENCIES.md` directly: preferred-list dependencies are used
-    without extra confirmation; anything on the **Forbidden** list is never proposed, no
-    exceptions; anything in the **Requires Approval** tier (currently `trunk`, `webpack`) or
-    not listed at all is flagged and requires the user's explicit approval before being
-    treated as part of the plan, per that file's own mandate and `AGENTS.md`'s "Dependency
-    and Tool Selection" rule. The `tokio` / WASM-incompatibility constraint is treated as a
-    hard rule, not a suggestion: Claude will not propose `tokio` for any WASM-targeted
-    requirement.
-  - For non-Rust-dependency tooling (e.g. test-automation frameworks, infra), no preferred
-    list currently exists, so Claude presents these per requirement or in batches,
-    **explicitly flagging any tool choice that is a best guess rather than confirmed against
-    the actual environment** — e.g. "Proposing Playwright for this; haven't confirmed it's
-    already in the team's toolchain or that licensing/infra supports it."
-  - The user corrects in bulk: confirming tool/dependency choices, approving or rejecting
-    flagged Requires-Approval or unlisted dependencies, swapping in what's actually
-    available, or flagging infeasibility Claude couldn't have known about.
-  - Tool-category matching and dependency-list compliance stay delegated to Claude; **whether
-    an unlisted or Requires-Approval dependency is actually acceptable, and whether a
-    non-Rust tool is actually feasible in this environment, is confirmed by the user, not
-    assumed by Claude.** Claude will not certify "technical sufficiency for development"
-    (the Step 5 mandate) on its own judgment alone — that determination is presented as a
-    proposal pending the user's confirmation, not delivered as a finished fact.
-- **Step 6 uses formal notation where appropriate** (SysML-style where it clarifies, not
-  decorative) and **must cover all four mandatory viewpoints**: Functional, Information
-  (Data Dictionary), Deployment, and Interface Control (ICD). Unlike Steps 1–5, Step 6 is
-  mostly *recombination* of already-approved content from earlier steps rather than new
-  elicitation, so there's less hidden judgment to delegate — but one judgment call remains
-  entirely Claude's by default: **deciding what counts as "appropriate" for formal notation
-  versus prose.** Claude will state, briefly, why a given element got a formal diagram versus
-  a prose description (e.g. "modeled as a SysML block diagram because the component
-  interactions are non-obvious from prose alone") rather than making that call silently, so
-  the user can override the choice for any specific element without re-litigating the whole
-  viewpoint.
-- **Step 7 is a real audit, not a formality.** Claude will explicitly check: every User
-  Story maps to a requirement; every requirement is atomic; no previously approved content
-  was elided, summarized, or replaced with a "see previous version" reference; no logical
-  gaps exist that could lead to stubbed/partial implementation downstream.
-- **Step 8 includes an environment/configuration elicitation sub-step before drafting the
-  Plan.** The Development Plan template's §4 (Environment & Prerequisites Setup) and §5
-  (Development & Test Configuration) require concrete facts about the user's actual
-  environment — installed toolchains, available local infrastructure, CI setup, existing
-  config conventions — that nothing in Steps 1–7 elicits, since those steps are about *what*
-  the system does, not *where/how it gets built*. Before drafting the Plan's §4/§5 content,
-  Claude:
-  - Asks the user directly for the concrete environment facts those sections require, rather
-    than inferring plausible-sounding defaults (e.g. assuming a specific OS, CI provider, or
-    local service setup the user never confirmed).
-  - Where the user hasn't specified something and a reasonable default exists (e.g. a
-    standard `cargo` workspace layout), Claude proposes the default and flags it as an
-    assumption needing confirmation — same propose-with-flagged-assumptions pattern as
-    Steps 1–5 — rather than silently asserting it as fact in the Plan.
-  - This sub-step happens once per Plan, not once per phase, since the environment is a
-    property of the project, not of an individual phase.
-- **Clarification ≠ approval.** If the user's reply to a gate is a question or a request
-  for a change, Claude treats that as feedback to incorporate, then re-presents the revised
-  output for approval again — it does not treat the reply itself as a green light to proceed.
-- **Backtracking is explicit, not silent.** Per `DESIGN.md`, the user may return to any
-  previous step to refine the design. In practice this most often surfaces when a *later*
-  step reveals that an earlier step's flagged assumption — or, worse, something nobody
-  flagged — was actually wrong (e.g. Step 6 synthesis exposes a Data Dictionary conflict
-  traceable to a scope assumption made back in Step 1 or a decomposition assumption from
-  Step 3). When this happens:
-  - Claude names the originating step and the specific assumption or content at issue,
-    rather than quietly patching the current step's output around the problem.
-  - Claude does not unilaterally decide whether the fix only requires a local patch at the
-    current step versus a real re-open of the earlier step — that's presented as a choice
-    to the user, since it determines how much upstream work needs re-approval.
-  - If the user elects to re-open an earlier step, all *already-approved* content from
-    steps after the reopened one is preserved and revisited only as needed once the
-    earlier step is re-approved — consistent with the additive-only, no-silent-elision
-    rules in Section 5, this is not treated as a license to discard later work wholesale.
-  - This is flagged as a "Major Change" per `DESIGN.md` Section 4 whenever the correction
-    materially changes scope, requirements, or architecture — not just when it's
-    convenient to call it one.
-- **Major Changes are flagged explicitly**, by name, the moment Claude recognizes one
-  resulting from any iteration — not just backtracking — and not buried in a diff or
-  folded silently into the next deliverable.
-- **Scope decisions are a three-way question, not a binary one.** Whenever a feature, User
-  Story, or requirement's inclusion is being discussed — including but not limited to MVP
-  scoping — "is this in scope" has a real third answer beyond yes/no: the user may want it,
-  just not in this build. Claude does not collapse that into a plain exclusion. Concretely:
-  - When the user indicates something should be excluded from current scope, Claude asks
-    directly which of two things is meant: **not wanted at all** (belongs in Architecture
-    Spec §2.5, Out-of-Scope Features) versus **wanted, just deferred to a future version**
-    (belongs in §2.6, Future Features) — Claude does not guess between these, since they
-    have materially different downstream handling and an unflagged wrong guess here is the
-    same category of error this entire framework exists to prevent.
-  - Once the answer is "deferred," Claude records the item in Architecture Spec §2.6
-    per that section's own recording mandate (originating ID if one exists, a sufficient
-    description, the stated reason for deferral, and any known dependency/precondition) —
-    not just a one-line mention in conversation that never makes it into a durable document.
-  - If the user has already clearly stated which of the two is meant in the same message
-    that raises the exclusion (e.g. "let's defer that to v2"), Claude does not ask the
-    question redundantly — it records the answer already given, consistent with the
-    Grouped Closing Protocol's early-resolution exception (Section 3's note on Step 2).
-  - **Category-specific default: feature/story-level stackable or incremental scope
-    choices.** When a selectable-options question is a choice among stackable/incremental
-    *feature* levels (commonly an MVP-floor decision about what the product does), Claude
-    defaults the **unchosen, richer feature levels to Future Features (§2.6)** rather than
-    asking the three-way question fresh each time — the shape of this category of choice
-    ("ship the simpler feature now") usually implies the richer level was sequenced later,
-    not rejected on merits. This default is stated explicitly in the same response, not
-    applied silently (e.g. "the richer level will be recorded in Future Features unless
-    you'd rather drop it entirely"), and the user can override it in the same reply (e.g.
-    "actually, drop that entirely") — at which point Claude routes it to §2.5 Out-of-Scope
-    instead. This default is for genuine feature/product-scope choices only — it does not
-    cover implementation-level choices (see the next bullet), and does not change the
-    general three-way question for scope exclusions arising any other way.
-  - **Implementation-level choices (algorithm, parameter strategy, and similarly-shaped
-    assumption clarification) are a distinct category, with their own destination and their
-    own analysis obligation.** A choice of *algorithm* or *implementation strategy* for an
-    already-in-scope requirement is not a feature/scope decision at all — the requirement is
-    in scope either way; what's being decided is *how* to satisfy it. Routing a deferred
-    algorithm to §2.6 Future Features would misrepresent it as a product feature rather than
-    an implementation choice, so this category routes instead to the Architecture
-    Specification's **§4.15 (Deferred Implementation Alternatives — Noted, No Commitment)**
-    or **§4.16 (Deferred Implementation Alternatives — Extensibility Commitment Required)**,
-    which are explicitly distinct from each other:
-    - **Claude actively weighs both destinations as part of the analysis itself, not only
-      after the user has already picked an option.** When a question presents a simpler
-      option alongside one or more more-complex alternatives, Claude's pre-analysis (per
-      Section 5's mandatory-analysis rule) explicitly considers whether "ship the simple
-      option, but commit to an extension point so the complex one can be added later
-      without rearchitecting" is itself a candidate path — not merely something to file
-      away once the user has separately chosen the simple option. This matters most, and is
-      not optional to skip, whenever one of the options under consideration has a real scope
-      or implementation-effort impact (e.g. the complex option would require a different
-      data flow, a new dependency, or a structural change if bolted on later rather than
-      planned for) — in exactly that situation, the cost of bolting it on later versus
-      committing a cheap extension point now is itself one of the tradeoffs the analysis
-      must weigh and surface, not an afterthought.
-    - If the user defers an alternative with **no request that it remain easily addable
-      later**, it goes to §4.15 as a pure record (the analysis already done, so a future
-      session doesn't re-derive it from scratch).
-    - If the user defers an alternative **wanting to ensure it can be added or swapped in
-      later without rearchitecting**, it goes to §4.16, and Claude treats the required
-      extension point as a real requirement on the current implementation — it must
-      actually be specified in §4.4 (Functional View) and/or §4.9 (Rust-Specific
-      Architectural Conventions), not merely noted in §4.16's index. Claude asks which of
-      these two is meant when it isn't already clear from how the user phrased the
-      deferral, the same way the feature-level default above asks rather than guesses
-      whenever genuinely ambiguous.
-    - Each entry is sub-grouped by its originating requirement/topic/assumption ID, per
-      §4.15/§4.16's own structure — Claude does not let these accumulate as a flat,
-      unsorted list.
-- **Standing convention for the selectable-options interaction.** Wherever Claude uses the
-  selectable-options/multiple-choice tool anywhere in this workflow (a genuinely discrete
-  choice — see Section 3's note on Step 2 for what does *not* qualify), the following apply
-  to every use, not just specific steps:
-  - **Tool-capacity constraint, checked before applying the rest of this convention.** The
-    underlying tool allows at most 4 options per question. Defer and "Provide analysis and
-    recommendation" (below) are both meant to be standing, always-present options — but 2
-    standing options plus 3 or more substantive choices would exceed that ceiling. When a
-    question genuinely has 3 substantive options, Claude drops "Provide analysis and
-    recommendation" from the option list itself (keeping Defer, since declining to decide
-    now is more often needed than declining to decide ever) and instead **states the
-    analysis inline as part of the question's framing text**, immediately before the
-    substantive options are listed — the user gets the same analysis either way; only its
-    delivery mechanism (a selectable option vs. framing text) changes based on how much
-    room the question has left. When a question has 4 or more substantive options, even
-    Defer alone would exceed the ceiling; in that case Claude first tries to consolidate the
-    options to 3 or fewer genuinely distinct choices (4+ live alternatives is often a sign
-    the question itself is underspecified, not that it truly needs that many branches) and
-    only if that consolidation is not honestly possible does Claude fall back to plain text
-    for that question instead of the tool, stating the analysis and recommendation inline
-    and noting that Defer is still available by saying so in reply. The mandatory
-    pre-analysis requirement below applies in full regardless of which delivery mechanism
-    is used.
-  - **This is expected to be rare, and Claude flags it explicitly when it happens, rather
-    than letting it pass as an unremarked default.** Most apparent 3+-option questions
-    should collapse to 2 genuine choices once the mandatory analysis actually weighs
-    correctness, feasibility, and maintenance cost — a "3rd option" surviving real scrutiny
-    is the exception, not the norm, and an unflagged pattern of frequent 3+-option
-    questions would suggest the analysis isn't being done rigorously rather than that the
-    underlying decisions are genuinely that open. Whenever 3 or more substantive options
-    survive the analysis, Claude says so directly and briefly (e.g. "this is one of the
-    rarer cases where the tradeoff is genuinely three-way, not just unresolved") so the user
-    can distinguish a true fork — most commonly an architectural tradeoff with no dominant
-    option (e.g. performance vs. compatibility vs. simplicity) where the right answer
-    depends on a priority only the user can weigh — from Claude having simply failed to
-    narrow the question properly.
-  - **Claude performs a real comparative analysis before presenting the question, every
-    time — not only when the analysis option is selected.** Before building the question,
-    Claude works out the actual pros/cons of the substantive options and arrives at a
-    recommendation from that analysis, rather than picking a recommendation first and
-    rationalizing it afterward only if asked. This is required unconditionally; the
-    analysis option below makes that pre-existing work *visible* to the user on request, it
-    does not create the obligation to do the work in the first place. **Exception:** the
-    Grouped Closing Protocol's individual-item rounds (Section 3's note on Step 2) omit the
-    analysis option entirely, since by that point the analysis has already been shown as the
-    explicit reason the item reached individual treatment — offering to provide what's
-    already provided is dead weight, not rigor. That exception is local to this specific
-    situation and does not relax the unconditional analysis requirement itself.
-  - **Claude's recommended option is listed first (option #1), and is explicitly labeled as
-    Claude's recommendation**, reflecting the analysis above — position alone never implies
-    endorsement silently; the label makes clear that #1 reflects Claude's judgment, which
-    the user is free to override, not a ranking of objective correctness. This matters here
-    specifically because most questions reach this interaction *because* the answer depends
-    on something only the user knows — listing a recommendation first is a convenience, not
-    a claim that Claude's guess is more likely right than the alternatives.
-  - **A standing "Defer" option is included** alongside the substantive choices. Selecting
-    it means: don't answer this now. Claude records the deferred item so nothing has to be
-    re-derived later. Resolution of deferred items happens via the **Grouped Closing
-    Protocol's Stage 2** (see Section 3's note on Step 2) — a per-group, visually distinct
-    table, resolved bulk-first with individual treatment only on explicit request — not via
-    an ad hoc, engagement-wide list reviewed informally. A deferred item is never simply
-    dropped — it is resolved or explicitly re-deferred to a specific later step where it's
-    more naturally resolved (e.g. a tooling question more naturally answered once Step 5
-    feasibility is being checked), never silently lost.
-  - **A standing, fixed-last option, labeled "Provide analysis and recommendation," is
-    always the final choice in the list.** Selecting it does not answer or close the
-    question — it surfaces the comparative analysis Claude already performed while building
-    the question (per the first bullet above) — the substantive options' pros/cons, plus
-    Claude's recommendation and the reasoning behind it — and then **re-presents the same
-    selectable-options question**, including Defer and this option again, so the user can
-    now choose with that analysis in hand. This option can be selected more than once in a
-    row if the first pass didn't fully resolve the user's uncertainty, though Claude should
-    note if a repeated request suggests the question itself needs reframing rather than
-    another round of the same analysis.
+Every step ends with **STOP, present output, await explicit approval** — never combined,
+never skipped, in full-rigor mode (§3.7 for the autonomy toggle and its presets). Per §1,
+every step (and every repeated run of a step) is its own session — a step's gate output is
+always a complete file package for the next session, per §3.11, and always includes the
+accumulated open-items review required by §3.13.
 
 ---
 
-## 4. Multi-File Output & Cross-Linking Convention
+### 3.5. Scope: a Three-Way Question, Not Binary
 
-For both the Architecture Specification and the Development Plan, once a deliverable is
-ready for a given gate and spans multiple files:
+"Is this in scope" has a real third answer: wanted, just not in this build. Claude never
+collapses that into a plain exclusion.
 
-- **All files for one artifact are assumed to live in the same flat directory.**
-  No subfolder nesting is assumed in the links below unless the user changes this.
-- **File-split boundaries follow the templates' actual top-level sections, not an invented
-  scheme.** Both templates state their own top-level sections are natural file-split
-  boundaries with section numbering stable across the split. Grouped toward the 3–5 file
-  target (rather than one file per section, which would overshoot it), the default split is:
+- **Default case — ask which is meant:** not wanted at all (Architecture Spec §2.5,
+  Out-of-Scope) vs. wanted but deferred (§2.6, Future Features). Claude doesn't guess between
+  these — they have materially different downstream handling. Once "deferred" is confirmed,
+  Claude records it in §2.6 per that section's mandate (originating ID if any, sufficient
+  description, deferral reason, known dependency/precondition) — not just a conversational
+  mention. If the user already states which is meant in the same message, Claude doesn't ask
+  redundantly (§3.2's early-resolution exception).
+- **Feature-level stackable/incremental choices (e.g. MVP-floor decisions) default to
+  Future Features**, stated explicitly not silently (e.g. "the richer level goes to Future
+  Features unless you'd rather drop it"), overridable in the same reply. This default is for
+  genuine feature/product-scope choices only.
+- **Implementation-level choices are a distinct category** — an algorithm or strategy choice
+  for an already-in-scope requirement isn't a scope decision at all (the requirement is in
+  scope regardless; what's decided is *how*). These route to the Architecture Spec's **§4.15**
+  (deferred, noted only — no commitment) or **§4.16** (deferred, with an extension point
+  Claude must actually specify in §4.4/§4.9, not just index) — Claude asks which is meant
+  when unclear, sub-grouped by originating ID in either case.
+  - **Claude actively weighs "ship simple + commit an extension point" as a candidate
+    answer within the mandatory pre-analysis itself (§3.3)** — not only after the user has
+    already chosen — especially whenever an option carries real scope/implementation-effort
+    impact, where the cost of retrofitting later vs. committing a cheap extension point now
+    is itself part of what the analysis must surface.
 
-  **Architecture Specification** (11 template sections → 4 files):
-  - `01_architecture_overview.md` — §1 Introduction, §2 Product & User Requirements,
-    §3 Acceptance Criteria & Traceability
-  - `02_architecture_viewpoints.md` — §4 System Architecture (all four ISO 42010
-    viewpoints: Functional, Information/Data Dictionary, Deployment, Interface Control) —
-    by far the largest section in the template, and likely to be the largest file on its
-    own; if it alone exceeds what's reasonable for one file, Claude will flag this and
-    propose splitting it into its own sub-set (e.g. one file per viewpoint) rather than
-    silently overrunning the 1000+ line target without saying so.
-  - `03_architecture_interfaces_and_stack.md` — §5 External Interfaces & Integrations,
-    §6 Technology Stack & Dependencies (including §6.5 CI/CD Pipeline)
-  - `04_architecture_constraints_and_roadmap.md` — §7 Constraints & Assumptions,
-    §8 Risks & Technical Debt, §9 Implementation Roadmap & Build Order, §10 Public API &
-    Framework Consumer Contract, §11 Appendices
+### 3.6. Backtracking & Major Changes
 
-  **Development Plan** (15 template sections → 4 files):
-  - `01_plan_overview.md` — §0 Architecture Cross-Reference, §1 Introduction,
-    §2 Technology Stack, §3 Project Folder Structure
-  - `02_plan_environment_and_phases.md` — §4 Environment & Prerequisites Setup,
-    §5 Development & Test Configuration, §6 Phases and Milestones
-  - `03_plan_tasks_and_testing.md` — §7 Risk Management & Mitigation, §8 Task
-    Decomposition, §9 Test Strategy & Plan, §10 Logging Strategy
-  - `04_plan_protocols_and_dod.md` — §11 Session Handoff Protocol, §12 Abort/Rollback
-    Protocol, §13 Escalation Triggers, §14 Change Control for This Plan, §15 Plan-Level
-    Definition of Done
-
-  This grouping is a starting proposal, not fixed in stone — Claude will revisit it once
-  real content volume per section is known (Step 6 for the Spec, Step 8 for the Plan) and
-  flag if a different grouping serves the 1000+-line/3–5-file target better, rather than
-  forcing content into a grouping decided before any content existed.
-- **The first file in each set acts as an index/entry point.** It contains a short overview
-  and a linked table of contents to every other file in the set, using relative Markdown
-  links (e.g. `[Architecture Viewpoints](./02_architecture_viewpoints.md)`), since all files
-  are assumed co-located.
-- **Every other file links back to the index file** near the top (e.g. a breadcrumb line:
-  `← [Back to Architecture Specification Index](./01_architecture_overview.md)`), and
-  **links forward/sideways to adjacent or referenced files** wherever it makes a substantive
-  cross-reference (e.g. the Roadmap section in `04_architecture_constraints_and_roadmap.md`
-  linking to the specific requirement it implements in `01_architecture_overview.md`, not
-  just to that file's top).
-- **Cross-links are based on actual content dependency, not just sequence.** If the
-  Interface Control viewpoint references a type defined in the Information/Data Dictionary
-  viewpoint — both currently grouped within `02_architecture_viewpoints.md` per the split
-  above — that's an in-file anchor link to the specific section, not a cross-file link;
-  cross-*file* links are used where the dependency actually crosses the file boundary (e.g.
-  a Roadmap item in `04_architecture_constraints_and_roadmap.md` referencing a specific
-  requirement defined in `01_architecture_overview.md`'s Acceptance Criteria section).
-- **Anchors** use standard Markdown heading-derived anchors (e.g. `#3-2-data-types`) so
-  cross-file links can point at a specific section, not just the top of a file.
-- This same convention applies independently to the Development Plan's file set (its own
-  index file, its own internal cross-links) — the Architecture Specification and
-  Development Plan are not assumed to cross-link into each other unless there's a concrete
-  reason to (e.g. a Plan phase explicitly implementing a specific ICD interface).
+Per `agents/DESIGN.md`, the user may return to any previous step. Most often this surfaces
+when a later step reveals an earlier step's content — flagged or not — was wrong. When it
+happens via normal forward iteration (i.e. *not* a Step 7 finding — see §3.12 for that
+specific, mandatory case), Claude: (1) names the originating step and the specific content
+at issue, rather than patching around it; (2) presents — doesn't unilaterally decide — the
+choice between a local patch versus re-opening the earlier step, since that determines how
+much upstream work needs re-approval; (3) if re-opened, preserves all already-approved later
+content, revisiting it only as needed once the earlier step is re-approved (additive-only,
+no wholesale discard); (4) flags it as a Major Change whenever it materially changes
+scope/requirements/architecture — not just when convenient to call one. **Major Changes
+generally** are flagged explicitly, by name, the moment Claude recognizes one from any
+iteration — never buried in a diff or folded silently into the next deliverable.
 
 ---
 
-## 5. Other Standing Mandates Claude Will Honor Throughout
+### 3.7. Autonomy: a Per-Step Toggle, with Two Named Presets
 
-Pulled forward from `AGENTS.md` because they apply directly to how Claude produces and
-revises documents during this phase:
+Each step is either **interactive** (its normal §3.4 behavior, full elicitation per §3.1/3.2)
+or **autonomous** (internal process runs silently — no mid-step elicitation — but the
+**gate itself is unchanged**: Claude still stops and presents output for approval). This is
+**prompt-invoked**, never a standing default; full-rigor, all-interactive (§3.4) is the
+baseline absent an explicit instruction.
 
-- **Additive-only by default.** Claude will not remove, "clean up," or summarize away
-  previously approved content during iteration unless the user explicitly asks for a
-  deletion of a specific section.
-- **No self-referential elision.** Claude will never replace a section with "see Section X
-  of the previous version" — every document stays fully self-contained.
-- **No stub or placeholder content.** Sections will be written to their fullest reasonable
-  depth at the point they're presented, not sketched and deferred.
-- **Formal approval protocol.** Where a step requires explicit sign-off, Claude will treat
-  only an unambiguous "approved" / "proceed" / equivalent as the green light. Combining new
-  instructions with an approval is read as partial approval — incorporated, then re-presented.
-- **CHAT: prefix.** If a message begins with `CHAT:`, Claude treats it as a pure question —
-  no document changes, no gate progression, answer only in the response text.
-- **No assumptions on ambiguity.** Where user intent is unclear, Claude asks rather than
-  guessing and building on the guess.
+**Which steps can ever be autonomous:** 2, 3, 4+5, 6, 8. **Steps 1, 7, and 9 can never be
+autonomous, in any mode** — Step 1 because it's the highest-cost place for an unflagged
+wrong guess (§3.4); Step 7 and Step 9 because audit independence is non-negotiable for both
+(§3.4). No prompt overrides this. ("4+5" here means Steps 4 and 5 are handled as one combined
+autonomous session when this toggle is invoked — the only case where two Steps share a
+session; in interactive/default mode they remain separate sessions per §1/§3.4.)
+
+**Autonomous gate output, every eligible step:** not just a result — a consolidated
+**"Assumption/Issue — Choices — Decision & Rationale"** note per substantive item resolved
+internally, alongside the step's normal output, plus the §3.13 open-items review like any
+other gate. This is richer than a flat assumptions list: the user sees what the live options
+were and why Claude picked one, the same content a selectable-options question would have
+shown if asked interactively, just presented as a statement rather than a question.
+
+**Two named presets**, since the only real difference between "small project" and "trust
+this step's judgment" is whether Step 2 happens at all:
+
+- **Tailored Mode** ("treat this as a small project, tailored mode"): Step 2 **skipped**
+  entirely (not autonomous — gone, since the project is small enough that Step 1 absorbs
+  what it would have surfaced); Steps 3, 4+5, 6, 8 autonomous by default; Step 1 unconditionally
+  high-rigor per §3.4 *and* additionally expanded to cover persona/interaction/edge-case
+  content Step 2 would otherwise have surfaced.
+- **Full Autonomous Mode** ("run this project in full autonomous mode"): identical to
+  Tailored Mode except Step 2 **runs**, autonomously, instead of being skipped — for a
+  full-size project where Step 2's actual User Story artifact is still wanted, just without
+  interactive elicitation.
+
+**Single-step invocation** (independent of either preset, on any project): "run Step [N] in
+autonomous mode" — toggles one eligible step (2, 3, 4+5, 6, or 8) without invoking a whole
+preset. No combined shorthand exists for "preset + extra step" — name the preset and the
+additional step explicitly if stacking (though note there's little left to stack once a
+preset is active, since both presets already make every eligible step but 2-in-Tailored
+autonomous by default).
+
+Every gate in §3.4 still applies regardless of preset or toggle — autonomy changes only the
+*visibility of process*, never removes a stop-and-approve point.
+
+### 3.8. Visual & Media Asset Input: Discovery Source and Tracked Artifact
+
+The user may provide **HTML, images, and (where relevant) audio/video** showing or
+constituting how the system's UI should look, sound, and behave. This input plays two
+distinct roles that must both be honored: it is a **discovery source** (revealing data-model
+concepts, missing entities, or requirements no verbal description surfaced), and it is a
+**tracked artifact** carried by filename through Design and into Development, where the same
+files land in fixed repository paths for the development agent to consume directly.
+
+**Authoritativeness differs by asset type — this is a deliberate, non-uniform rule:**
+- **HTML is presumptively authoritative for structure and behavior.** Because the user has
+  stated HTML input is "highly representative of the desired final appearance," Claude treats
+  a provided HTML file as the default source of truth for a screen/component's markup
+  structure, layout, conditional visibility, validation behavior, and exact copy text — not
+  merely informative styling guidance to be freely reinterpreted. Deviating from what an HTML
+  asset specifies is itself a flagged item (§3.1), not a silent judgment call, the same as any
+  other case where Claude departs from stated input.
+- **Images are informative, not structurally binding**, and are treated as a **design-token
+  source**: branding, iconography, typography, color palette, and pattern/texture tiles, plus
+  any other graphical information they carry. This feeds the Architecture Spec's Design
+  System content (within §4.13, User Experience & UI Design) rather than dictating layout
+  structure the way HTML does.
+- **Audio/video assets** are logged in the Asset Manifest (below) and their intended usage is
+  captured in requirements/UX content as normal, but Claude does not attempt to "consume"
+  their content directly the way it reads HTML/images — they are tracked for the development
+  agent's benefit, not analyzed by Claude for discovery purposes.
+
+**Solicited as early as possible, not just at Step 1.** Step 1 intake actively asks whether
+screen mockups, reference HTML, brand/image assets, or (if applicable) audio/video assets
+exist, per §3.4's Step 1 row — but the user is explicitly encouraged to provide these assets
+at whatever point they become available during the engagement, since later steps benefit from
+having them sooner rather than only being asked once at the start.
+
+**The Asset Manifest — mandatory tracking record.** The moment any asset is provided, at any
+step, Claude logs it in the Asset Manifest: a table with columns `Filename | Type (html /
+image / audio / video) | Repository Target Path | What It's Authoritative/Informative For |
+Provided At (Step)`. Filenames are **immutable once logged** — Claude never proposes a
+rename; a filename collision or ambiguity is a flagged item requiring user resolution, never
+silently disambiguated by Claude picking a new name. Repository target paths are fixed by
+convention: `assets/html/`, `assets/images/`, `assets/audio/`, `assets/video/` — the same
+paths and the same filenames the user will populate in the project's GitHub repository for
+the development agent to consume, so an asset referenced anywhere in the Architecture
+Specification or Development Plan resolves unambiguously to a real repo file with zero
+translation needed between Design and Development. Until Step 6 relocates it into its
+permanent home in `_06_viewpoints`'s §4.13, the Asset Manifest accumulates inside whichever
+file is current at the step the asset was provided (per §4's Step-aligned file mapping) —
+this is the same flagged-placeholder-then-relocate pattern used for the Step 5 MSRV decision.
+
+**Triggers a completeness check whenever provided, at any point in the workflow** — not only
+at Step 1. Claude checks already-approved Data Dictionary/requirements content against what
+the visual input implies. Any gap found is a **flagged open item for user confirmation**
+(§3.1), routed through the Grouped Closing Protocol (§3.2) the same as any other flagged
+batch item — never silently patched into already-approved content, regardless of how
+obviously implied the gap seems.
+
+**Both image and HTML are reviewed when both are provided for the same screen/component —
+neither substitutes for the other**, consistent with their different roles above: HTML
+exposes behavior/state/content an image can't show; an image shows visual layout and design
+tokens raw markup doesn't make obvious. Each is checked for what only it reveals.
+
+**Frontend framework/crate implications.** Where HTML input implies a specific Rust/WASM UI
+framework's capabilities are needed (e.g. specific interactivity patterns), that choice still
+goes through Step 5's normal `agents/PREFERRED_DEPENDENCIES.md`/`agents/PREFERRED_TOOLS.md`
+feasibility check like any other dependency — visual input motivates the need but does not
+bypass the preferred-dependency approval flow.
+
+### 3.9. No Agent-Side Certification of Technical Sufficiency
+
+Confirmed, not a gap: Claude cannot certify technical sufficiency unilaterally at any step
+(§3.4, Step 5 states this explicitly; it holds everywhere else too). Research (§3.3, §3.4
+Step 1) narrows the substantive gap between Claude's proposal and the right answer — it
+never closes it, since real infrastructure, budget, and team constraints remain unverifiable
+from inside this chat. More rigor produces a better-informed proposal, never a certified one.
+
+### 3.10. Requesting More Depth ("Not Enough — Another Pass")
+
+At any point after a Steps 1, 2, 3, 4, 5, 6, or 8 gate (not 7 — see §3.4 and §3.12), the user
+may request a deeper pass rather than a correction — e.g. "not detailed enough, another
+pass," or "double the number of stories," "more detail in the interface specification."
+This is distinct from the Grouped Closing Protocol (§3.2), which handles *correctness*
+("this item is wrong"); this handles *insufficiency* ("this is right but thin"). The user
+may scope the request narrowly (a specific viewpoint, a specific phase) or broadly (the
+whole step's output), and may give a concrete metric — Claude treats a given metric as the
+actual target, not a vague cue to add a little more. Each such repeated run of a step is its
+own new session (§1) and is named `pass2`, `pass3`, etc. in its handoff-note filename per
+§4's naming convention — the underlying Architecture file it re-touches keeps its own
+independent version history and is simply bumped again at that session's end, per §4's
+versioning rule.
+
+### 3.11. File Delivery for Anything Crossing a Session Boundary
+
+Per §1's session-per-Step reality: anything a *later* session needs to resume, review, or
+approve must be delivered as an actual downloadable file — never left only as chat text the
+user would have to copy out manually. This covers, at minimum: the handoff note itself (see
+below); the Architecture Specification file(s) current as of the end of this session — per
+§4, each Step now owns and directly edits one specific numbered file rather than producing a
+separately-named intermediate artifact, so "deliver the Step's output" and "deliver the
+current version of that file" are the same action, not two. In short — **anything presented
+at a Step Approval Gate is a file.** Content that only matters within the single session that
+produced it (e.g. back-and-forth while resolving a Grouped Closing Protocol stage before that
+stage's table is finalized) may stay as chat text, since the next session only needs the
+*settled* result, not the process that produced it.
+
+**Handoff notes are themselves a separate `.md` file** — never inline chat text the user
+would need to copy and paste — named per the standardized convention:
+
+```
+[projectname]_design_handoff_stepN_passX.md
+```
+
+Where `N` is the step number and `X` is the pass identifier: `1` for a step's first run,
+incrementing (`pass2`, `pass3`, ...) for a repeated run of that step (user-requested per
+§3.10, or an automatically-triggered re-run such as a Step 7 re-audit per §3.12). Since Step
+2 is now a single session (§1, §3.4), it uses this same `pass1`/`pass2`/... scheme like every
+other step — there is no `passA`/`passB` variant anywhere in this convention. Examples:
+`myproject_design_handoff_step1_pass1.md`, `myproject_design_handoff_step2_pass1.md`,
+`myproject_design_handoff_step7_pass1.md`, `myproject_design_handoff_step7_pass2.md` (a
+second Step 7 audit after a backtrack remediation per §3.12).
+
+A handoff note is load-bearing, not a courtesy summary: since the next session has no memory
+of the current one, starting that next session requires *actually providing* the handoff
+note file (plus the current version of whatever Architecture file(s) it hands off) —
+announcing "continue from Step 3" without attaching `_03_requirements` at its current version
+and the handoff note gives the new session nothing to resume from.
+
+**Every handoff note MUST open with an explicit, unambiguous Next Action directive — not
+just a file list and background.** A session that receives a full file package but no
+imperative instruction has, in practice, reported back "no explicit ask for this session"
+and offered the obvious next step as one option among several instead of simply starting it
+— this is a real, observed failure mode, not a hypothetical one, and it wastes a full
+round-trip on something the handoff note already knew. The directive is the first line of
+the note, in this exact form:
+
+```
+## Next Action
+Start Step N[, Pass X].
+```
+
+(e.g. `Start Step 4.`, or `Start Step 7, pass 2.` for a repeated run). This is a command to
+execute immediately upon receiving the note and its accompanying files, not a suggestion to
+surface as a question — the receiving session opens with the Step's own work (per §3.4's
+row for that Step), not with "what would you like me to do?" A handoff note without this
+line is incomplete and must be corrected before being considered ready for handoff, the same
+as a missing file-list entry.
+
+**The handoff note MUST explicitly enumerate every file the next session needs** — a
+complete list, not just the current session's own output. This includes files produced in an
+*earlier* session that remain relevant — e.g. Step 4's handoff note names `_01_introduction`,
+`_02_user_stories`, and `_03_requirements` (at their current versions) as still-needed
+alongside Step 4's own `_04_test_strategy`, since Step 4 reads all of them — so the user knows
+exactly what to gather and attach before starting the next session, without having to
+reconstruct the dependency chain themselves. A handoff note that only names what *this*
+session produced, silently omitting earlier-session files the next session will still need,
+doesn't satisfy this requirement. **This same file list is also stated directly in the chat
+response itself**, in the same turn the handoff note is produced — not only inside the file —
+so the user can see what to gather without first having to open and read the note.
+
+**Pre-handoff staleness check, mandatory, immediately before producing the handoff note.**
+Claude enumerates every Architecture file touched at any point this session and compares each
+against what was last actually shown/downloaded to the user. Any file that changed since —
+including ones edited early in the session and not revisited since — is re-presented for
+download in the same handoff batch. **This check explicitly includes files belonging to a
+step other than the current one** — a backtrack session (§3.12) or any session that revisits
+an earlier step's file per §3.6 touches files outside its own "home" step, and those files
+are exactly as subject to this check, and to the version-bump rule immediately below, as the
+current step's own file. This has been observed failing in practice specifically on
+second/third backtrack passes and on any session that had to touch a previous step's file —
+Claude treats "did I touch a file this session, regardless of whose step it belongs to" as
+the actual test, never "did I touch this step's own file." This is never a partial subset
+left for the user to separately ask "and the rest?" — the check covers every touched file,
+every time, as a deliberate step before handoff, not something left to memory of what feels
+relevant. **This same check also verifies that every file produced or touched this session
+conforms to the §4 naming convention** — a misnamed file is corrected (renamed/regenerated
+under the correct name) before handoff, not flagged for a later pass to fix. Step 7's audit
+(§3.4, §3.12) re-checks this project-wide, independent of any single session's own staleness
+check, as part of its adversarial review.
+
+**Version-bump enforcement, mandatory, as the literal last action before handoff.** Per
+§4.3's rule (bump exactly once, at session end, per file actually touched this session):
+immediately after the staleness check above identifies every file touched this session —
+including files outside the current step, per the previous paragraph — Claude bumps each
+one's version number by exactly one before presenting it, with no exceptions for a file that
+was only touched briefly, only touched on a backtrack pass, or only touched for a small
+cascading fix. A file listed as "touched this session" that is handed off at an unchanged
+version number is a defect in the handoff itself, not a minor omission — this is precisely
+the failure mode that has been observed recurring on backtrack passes and on sessions
+touching a previous step's file, and it is what this explicit final check exists to catch
+before the file ever reaches the user.
+
+**The next session verifies its inputs against the handoff note's manifest before
+proceeding.** Where a handoff note exists (i.e. any session resuming from a prior one — not
+a fresh Step 1 with nothing to resume from), Claude checks the files actually provided
+(uploaded, pasted, linked) directly against that note's own enumerated file list — a
+concrete comparison against what's already written down, not Claude's independent judgment
+of what the step "should" need. If something the manifest names is missing, Claude says so
+and asks for it directly, rather than proceeding on incomplete inputs or silently assuming
+the missing content. This mirrors `agents/exemplars/development_plan_template.md` §11's
+Session Handoff Protocol (confirm state before starting any task) applied to Design Phase
+sessions as well, not only Development Phase ones.
 
 ---
 
-## 6. What This File Deliberately Does Not Cover
+### 3.12. The Step 7 Backtrack Workflow
 
-- Development, Verification, Release, or Maintenance phase behavior (out of scope for this
-  engagement; governed by their own guides if/when relevant).
-- Script execution rules (`agents/SCRIPT_RULES.md`) — not applicable since Claude isn't
-  executing scripts against this repo in this mode.
-- `agents/PREFERRED_TOOLS.md` — confirmed not relevant to this engagement; not referenced
-  anywhere in this file.
-- General code-style naming mandates from `AGENTS.md` Section 2.5 (underscores, not hyphens)
-  — not directly relevant to the *document files themselves* (these use hyphen-free
-  underscore-slug names per Section 4 regardless), but the same convention is also used
-  consistently for any Rust identifiers, crate names, or dependency references Claude
-  introduces in Step 5 examples or in the Development Plan, so this isn't purely out of
-  scope — just not a standalone concern beyond staying consistent with `AGENTS.md`.
+Step 7 (Spec Audit) is, by design (§3.4), a pure **finder**, never a fixer — it runs no
+propose-with-flagged-assumptions, no Grouped Closing Protocol, and never patches content
+itself. This is what makes its independence meaningful. A direct consequence: **a Step 7
+finding is never resolved via the ordinary local-patch-vs-reopen choice in §3.6/`AGENTS.md`
+§2.1** — every finding, without exception, requires reopening the step that should have
+produced or caught it. The choice §3.6 normally presents (patch locally vs. reopen) doesn't
+apply here, because Step 7 itself never touches content — there is no "local patch at Step
+7" to choose between in the first place.
+
+**If Step 7's audit report has zero findings:** the gate behaves normally — present the
+clean report, await approval, proceed to Step 8.
+
+**If Step 7's audit report has any findings at all (even one):** the normal Step 7 gate does
+not close as an approval gate. Instead:
+
+1. **Map every finding to its originating step.** For each finding, identify which step
+   (1–6) should have produced or caught the content at issue — and, per §4, which specific
+   numbered Architecture file that step owns.
+2. **Determine the single earliest originating step across all findings.** If findings trace
+   back to multiple different steps (e.g. one to Step 3, one to Step 4, one to Step 5), do
+   **not** reopen each step separately or reopen the same step multiple times. Identify the
+   earliest of the originating steps and start there.
+3. **Open one new "backtrack" session** (per §1, this is its own new session — Step 7's
+   handoff note for this session, see below, makes clear what kind of session it is and
+   what it must accomplish). Within that single session, working forward from the earliest
+   originating step through to Step 7 again:
+   - Fix every finding that traces to the current step, editing that step's own owned
+     Architecture file directly.
+   - **Re-check already-approved later-step content (in later steps' own owned files) for
+     cascading effects of the fix**, per §3.6's existing "revisit only as needed" principle —
+     this is discovered by re-checking within the backtrack session as each fix is made, not
+     pre-identified by Step 7 itself (Step 7 only ever reports what it found at the step it
+     could observe; it does not predict downstream consequences of a fix that hasn't happened
+     yet).
+   - Move to the next step in sequence (whether or not a finding originally traced to it),
+     applying any cascading fix that step's owned file now needs as a result of the prior
+     step's fix, plus any finding that traced directly to this step.
+   - Continue this way through every step up to and including Step 6, so that by the end of
+     the session every originating step's file and every downstream file has been
+     reconciled — both the original findings and their cascading effects.
+   - **Do not re-run Step 7 itself within this session.** The backtrack session's job is to
+     get the Spec back to a state ready for a fresh, independent Step 7 audit — not to
+     self-certify that it succeeded.
+4. **At the end of the backtrack session, package every file exactly as at any other Step
+   Approval Gate** (§1, §3.11): every Architecture Specification file touched, each with its
+   own version bumped exactly once for this session per §4's versioning rule (never once per
+   finding fixed within it — one session, one bump, per file actually touched); a handoff
+   note specifically for the next session.
+5. **The handoff note for this packaging MUST state plainly that the next session is a new
+   Step 7 audit (pass2, pass3, ... — see §3.11's naming convention), not a continuation of
+   the backtrack session, and MUST summarize**: which findings were fixed, which steps (and
+   which owned files) were reopened and in what order, and **explicitly that any cascading
+   effects beyond the directly-fixed content were discovered and resolved by re-checking
+   later-step files during the backtrack session itself** (not pre-identified by the original
+   Step 7 report) — so the new Step 7 session understands the full scope of what changed and
+   why, not just the original finding list.
+6. **The new Step 7 session re-audits the entire Spec from scratch**, with the same
+   adversarial independence as any Step 7 run (§3.4) — it does not take the backtrack
+   session's own account of what it fixed as given; it re-derives findings independently.
+   If this audit is clean, proceed to Step 8 normally. If it finds anything (even something
+   new, unrelated to the original findings), this entire workflow (steps 1–6 above) repeats.
+
+**Major Change Notification still applies** (§3.6 point 4): if any fix made during a
+backtrack session materially changes scope, requirements, or architecture, Claude flags it
+as a Major Change at the point the fix is made, the same as any other backtracking.
 
 ---
 
-## Appendix — Revision History
+### 3.13. End-of-Step Open-Items Review
 
-| Version | Date       | Changes |
-|---------|------------|---------|
-| 0.1.0   | 2026-06-19 | Initial creation, based on `AGENTS.md` and `agents/DESIGN.md` v0.2.01, plus user-specified scope (Design Phase only, 3–5 files per artifact, cross-linked, same-directory assumption). |
-| 0.1.1   | 2026-06-19 | Revised Step 2 (User Story Elicitation) to a propose-then-correct model: Claude drafts a full candidate batch from Pass 1, user corrects/confirms in bulk, user's confirmation (not Claude's judgment) remains the completeness signal. |
-| 0.1.2   | 2026-06-19 | Revised Step 3 (Requirement Decomposition) to a propose-with-flagged-assumptions model: Claude self-checks mechanical quality (9 criteria, requirement smells) unsupervised, but flags every assumption made for atomicity/completeness and defers correctness/necessity/coverage judgments to the user. |
-| 0.1.3   | 2026-06-19 | Revised Steps 4 (Test Identification) and 5 (Verification Feasibility) to the same propose-with-flagged-assumptions model: Claude derives test cases and identifies tool categories unsupervised, but flags assumed acceptance bars (Step 4) and unconfirmed environment/tool feasibility (Step 5) rather than asserting them as settled. |
-| 0.1.4   | 2026-06-19 | Incorporated `agents/PREFERRED_DEPENDENCIES.md` (provided by user) into Step 5: Rust dependency choices are checked directly against its preferred/forbidden/requires-approval lists and the tokio/WASM constraint; confirmed `agents/PREFERRED_TOOLS.md` is not relevant and removed references to it. |
-| 0.1.5   | 2026-06-19 | Added Step 1 (Concept Intake) propose-with-flagged-assumptions treatment; added notation-judgment flagging to Step 6; added explicit backtracking mechanism bullet (naming originating step, user choice between local patch vs. re-open, additive preservation of later approved work); fixed a broken line wrap in Step 5; tightened Section 6's naming-convention note. |
-| 0.1.6   | 2026-06-19 | Added Section 2.2 referencing new `agents/RUST_PREFERENCES.md`, which captures Rust naming/keyword constraints, type-system/ownership constraints, and WASM/Web Worker concurrency constraints — including correcting an earlier "no threads in WASM" framing to reflect that this project specifically supports multithreading via Web Workers wherever possible, on both native and WASM targets. |
-| 0.1.7   | 2026-06-19 | Synced Section 2.2's Step 5 summary with `RUST_PREFERENCES.md` v0.1.1's now-concrete COOP/COEP trigger condition and Worker-pool-ownership conflict check. |
-| 0.2.0   | 2026-06-20 | Integrated the now-provided exemplar templates (architecture spec, development plan, development checklist — complex/multi-phase Rust variant): updated Section 2.1 from placeholder to confirmed-templates state; added stable-ID-from-first-draft rule; replaced the illustrative file-split in Section 4 with one derived from the templates' actual top-level sections; clarified that the Plan template's "Requirements & Traceability" references mean Architecture Spec §3, not a 4th document; added a Step 8 environment/configuration elicitation sub-step to source the Plan's §4/§5 content. |
-| 0.2.1   | 2026-06-20 | Per explicit user confirmation, removed the leftover "Requirements & Traceability Backfill" row from the Plan template's §0 table (previously only annotated around); updated Section 2.1 to describe the corrected state rather than an ongoing flag-and-annotate behavior. |
-| 0.2.2   | 2026-06-20 | Final review pass against all provided templates: fixed a stale Section 4 cross-link example still describing the pre-grouping one-file-per-viewpoint scheme; found and helped resolve a real default-vs-exception drift between `RUST_PREFERENCES.md`'s threading-crate ranking and the architecture template's explicit "message-passing is default, `SharedArrayBuffer` is an approved exception" stance (see `RUST_PREFERENCES.md` v0.2.0 and `PREFERRED_DEPENDENCIES.md` updates). No other content issues found across CLAUDE.md, RUST_PREFERENCES.md, PREFERRED_DEPENDENCIES.md, or the three exemplar templates. |
-| 0.2.3   | 2026-06-20 | Gap-finding pass (missing content categories, not consistency): per user direction, architecture template gained §6.5 CI/CD Pipeline, a new top-level §10 Public API & Framework Consumer Contract (SemVer/MSRV/consumer DX — framework-specific, not covered by an application-oriented template), and a Migration Safety & Rollback Policy addition to §4.5. Former §10 Appendices renumbered to §11. Updated Section 4's Architecture Specification file-split grouping (now 11 sections → still 4 files) to fold the new §10 into file 4 alongside §7–§9 and the renumbered §11. |
-| 0.2.4   | 2026-06-20 | Step 2 revised to add explicit flagged-assumption attachment on stories (previously missing, unlike Steps 1/3/4/5) and to split review into two sequential passes: Pass A (story-level strike/edit/confirm) settles which stories survive before Pass B (assumption confirm/decline, scoped only to survivors) — resolving the case where a story's substance should be kept but a specific inference about it should be rejected. Added a note clarifying that Step 2's list-review passes use plain numbered text, not the selectable-options interaction, which is reserved for single discrete-choice questions elsewhere in the workflow. |
-| 0.2.5   | 2026-06-20 | Added an early-resolution exception to Pass B: if the user explicitly resolves a story's flagged assumption within their Pass A reply, Claude does not re-ask it in Pass B — unless that resolution itself introduces a new, unstated assumption, which still goes through Pass B on its own. |
-| 0.2.6   | 2026-06-20 | Added a standing cross-cutting rule: scope discussions (especially MVP-related) are a three-way question — not wanted at all (Architecture Spec §2.5) vs. wanted but deferred (new §2.6 Future Features) — not a binary in/out decision; Claude asks which is meant rather than guessing, unless already explicitly stated. Architecture template gained §2.6 Future Features (Deferred Scope) accordingly, with a recording mandate (originating ID, description, deferral reason, revisit precondition) and a cross-reference from §9.3 Phased Delivery Milestones. |
-| 0.2.7   | 2026-06-20 | Added a standing convention for every use of the selectable-options interaction: Claude's recommended option is always listed first and explicitly labeled as a recommendation (not silently implied by position); a standing Defer option records the question for resolution at the end of the current loop, either answered then or pushed to a more appropriate later step — never silently dropped; a standing Analysis option triggers a pros/cons writeup plus Claude's recommendation and reasoning, then re-presents the same question rather than closing it. Cross-referenced from the existing Step 2 note on when the tool is/isn't appropriate. |
-| 0.2.8   | 2026-06-20 | Per user clarification, replaced an incorrect assumption that Pass B's flagged assumptions and end-of-loop deferred items default to a per-item selectable-options loop. Established the actual three-way pattern instead: a single covering reply resolves everything at once; a partial bulk reply resolves only what it addresses; an explicit user request to "review individually" (or equivalent) is the only thing that starts the per-item tool loop — Claude never defaults to per-item resolution or treats an ambiguous bulk reply as an automatic trigger for it. Applied the same pattern to the Defer mechanism's end-of-loop review, which previously implied per-item review by default. Fixed an incorrect internal citation (a non-existent "Section 3.1" in this document) introduced while drafting this change. |
-| 0.2.9   | 2026-06-20 | Made comparative analysis mandatory before every selectable-options question is built, not contingent on a button being clicked — recommendation-first is now explicitly grounded in that analysis rather than freestanding. Renamed the standing "Analysis" option to "Provide analysis and recommendation" and fixed its position as the always-last choice. Added a tool-capacity constraint check: the underlying tool's 4-option ceiling means 3+ substantive options forces dropping the analysis option in favor of stating the analysis inline in the question's framing text (keeping Defer); 4+ substantive options additionally requires consolidating choices or falling back to plain text entirely — addressing a real gap where the standing convention, as previously written, could not actually be satisfied by the tool once a question had 3 or more genuine options. |
-| 0.3.0   | 2026-06-20 | Per user direction, added an explicit flagging requirement for whenever 3 or more substantive options survive the mandatory analysis: Claude states directly that this is one of the rarer true-fork cases, so the user can distinguish a genuine open tradeoff (most commonly an architectural decision with no dominant option) from Claude simply having failed to narrow the question. Framed as an expected-rarity check — frequent unflagged 3+-option questions would themselves indicate the analysis isn't being done rigorously. |
-| 0.3.1   | 2026-06-20 | Added a category-specific default to the three-way scope rule: for simpler-vs-complex implementation choices and stackable/incremental feature-level choices specifically (commonly MVP-floor decisions), unchosen complex options default to Future Features rather than triggering the general three-way question each time, since this category's shape usually implies deferral rather than rejection. Default is stated explicitly, not applied silently, and is overridable in the same reply. Does not change the general three-way rule for scope exclusions arising any other way. |
-| 0.3.2   | 2026-06-20 | Per user clarification, corrected 0.3.1's overly broad scope: implementation-level choices (algorithm/parameter-strategy selection at Step 3+, and similarly-shaped assumption clarification) are not feature-scope decisions and don't belong in Future Features. Split into two correctly-targeted rules: feature/story-level stackable choices still default to §2.6 Future Features as before; implementation-level choices now route to the architecture template's new §4.15 (noted, no commitment) or §4.16 (extensibility commitment required — a real requirement on the current implementation, not just a note), sub-grouped by originating ID. Added that Claude must actively weigh "ship simple now, commit an extension point for later" as a candidate path within the mandatory pre-analysis itself — not only after the user has chosen — especially whenever an option under consideration carries real scope or implementation-effort impact. |
-| 0.4.0   | 2026-06-20 | Major structural change, worked out through user-provided scenario walkthroughs: replaced the two-pass (Pass A/Pass B) Step 2 design with the general **Grouped Closing Protocol**, applying to Step 2 and the analogous batch-producing loop in Steps 3-8. Per group: Pass A (item-level bulk review) → Stage 1 Assumption table → Stage 2 Deferred-items table → Stage 3 Remaining-ambiguous table, each stage bulk-first with individual selectable-options treatment only on explicit request, leftovers flowing forward into the next stage rather than being held back; tables for the three sources stay visually separate per stage, not merged. Individual-round selectable-options questions omit the "Provide analysis and recommendation" option as a now-redundant choice, since the analysis was already given as the reason the item reached individual treatment — carved out as an explicit, narrow exception to Section 5's otherwise-unconditional analysis-option rule. Section 5's Defer description trimmed to cross-reference Stage 2 as the authoritative mechanism rather than duplicating a now-superseded engagement-wide description. |
+**Every Step Approval Gate (§3.4), without exception, includes a standing review of every
+unresolved item accumulated so far — not only items generated by the current step.** This
+is distinct from, and additional to, the Grouped Closing Protocol's own per-batch Deferred
+and Remaining-Ambiguous stages (§3.2): those close out *that step's own* batch before the
+gate; this reviews the **running total across every step so far**, including items deferred
+or left ambiguous in earlier, already-approved steps, in an explicit attempt to shrink the
+open list before it compounds further.
+
+**Mechanism, every gate:**
+1. Claude maintains a running **Open Items Register** — every Deferred item (§3.2 stage 3),
+   every Remaining-Ambiguous item (§3.2 stage 4) not subsequently resolved, and any other
+   explicitly-flagged-but-unresolved assumption from any prior step, each tagged with its
+   originating step and the step(s) it has already been re-surfaced at.
+2. At every gate, before presenting the step's own headline output for approval, Claude
+   presents the current state of this Register in full — not just items newly added this
+   step — organized by originating step, oldest first.
+3. For each item still open, Claude states plainly whether anything learned in the
+   intervening steps changes the analysis (e.g. a later step's content may have implicitly
+   answered an earlier open question, or narrowed the live options) — this is an active
+   attempt to close items, not a passive restatement of the same list every time.
+4. The user resolves in bulk or per-item, using the same bulk-reply/per-item mechanics as
+   the Grouped Closing Protocol (§3.2's bulk-reply handling applies directly here). An item
+   the user explicitly chooses to leave open (rather than resolve) stays on the Register and
+   is carried forward again at the next gate — it is never dropped silently just because it
+   was re-presented and not addressed in a given reply.
+5. The Register itself is part of what §3.11 requires as a file at every handoff — it is not
+   chat-text-only, since a later session has no memory of what's still open otherwise.
+
+**This does not relax §3.2's own per-step closure stages** — a step's own batch still goes
+through its full Grouped Closing Protocol before that step's gate. §3.13 is the additional,
+cumulative check layered on top, specifically aimed at preventing an item deferred at, say,
+Step 2 from silently riding unresolved all the way to Step 7's audit without ever being
+re-offered a chance at resolution in between.
+
+---
+
+## 4. Multi-File Output & Cross-Linking
+
+Applies once a Spec or Plan deliverable spans multiple files. All files for one artifact
+live in the same flat directory (no nesting, unless the user changes this). Names below are
+**base names** — Architecture Spec and Plan files (not the Checklist — see below) carry a
+version suffix per the versioning rule further down this section. `[projectname]` is the
+actual project's name (a short, filesystem-safe slug — underscores, not hyphens, per
+`AGENTS.md` §2.5), confirmed with the user at Step 1 if not already established by the
+concept statement.
+
+**Naming convention — `[projectname]` first, then artifact type, then a zero-padded
+two-digit sequence number starting at `01`, then topic, then version suffix.** This ordering
+(projectname-first) is deliberate: it keeps every file belonging to one project's Spec and
+Plan sorting together, and architecture/dev-plan/checklist/prompt files interleaving in a
+sensible order, when a directory listing is sorted alphabetically — rather than scattering
+files across the listing by generic numeric prefix alone.
+
+### 4.1. Architecture Specification — 8 Files, One Per Design Step
+
+**The Architecture Specification is split into 8 files, one per originating Design Step
+(Steps 1–6; Steps 4 and 5 each still get their own file even though §3.7's autonomous "4+5"
+combination can run them in one session — file ownership tracks the template's content
+boundary, not whether a given run happened to combine sessions).** This supersedes any
+coarser topic-based grouping: earlier, smaller projects could reasonably fold multiple Design
+Steps' output into a shared handful of files, but for projects of the scale this template
+targets (50+ User Stories, 100–200+ requirements are common), a coarser grouping produces
+single files thousands of lines long and — more importantly — forces every Step's session to
+bump a shared file's version number even when that session touched none of the file's
+pre-existing content. One-file-per-Step avoids both problems: each file's size stays bounded
+by what one Step actually produces, and each file's version history reflects only the
+sessions that actually changed it.
+
+Pattern: `[projectname]_architecture_NN_<topic>_v[N].md`, where `NN` and `<topic>` are fixed
+per the table below and `[N]` is that specific file's own independent version counter (see
+§4.3):
+
+| File (`NN_topic`) | Template content | Owning Step | Created at |
+|---|---|---|---|
+| `01_introduction` | §1 Introduction | Step 1 | Step 1 |
+| `02_user_stories` | §2.1 Personas, §2.2 User Stories, §2.5 Out-of-Scope, §2.6 Future Features | Step 2 | Step 2 |
+| `03_requirements` | §2.3 Core Functional Requirements, §2.4 Non-Functional/Quality Attribute Scenarios | Step 3 | Step 3 |
+| `04_test_strategy` | §3.1 9 Criteria (self-check reference), §3.2 Test Case Catalog, §3.3 Rust-Specific Requirement Smells | Step 4 | Step 4 |
+| `05_verified_traceability` | §3.4 Traceability Matrix, §3.5 Acceptance Criteria Detail; temporarily also holds the Step 5 MSRV decision and any Asset Manifest entries logged before Step 6, both flagged as placeholders pending relocation | Step 5 | Step 5 |
+| `06_viewpoints` | §4, all four ISO 42010 viewpoints (Functional, Information, Deployment, Interface Control) plus §4.5–4.16 in full, including §4.13's Asset Manifest (relocated here from `05` at this step) | Step 6 | Step 6 |
+| `07_interfaces_and_stack` | §5 External Interfaces & Integrations, §6 Technology Stack & Dependencies (including the finalized MSRV, relocated here from `05` at this step) | Step 6 | Step 6 |
+| `08_constraints_and_roadmap` | §7 Constraints & Assumptions, §8 Risks & Technical Debt, §9 Implementation Roadmap & Build Order, §10 Public API & Framework Consumer Contract, §11 Appendices | Step 6 | Step 6 |
+
+If `06_viewpoints` alone overruns a reasonable file size once real content volume is known
+(likely, per the template's own note that §4 is "by far the largest section"), Claude flags
+this at Step 6 and proposes a further split (e.g. one file per viewpoint,
+`06a_functional_view`, `06b_information_view`, etc.) rather than silently overrunning — the
+same scale-driven-split principle that produced the 8-file structure in the first place
+applies recursively here if warranted.
+
+**Step 7's Audit Report and every handoff note remain outside this numbered set**, using the
+handoff-note naming convention (§3.11) instead — they are process/review artifacts, not
+Architecture Specification content, and are never assigned an `NN_topic` slot.
+
+### 4.2. Development Plan (15 sections → 4 files), Development Checklist, Kickoff Prompt
+
+Unchanged from prior structure — the Development Plan's coarser grouping is intentional and
+distinct from the Architecture Specification's new Step-aligned scheme (see §2's note on why
+these two artifacts are split at different granularities). Pattern
+`[projectname]_dev_plan_NN_<topic>_v[N].md`:
+- `[projectname]_dev_plan_01_overview_v[N].md` — §0 Architecture Cross-Reference, §1
+  Introduction, §2 Technology Stack, §3 Project Folder Structure
+- `[projectname]_dev_plan_02_environment_and_phases_v[N].md` — §4 Environment Setup, §5
+  Dev/Test Configuration, §6 Phases and Milestones (including the frontend targeted-
+  interleaving sequencing principle from §3.4's Step 8 row, elaborated in full here per
+  §9.1's Sequencing Principles)
+- `[projectname]_dev_plan_03_tasks_and_testing_v[N].md` — §7 Risk Management, §8 Task
+  Decomposition, §9 Test Strategy, §10 Logging Strategy
+- `[projectname]_dev_plan_04_protocols_and_dod_v[N].md` — §11 Session Handoff, §12
+  Abort/Rollback, §13 Escalation Triggers, §14 Change Control, §15 Plan-Level Definition of
+  Done
+
+**Development Checklist** (single file unless content genuinely warrants a split, per §2):
+`[projectname]_dev_checklist.md`, base name — no numeric prefix, since it's conventionally
+one file covering the whole Plan, not a member of a numbered set. **Does NOT carry a
+version suffix**, for the same in-place-editing reason as the Kickoff Prompt below. Per
+`AGENTS.md` §2.7, development agents MUST edit this file in place — never copy, rename, or
+otherwise reproduce a one-off version of it.
+
+**Development-Agent Kickoff Prompt:** `[projectname]_dev_prompt.md`, base name — no numeric
+prefix, no version suffix, produced once at the end of Step 8, reused verbatim at the start
+of every Development-Phase session.
+
+**Phase Summaries** (produced during Development Phase, per
+`agents/exemplars/development_plan_template.md` §11.3): `[projectname]_phaseN_summary.md` —
+carries the `[projectname]` prefix for consistency with every other artifact in this naming
+scheme, even though it's a Development-Phase, not Design-Phase, artifact.
+
+This grouping is a starting proposal for the Plan (the Architecture Spec's 8-file grouping
+above is fixed, not provisional, given it's now tied directly to Step ownership) — Claude
+revisits the Plan's grouping once real content volume is known at Step 8, flagging if a
+different grouping serves the target better, rather than forcing content into a pre-decided
+shape.
+
+**Linking:** the first file in each numbered set is an index (overview + linked TOC to the
+rest, relative links, co-located assumed) — for the Architecture Specification, this is
+`01_introduction`. Every other file links back to the index and forward/sideways wherever
+there's a substantive content dependency — based on actual dependency, not just sequence,
+and using heading-derived anchors to point at a specific section, not just a file's top.
+(E.g.: `06_viewpoints`'s Interface Control Document referencing a Data Dictionary type
+defined earlier in the same file is an in-file anchor; `08_constraints_and_roadmap`'s Roadmap
+referencing a requirement defined in `03_requirements` is a cross-file link.) The Spec and
+Plan file sets are independent — they don't cross-link into each other absent a concrete
+reason (e.g. a Plan phase explicitly implementing a specific ICD interface).
+
+**Intermediate/handoff artifacts** (handoff notes, the Open Items Register per §3.13,
+working notes, draft batches, anything produced mid-step rather than as settled Architecture
+file content) use the standardized handoff-note naming convention from §3.11:
+`[projectname]_design_handoff_stepN_passX.md`. This is distinct from the numbered
+Architecture/Plan files above, which are organized by content section (and, for the
+Architecture Spec, by owning Step), not by which specific session produced a given revision.
+
+### 4.3. Versioning: Per-File, Bumped Once at Session End
+
+**Every Architecture Specification and Development Plan file carries its own independent
+version suffix, `_v[N]`, starting at `v1` when the file is first created.** Two rules govern
+how `[N]` changes, and both matter:
+
+- **Independent per file, not shared across a set.** There is no single project-wide or
+  artifact-wide version number. `01_introduction` may be at `v4` (revisited across several
+  backtrack sessions) while `03_requirements` is still at `v1` (untouched since Step 3) —
+  this is normal and expected, not an inconsistency to reconcile. Any example filename shown
+  elsewhere in this document or its companion templates that appears to imply a single shared
+  `[N]` across multiple files (e.g. a kickoff-prompt file list showing every Architecture
+  file at the same placeholder version) is illustrative shorthand only — the real,
+  authoritative version of each file must always be read off that file's own actual name, not
+  inferred from a sibling file's version.
+- **Bumped exactly once, at the end of the session that touched it — never mid-session, and
+  never more than once per session regardless of how many edits or how many distinct fixes
+  that session made to the file.** Within a single session, a file may be edited many times
+  (responding to Grouped Closing Protocol rounds, incorporating corrections, resolving
+  flagged items) — all of that happens under the *same* version number, since a version bump
+  exists to prevent download/upload collisions *across* session boundaries, not to track
+  every internal edit. Only when the session ends and the file is packaged for handoff (§3.11)
+  does its version number increase by exactly one, reflecting that this file is now different
+  from what the next session (or the user's own records) last saw. A file untouched in a
+  given session keeps its existing version number unchanged — it is not redelivered or
+  re-bumped just because other files in the same handoff batch were. **"Touched" means any
+  file whose content Claude changed this session, full stop — it is not limited to the
+  current step's own file.** A backtrack session (§3.12) or any ordinary §3.6 revisit that
+  edits an earlier step's file bumps that file exactly once too, at the same session-end
+  point as the current step's own file, via the mandatory enforcement check in §3.11. This
+  needs stating explicitly because it is the specific case that has been observed slipping
+  through in practice — a session correctly bumping its own step's file while leaving a
+  revisited earlier-step file's version number unchanged.
+
+This is the fix for a real, repeated download/upload collision that motivated file
+versioning in the first place: the same base filename being re-downloaded across multiple
+sessions under an identical name. Bumping strictly at session-end, per file actually changed,
+solves that collision without also punishing every file in a set for one file's edits, and
+without turning mid-session iteration into a churn of version numbers no one can usefully
+track.
+
+**This has a real, accepted cost: cross-links break on every version bump, and rewriting
+them is mandatory, not optional.** Per §4's cross-linking convention, files in a set link to
+each other by name — when a file's version suffix changes, every *other* file in the set
+that links to it now points at a stale name. Whenever Claude re-presents a versioned file
+with new content, it MUST, in the same pass: (1) update that file's own internal links if
+their targets also changed version, and (2) check every other file in the current set for
+links pointing at this file's *old* version name, updating them to the new one. This is not
+a one-time fix — it recurs every version bump, and skipping it silently reintroduces broken
+cross-links the same way skipping the filename versioning reintroduced download collisions.
+
+---
+
+## 5. Other Standing Mandates (from `AGENTS.md`)
+
+Pulled forward because they apply directly to how Claude produces/revises documents here:
+**additive-only by default** (no removing/"cleaning up" approved content without explicit
+deletion approval); **no self-referential elision** (never "see Section X of the previous
+version" — every document stays self-contained); **no stubs** (sections written to full
+depth when presented, not sketched and deferred); **formal approval protocol** (only an
+unambiguous "approved"/"proceed" is the green light; new instructions + approval = partial
+approval, incorporated then re-presented); **`CHAT:` prefix** = pure question, no document
+changes, no gate progression, no side effects of any kind (`AGENTS.md` §3.2.1); **no
+assumptions on ambiguity** — ask rather than guess and build on the guess; **no reproducing
+shared working documents** — the Development Checklist and Kickoff Prompt are edited/reused
+in place, never copied or renamed (`AGENTS.md` §2.7).
+
+---
+
+## 6. Out of Scope for This File
+
+Development Phase execution behavior (see `agents/DEVELOPMENT.md`); `agents/SCRIPT_RULES.md`
+(no script execution in Advisory Mode). The concrete task-level sequencing mechanics of
+frontend targeted interleaving (§3.4's Step 8 row states only the principle Design Phase
+must apply when sizing phases — the full mechanism belongs in
+`agents/exemplars/development_plan_template.md` §6/§9.1 and `agents/DEVELOPMENT.md`).
+`AGENTS.md` §2.5's naming convention (underscores, not hyphens) isn't a standalone concern
+for these Markdown documents, but is followed anyway for any Rust identifiers/crate names
+Claude introduces in examples, for consistency.
+
+---
+
+## Appendix
+See `CHANGELOG.md` for this file's full version history. This revision folds Step 2's Pass
+A/B split into a single session, replaces the Architecture Specification's prior file
+grouping with an 8-file, one-per-Design-Step structure, clarifies per-file independent
+session-end-only version bumping, adds the Visual & Media Asset Input mechanism (§2.2/§3.8)
+with its Asset Manifest, references the Development Plan's new frontend targeted-interleaving
+sequencing principle, and adds the End-of-Step Open-Items Review (§3.13). All of the above
+should be recorded as a new dated entry in `CHANGELOG.md`'s `CLAUDE.md` section and flagged
+to the user as a Major Change per §3.6, since it materially changes document structure and
+session mechanics.

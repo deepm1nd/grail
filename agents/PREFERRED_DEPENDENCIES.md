@@ -2,17 +2,25 @@
 
 **MANDATE: Adherence to this guide is not optional. It is a strict requirement.**
 
+This file governs **Rust library dependencies** compiled into the project. For development tools (cargo-nextest, trunk, cargo-llvm-cov, etc.) see `agents/PREFERRED_TOOLS.md`. For infrastructure services (Postgres, Neo4j, etc.) see `agents/PREFERRED_SERVICES.md`.
+
+See `CHANGELOG.md` for version history.
+
+---
+
 ## Language Specific Mandates
 
 ### Rust
-- **Rust Edition:** The agent MUST prefer the latest stable Rust edition (e.g., 2021 or 2024) that is supported by the project's current toolchain and library ecosystem.
+- **Rust 2024 edition is mandatory.** Specify `edition = "2024"` in every workspace `Cargo.toml`. See `agents/PREFERRED_TOOLS.md` for the MSRV policy (workspace MSRV is determined at Design Step 5, not hardcoded here) and the dual-MSRV pattern for projects with publishable library crates.
 - **Naming Conventions:** The agent is **STRONGLY FORBIDDEN** from using dashes (`-`) or hyphens in identifiers, variable names, file names, or folder names. These characters are incompatible with Rust's module and crate system. The agent MUST use underscores (`_`) for word separation in all contexts.
+
+---
 
 ## Dependencies
 
 - **Preferred Dependencies:** You SHOULD prioritize using dependencies from the preferred lists below.
 - **Unlisted Dependencies:** If a desired dependency is NOT on the preferred list, you MUST follow the "Dependency and Tool Selection" mandate in `AGENTS.md` to get explicit user approval before proceeding.
-- **Forbidden Dependencies:** You are **ABSOLUTELY FORBIDDEN** from using any dependency on the forbidden list. There are no exceptions. Proposing or using a forbidden dependency is a critical process failure.
+- **Forbidden Dependencies:** You are **ABSOLUTELY FORBIDDEN** from using any dependency on the forbidden list. There are no exceptions.
 
 ## Web & Networking
 - tokio  # MANDATE: For native applications ONLY. Incompatible with WASM.
@@ -36,9 +44,9 @@
 - gloo-storage
 
 ## WASM Threading
-- gloo-worker  # DEFAULT for WASM concurrency. Message-passing only (postMessage); no SharedArrayBuffer, no COOP/COEP requirement. Use this unless a component has a genuine data-parallel or long-running-worker need that message-passing demonstrably can't meet — see agents/RUST_PREFERENCES.md Section 3.
-- wasm-bindgen-rayon  # EXCEPTION, not default — use only when message-passing is demonstrably insufficient for a data-parallel workload. SharedArrayBuffer-backed; requires COOP/COEP headers on the hosting page; resolve that feasibility question before using. See agents/RUST_PREFERENCES.md Section 3.
-- wasm_thread  # EXCEPTION, not default — use only when message-passing is demonstrably insufficient for a long-running background worker. SharedArrayBuffer-backed; same COOP/COEP requirement as above. NOTE: do NOT combine with wasm-bindgen-rayon within the same component — both own a Worker pool and will contend for the same SharedArrayBuffer memory and core count at runtime; this is not caught at compile time. See agents/RUST_PREFERENCES.md Section 3.
+- gloo-worker  # DEFAULT for WASM concurrency. Message-passing only (postMessage); no SharedArrayBuffer, no COOP/COEP requirement.
+- wasm-bindgen-rayon  # EXCEPTION, not default — use only when message-passing is demonstrably insufficient for a data-parallel workload. Requires COOP/COEP headers.
+- wasm_thread  # EXCEPTION, not default — use only when message-passing is demonstrably insufficient for a long-running background worker. Same COOP/COEP requirement. Do NOT combine with wasm-bindgen-rayon in the same component.
 
 ## Data & Serialization
 - serde
@@ -50,6 +58,7 @@
 - neo4j
 - qdrant-client
 - rdkafka
+- sqlx  # With appropriate feature flags (postgres, sqlite, etc.) per project
 
 ## Async
 - async-trait
@@ -77,10 +86,19 @@
 ## Docker
 - bollard
 
-## Dependencies Requiring Approval
-The following dependencies are allowed but REQUIRE explicit user approval before being added to a project.
-- trunk
-- webpack
+## Embedded (ESP32 / ESP-IDF)
+> Applies primarily to embedded Rust projects. Only relevant when the project has an
+> ESP32/ESP-IDF-targeted component; not applicable to native or WASM-only projects.
+- esp-idf-hal
+- esp-idf-svc
+- esp-camera-rs
+
+**MSRV note (Step 5):** these crates target `esp-idf` via `std`, not `wasm32-unknown-unknown`
+or a bare native host triple. An embedded component has its own toolchain track (via
+`espup`, not `rustup` alone) independent of the workspace MSRV policy in
+`agents/RUST_PREFERENCES.md` §0 and independent of any WASM component's target in the same
+workspace — state this explicitly in Architecture Specification §6.1/§6.2 (per-component
+stack).
 
 ## Forbidden Dependencies
 (None currently listed)

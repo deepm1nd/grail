@@ -4,13 +4,57 @@
 the *content* of the Architecture Specification and Development Plan — not just code style.
 These are things that, if missed during Design, surface as expensive rework during
 Development instead of being caught on paper. This is a content-quality reference for the
-Design Phase; it supplements `agents/PREFERRED_DEPENDENCIES.md` (which governs dependency
-choice) and `AGENTS.md` (which governs general naming conventions) without duplicating them.
+Design Phase; it supplements `agents/PREFERRED_DEPENDENCIES.md` (dependency choice),
+`agents/PREFERRED_TOOLS.md` (development tool choice and MSRV policy), and `AGENTS.md`
+(general naming conventions) without duplicating them.
 
 This file is referenced from `CLAUDE.md` Section 2.2 and applies throughout the gated
 workflow in `agents/DESIGN.md` Section 5 — most directly at Step 3 (Requirement
 Decomposition), Step 5 (Verification Feasibility), and Step 6 (Final Architecture Synthesis,
 particularly the Deployment and Interface Control viewpoints).
+
+See `CHANGELOG.md` for version history.
+
+---
+
+## 0. Edition and MSRV Policy
+
+- **Rust 2024 edition is mandatory** for every workspace crate (per
+  `agents/PREFERRED_DEPENDENCIES.md`). This is a fixed requirement, not a Step 5 decision.
+- **The workspace Minimum Supported Rust Version (MSRV) is NOT hardcoded in this file or
+  any other process document.** Toolchain and tool versions are exactly the kind of fact
+  that goes stale the moment it's written down (Trigger A, `CLAUDE.md` §3.3, applied to the
+  document's own content). Instead:
+  - **The workspace MSRV is determined at Design Step 5 (Verification Feasibility)**, set
+    deliberately by checking the actual build-MSRV of every tool the project commits to
+    using (`cargo-nextest`'s *build* MSRV, not just its run MSRV, is the specific failure
+    mode that motivated this policy — see `agents/PREFERRED_TOOLS.md`) and every library
+    dependency's MSRV, then taking the maximum. This value is recorded in the workspace
+    `Cargo.toml`'s `rust-version` field and in `rust-toolchain.toml`'s `channel`.
+  - **Dual-MSRV pattern, for any project with a publishable library crate** (an SDK or
+    plugin-facing crate consumed by external projects with their own, possibly older,
+    toolchains): the workspace toolchain is pinned to the development MSRV described
+    above — this is what every developer and CI job actually builds the full workspace
+    with. The publishable crate separately declares its own, lower `rust-version` in its
+    *own* `Cargo.toml`, representing the genuinely binding consumer contract (this becomes
+    part of §10.2 MSRV Policy in the Architecture Specification). A dedicated CI stage
+    installs that consumer toolchain and compiles *only* that crate and its dependencies at
+    that version — this is what actually enforces the contract, not the workspace toolchain
+    pin. The publishable crate's own dependency list must be kept minimal and re-verified
+    against the consumer MSRV whenever a dependency is added to it; a dependency requiring a
+    newer compiler than the consumer contract promises is caught by this CI stage before it
+    ships, not discovered after a consumer's build breaks.
+  - **A pre-flight version sanity check runs at the start of every Development-Phase
+    session** (see `agents/PREFERRED_TOOLS.md`): installed `rustc`/`cargo`/tool versions are
+    checked against the project's declared compatibility matrix before any build is
+    attempted. A mismatch is treated as a missing-prerequisite Escalation Trigger — the
+    agent self-resolves via install where a known-good version exists (appending the install
+    command to `scripts/setup_env.sh`/`.bat` per the Missing Tool Protocol), or escalates if
+    it cannot.
+- **Coverage tooling:** `cargo-llvm-cov` is the preferred code coverage tool (see
+  `agents/PREFERRED_TOOLS.md`) — it uses a stable compiler flag rather than hooking compiler
+  internals, and is materially more robust across Rust version upgrades than alternatives
+  that have historically broken on point releases.
 
 ---
 
@@ -213,9 +257,10 @@ Per `CLAUDE.md` Section 2.2:
 - **Step 5 (Verification Feasibility):** the constraints in Section 3 above are checked
   directly as part of technical sufficiency — specifically: the per-component
   message-passing-vs-`SharedArrayBuffer` question, the COOP/COEP trigger condition (and its
-  required fallback if any deployment context can't guarantee the headers), and confirming
+  required fallback if any deployment context can't guarantee the headers), confirming
   no component combines two Worker-pool-owning crates (`wasm-bindgen-rayon` +
-  `wasm_thread`) without an explicit decision to do so.
+  `wasm_thread`) without an explicit decision to do so, and **setting the workspace MSRV**
+  per Section 0 above.
 - **Step 6 (Final Architecture Synthesis):** the Deployment Viewpoint and Interface Control
   Document are where target-specific concurrency implementation, ownership/lifetime
   relationships, and COOP/COEP hosting constraints are formally recorded.
@@ -225,13 +270,3 @@ these constraints (e.g. converting "nullable" to `Option<T>` with a stated meani
 `None`, or choosing message-passing vs. `SharedArrayBuffer` for a given component) is
 presented as a flagged assumption for user confirmation, not asserted as a settled fact —
 consistent with `CLAUDE.md` Section 3's propose-with-flagged-assumptions model.
-
----
-
-## Appendix — Revision History
-
-| Version | Date       | Changes |
-|---------|------------|---------|
-| 0.1.0   | 2026-06-19 | Initial creation. Naming/keyword constraints, type-system/ownership constraints, and WASM concurrency constraints (corrected to reflect Web Worker-based multithreading as a supported goal, not a limitation, per user direction). |
-| 0.1.1   | 2026-06-19 | Replaced the general COOP/COEP feasibility note with a concrete, blocking trigger condition (flag immediately, ask about deployment model, require a documented fallback or treat as an open assumption blocking sign-off). Replaced the generic dependency-list-gap bullet with a ranked recommended-crates table (`wasm-bindgen-rayon`, `wasm_thread`, raw `web-sys` bindings, `gloo-worker`) and an explicit runtime Worker-pool-ownership conflict note between the top two ranked crates. Updated Section 4's Step 5 summary to name these checks directly. |
-| 0.2.0   | 2026-06-20 | Found and fixed a real conflict during final review: the crate table previously ranked `wasm-bindgen-rayon` (SharedArrayBuffer-based) #1 by general capability, but the now-provided architecture template (§4.7, §4.9) explicitly establishes message-passing via Web Workers as this project's *default*, with `SharedArrayBuffer`-based threading as an *approved exception* only when message-passing is demonstrably insufficient. Reordered the table to lead with `gloo-worker` as the default and reframed the other entries as exception cases, matching the architecture's own stated stance rather than silently contradicting it. |
