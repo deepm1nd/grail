@@ -23,7 +23,7 @@ The goal of this phase is to write, test, and build the software, following the 
 
 ## 3. Session Prompt
 **MANDATE:** At the end of Design Phase Step 8, a re-invocable kickoff prompt file,
-`[projectname]_dev_prompt.md` (per `agents/exemplars/dev_agent_kickoff_prompt_template.md`),
+`[projectname]_dev_agent_prompt.md` (per `agents/exemplars/dev_agent_prompt_template.md`),
 is produced once and reused verbatim at the start of every Development-Phase session. This
 prompt guides the agent through the development plan, using the checklist and Phase Summary
 files to track progress. Per `AGENTS.md` §2.7, the agent uses this prompt file and the
@@ -37,13 +37,28 @@ of either.
     - **Style Matching:** Match the existing style of the file, even if it differs from the agent's preference.
     - **Orphan Cleanup:** Remove imports, variables, or functions that the agent's changes made unused. Do not remove pre-existing dead code unless explicitly asked.
 - **No Reproducing Shared Working Documents (`AGENTS.md` §2.7):** The Development Checklist
-  (`[projectname]_dev_checklist.md`) and the Kickoff Prompt (`[projectname]_dev_prompt.md`)
+  (`[projectname]_dev_checklist.md`) and the Kickoff Prompt (`[projectname]_dev_agent_prompt.md`)
   are edited or read in place, directly in the repository, by every session. The agent is
   explicitly forbidden from creating a copy, a renamed version, a "v2," a session-specific
   duplicate, or any other one-off reproduction of either file. If a session believes either
   file genuinely needs restructuring (not just checkbox updates), that is a Plan-Change
   Escalation (Development Plan §13/§14) — proposed and approved, then edited in place — never
   silently forked into a new file.
+- **`[projectname]_dev_checklist.md` is the only `docs`/planning file a development-agent
+  session is permitted to edit.** Every other file in the documentation set — the
+  Architecture Specification files, the Development Plan files, the Kickoff Prompt, any
+  handoff note or Phase Summary from a prior Design or Development session — is
+  **read-only** to a development-agent session; none of them are ever modified, even to fix
+  an apparent typo or inconsistency (that's an Escalation Trigger, Development Plan §13, not
+  a same-session edit). Within the one file it may touch, a session's edits are further
+  restricted to **marking DoD sub-items and tasks complete (`[ ]` → `[x]`, or `[D]` per the
+  Checklist template's deferred-task convention) strictly within its own current, identified
+  Phase (§5.2 step 2)** — appending its own Session Log row (checklist template's Session Log
+  table) is likewise permitted. A session never checks, unchecks, or otherwise alters a mark
+  belonging to any phase other than the one it is actively executing, and never edits the
+  checklist's structural content (phase/task text, Entry/Exit Criteria wording, DoD item
+  wording) — a genuine need to change checklist *content* (not just check a box) is the
+  Plan-Change Escalation path above, never a same-session direct edit.
 - **Missing Tool / Prerequisite Protocol (`AGENTS.md` §2.6):** When the agent encounters a
   missing tool or prerequisite — a different development agent's environment may not match
   what a prior session assumed — it MUST NOT simply halt and report. It attempts to install
@@ -92,7 +107,7 @@ The workflow for a single Development Phase **session** is as follows. Per §4's
 Per Session mandate, this workflow covers exactly one phase per session — a session never
 advances into a second phase even if time/capacity remains.
 
-1.  **Run the Session-Start Sequence:** Per the Kickoff Prompt (`[projectname]_dev_prompt.md`): review all relevant `docs\` files, run the environment check (including the pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above), and verify repository build/test state before touching any code.
+1.  **Run the Session-Start Sequence:** Per the Kickoff Prompt (`[projectname]_dev_agent_prompt.md`): review all relevant `docs\` files, run the environment check (including the pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above), and verify repository build/test state before touching any code.
 2.  **Identify Current Phase:** Determine the first phase in `[projectname]_dev_checklist.md` whose Exit Criteria is not yet checked. Verify its Entry Criteria are actually true against the current repository state, not assumed from the checklist alone.
 3.  **Implement All Tasks in Phase:** For each task within the current phase, in order (respecting stated dependencies), the agent must follow the **Core Development Cycle** (§5.1). Once a task is implemented and its DoD is fully satisfied, the agent updates the checklist **continuously, in place** — not batched until end of phase, and never via a copy of the checklist (§4).
 4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome.

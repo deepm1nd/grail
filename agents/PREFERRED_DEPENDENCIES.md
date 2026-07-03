@@ -58,7 +58,6 @@ See `CHANGELOG.md` for version history.
 - neo4j
 - qdrant-client
 - rdkafka
-- redis
 - sqlx  # With appropriate feature flags (postgres, sqlite, etc.) per project
 
 ## Async

@@ -554,7 +554,7 @@ The Plan is complete only when **all** of the following hold:
   cited anywhere in §8's Traceability fields.
 - [ ] Every filename produced for this Plan conforms to the naming convention in `CLAUDE.md`
   §4 (`[projectname]_dev_plan_NN_topic_v[N].md`, `[projectname]_dev_checklist.md`,
-  `[projectname]_dev_prompt.md`).
+  `[projectname]_dev_agent_prompt.md`).
 
 ## Appendix G - Glossary **[NEW]**
 

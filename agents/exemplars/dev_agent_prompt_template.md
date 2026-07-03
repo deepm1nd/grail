@@ -1,6 +1,6 @@
-# Development-Agent Kickoff Prompt — Template
+# Development-Agent Prompt — Template
 
-> Produced once at the end of Design Phase Step 8 and saved as `[projectname]_dev_prompt.md`.
+> Produced once at the end of Design Phase Step 8 and saved as `[projectname]_dev_agent_prompt.md`.
 > Reused verbatim at the start of every Development-Phase session against this repository.
 > Not regenerated per session — if the Plan or Checklist changes materially, this file is
 > amended once, in place, not rebuilt from scratch each time.
@@ -17,8 +17,14 @@
 
 ## Prompt Text (give this to the development agent at the start of every session)
 
-You are continuing development work on **[PROJECT_NAME]**, a Rust project. This is a fresh
-session with no memory of any prior session. Before doing anything else:
+You are continuing development work on **[PROJECT_NAME]**, a Rust project. **You are
+operating in the Development Phase, governed by `agents/DEVELOPMENT.md`** (not the Design
+Phase — `agents/DESIGN.md`/`CLAUDE.md` governed the now-complete Spec/Plan/Checklist work
+this session builds on). Read `agents/DEVELOPMENT.md` in full before proceeding if you have
+not already internalized it this session — it defines the Core Development Cycle (evidence
+loop), the One-Phase-Per-Session mandate, the No-Copy-Checklist mandate, and the Missing-Tool
+Protocol that govern everything below. This is a fresh session with no memory of any prior
+session. Before doing anything else:
 
 ### 1. Review all relevant docs
 
@@ -40,6 +46,19 @@ Read, in this order:
    document for the rest of this session. You edit it in place. **Do not copy it, rename it,
    or create any other version of it** — there is exactly one checklist file and it lives in
    the repository (`AGENTS.md` §2.7).
+
+   **This checklist file is the *only* documentation/planning file you are permitted to
+   edit, this session or any other.** Every file read in steps 1–5 (Architecture
+   Specification, Development Plan, Kickoff Prompt, Phase Summaries) is read-only to you —
+   never edit any of them, even to fix an apparent typo or contradiction; that is an
+   Escalation Trigger (Plan §13), not something to patch in passing. Within this one
+   editable file, you may only: (a) flip a DoD sub-item or task box (`[ ]`→`[x]`, or `[D]`
+   per the checklist's deferred-task convention) for a task belonging to **your current,
+   identified Phase** — never a mark belonging to any other phase, whether earlier or
+   later — and (b) append your own row to the Session Log table. You never edit the
+   checklist's structural text (phase/task descriptions, Entry/Exit Criteria wording, DoD
+   item wording) — a real need to change that content is a Plan-Change Escalation (Plan
+   §13/§14), never a direct edit.
 4. **Every existing `[projectname]_phaseN_summary.md` file**, in numeric order, if any exist
    from prior sessions. These tell you what actually happened in completed phases — findings,
    issues, deviations — not just what the Plan originally said would happen. Do not skip
@@ -195,6 +214,10 @@ capacity remains. The next phase starts in a new session.
 - [ ] `scripts/setup_env.sh` and `scripts/setup_env.bat` reflect any prerequisites that
       were self-installed this session.
 - [ ] You have **not** begun any task belonging to the next phase.
+- [ ] `[projectname]_dev_checklist.md` was the *only* documentation/planning file you edited
+      this session, and every mark you changed in it belongs to your current Phase — no box
+      belonging to another phase was touched, and no structural text (phase/task wording,
+      Entry/Exit Criteria, DoD item wording) was edited.
 
 **If any of the above is not true, fix it before ending the session.**
 
@@ -218,5 +241,5 @@ capacity remains. The next phase starts in a new session.
 - Fill in step 3 only if the project actually uses infrastructure services — remove it
   entirely if not, rather than leaving a dead step that confuses the agent.
 - This prompt is meant to be **reused verbatim, every session** (saved as
-  `[projectname]_dev_prompt.md`). Resist hand-editing it per session for minor phrasing; if
+  `[projectname]_dev_agent_prompt.md`). Resist hand-editing it per session for minor phrasing; if
   something about it is wrong for this project, fix the file once, in place.

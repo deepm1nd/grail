@@ -19,7 +19,7 @@ This guide outlines the unified Design and Planning Phase. This is the most crit
 **Scope:** per `AGENTS.md`, this guide governs Rust projects only. The exemplar templates
 referenced throughout Section 5 (`agents/exemplars/architecture_specification_template.md`,
 `agents/exemplars/development_plan_template.md`, `agents/exemplars/development_checklist_template.md`,
-`agents/exemplars/dev_agent_kickoff_prompt_template.md`) are written for Rust projects and
+`agents/exemplars/dev_agent_prompt_template.md`) are written for Rust projects and
 assume the conventions in `agents/PREFERRED_DEPENDENCIES.md`, `agents/PREFERRED_TOOLS.md`,
 `agents/PREFERRED_SERVICES.md`, and `agents/RUST_PREFERENCES.md`.
 
@@ -150,7 +150,7 @@ principle itself is not restated per step.
 - **Phase Sizing Mandate:** Each phase must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `CLAUDE.md` §3.4 (Step 8) for the complexity-scoring formula and current ceiling. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one phase regardless of phase size** — sizing governs how much fits comfortably in a session, not whether multiple phases may be attempted in one.
 - **Frontend Targeted Interleaving:** Where the project has a human-facing UI component, phase sequencing does not build the entire backend before any frontend work, nor push all frontend work into a single trailing phase. Instead, each screen/component's frontend implementation task is placed in the same phase as the real (non-mock) backend/data dependency it needs — never earlier (which would force a throwaway stub, contradicting the Anti-Stub Mandate) and never artificially deferred once its real dependency is available. See `agents/exemplars/development_plan_template.md` §6/§9.1 for the concrete sequencing mechanics this principle drives.
 - **Checklist:** Generate a task-level checklist using `agents/exemplars/development_checklist_template.md`.
-- **Kickoff Prompt:** Generate the reusable development-agent kickoff prompt using `agents/exemplars/dev_agent_kickoff_prompt_template.md`.
+- **Kickoff Prompt:** Generate the reusable development-agent kickoff prompt using `agents/exemplars/dev_agent_prompt_template.md`.
 - **Output:** Development Plan, Checklist, and Kickoff Prompt.
 - **GATE: STOP and Present Plan, Checklist, and Kickoff Prompt for User Approval.**
 

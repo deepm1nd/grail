@@ -28,7 +28,7 @@ grail/
         ├── architecture_specification_template.md
         ├── development_plan_template.md
         ├── development_checklist_template.md
-        └── dev_agent_kickoff_prompt_template.md
+        └── dev_agent_prompt_template.md
 ```
 
 ## Development Phases
