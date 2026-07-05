@@ -50,17 +50,16 @@ checks what's actually been provided directly against that note's own file list 
 mechanical comparison, not independent judgment of what the step "should" need — and asks
 for anything the list names but wasn't provided. Delivered files are versioned to avoid name
 collisions across steps/sessions, and every file touched in a session is checked for changes
-and re-presented before handoff, not left as a partial subset. See `CLAUDE.md` §3.11 for the
-concrete requirement, and §3.12 for the Step 7 backtrack workflow specifically.
+and re-presented before handoff, not left as a partial subset. See `CLAUDE.md` §3.10 for the
+concrete requirement, and §3.11 for the Step 7 backtrack workflow specifically.
 
-### 1.5.3. Autonomy Toggle and Named Presets
-A phase guide may permit reduced-elicitation ("autonomous") handling for specific steps —
-silent internal process, but the gate and its output are unchanged — invoked per step or via
-a named preset for a whole phase. This is **explicitly invoked, not a standing default.**
-Autonomy changes only the visibility of process within the steps it touches; it never
-removes a gate defined by the phase guide, and never applies to a step the phase guide
-excludes from it. See the relevant phase guide and `CLAUDE.md` for the concrete per-step/
-per-preset behavior.
+### 1.5.3. Standard Procedure (No Autonomy Toggle)
+A phase guide defines its own fixed content-generation procedure — for this repository's
+Design Phase, the RCD/RATS standard procedure (`CLAUDE.md` §3.1-3.2): every eligible step
+runs the same way, with no per-step or per-preset autonomy toggle to invoke. Where a phase
+guide's own audit-type steps require adversarial independence (e.g. Steps 7 and 9), that
+independence is never optional or reduced by any invocation — see the relevant phase guide
+for which steps, if any, are exempt from its standard procedure.
 
 ---
 
@@ -75,7 +74,7 @@ per-preset behavior.
 -   **No Unauthorized Copying or Duplication of Working Documents:** The agent is explicitly forbidden from copying, cloning, or replicating any file or directory from this repository to any other location (e.g., local scratch folders, other repositories, or external services) unless specifically instructed by the user for a valid technical reason (e.g., a deployment task). This extends specifically to project working documents during the Development Phase: the agent MUST edit the Development Checklist and other shared, in-place documents directly, never create a copy, rename, "v2," or otherwise reproduce a one-off version of any input file it has been given to work from. See `agents/DEVELOPMENT.md` §4 for the concrete rule.
 -   **Mandatory Artifact Preservation:** The agent MUST commit all project-created binaries (e.g., in `target/`), logs, and verification artifacts (e.g., in `test_outs/`) to the repository. These artifacts are critical for maintaining state across sessions and preventing work loss from crashes.
 -   **Stable Identifier Assignment:** Any artifact requiring a unique ID under a phase guide's schema (a requirement, user story, test case, task, decision record, threat, or equivalent) MUST receive that ID **at first draft**, not deferred to a later "finalization" pass. IDs are never renumbered or reused once assigned, even if a later correction round rejects or merges the item the ID was assigned to — a rejected or merged item's ID is retired (recorded as superseded), never reassigned to a different item. This preserves the traceability links other documents may already have written against that ID.
--   **Explicit Backtracking:** A phase guide may permit the user to return to a previously approved step to refine it. When a later step reveals that an earlier step's content — flagged assumption or not — was incorrect, the agent MUST: (1) name the originating step and the specific content at issue, rather than silently patching the current step's output around the problem; (2) present the user with the choice between a local patch at the current step versus formally re-opening the earlier step, rather than deciding unilaterally which is warranted, since this determines how much already-approved work needs re-approval; (3) if the earlier step is re-opened, preserve all already-approved content from steps after it, revisiting that later content only as needed once the earlier step is re-approved — this is governed by the same additive-only, no-silent-elision rules as the rest of this section, not a license to discard later work wholesale; (4) treat the correction as a "Major Change" per the relevant phase guide's notification mandate whenever it materially changes scope, requirements, or architecture. **Exception: findings from Step 7 (Spec Audit) are never handled via the local-patch-vs-reopen choice above — they always require reopening the originating step. See `CLAUDE.md` §3.12 for the concrete, mandatory Step 7 Backtrack Workflow.**
+-   **Explicit Backtracking:** A phase guide may permit the user to return to a previously approved step to refine it. When a later step reveals that an earlier step's content — flagged assumption or not — was incorrect, the agent MUST: (1) name the originating step and the specific content at issue, rather than silently patching the current step's output around the problem; (2) present the user with the choice between a local patch at the current step versus formally re-opening the earlier step, rather than deciding unilaterally which is warranted, since this determines how much already-approved work needs re-approval; (3) if the earlier step is re-opened, preserve all already-approved content from steps after it, revisiting that later content only as needed once the earlier step is re-approved — this is governed by the same additive-only, no-silent-elision rules as the rest of this section, not a license to discard later work wholesale; (4) treat the correction as a "Major Change" per the relevant phase guide's notification mandate whenever it materially changes scope, requirements, or architecture. **Exception: findings from Step 7 (Spec Audit) or Step 9 are never handled via the local-patch-vs-reopen choice above — they always require reopening the originating step, via the full multi-session workflow or the Surgical Fix Override (`CLAUDE.md` §3.6.1) — a compressed single-session alternative available only on the user's explicit `SURGICAL FIX OVERRIDE` instruction, which still mandatorily ends in a fresh Step 7/9 audit session. See `CLAUDE.md` §3.11 for the concrete, mandatory Step 7 Backtrack Workflow.**
 
 ### 2.2. Mandate for Protocol Adherence
 **MANDATE: The agent MUST strictly adhere to all protocols and rules defined in the `agents/` directory.**
@@ -112,24 +111,18 @@ per-preset behavior.
 - **Standard:** The agent MUST use underscores (`_`) for word separation in all contexts.
 
 ### 2.6. Mandate for Missing Tools and Prerequisites
-**MANDATE: When the agent encounters a missing tool or prerequisite during any session,
-it MUST NOT simply report the gap and stop.** Concretely, in this order:
-1. Attempt to install the missing tool/prerequisite for the current session (per
-   `agents/PREFERRED_TOOLS.md` and `agents/PREFERRED_SERVICES.md` where applicable).
-2. **Append the install command(s) to `scripts/setup_env.sh`** (Linux/bash, assume a
-   Linux-based environment as the default) **and `scripts/setup_env.bat`** (Windows),
-   creating either file if it does not already exist. Appends MUST be idempotent —
-   check whether the tool is already present before attempting to (re-)install it (e.g.
-   `command -v <tool> >/dev/null 2>&1 || <install command>` in bash; an equivalent
-   `where`-based check in the `.bat` file) — so re-running the script never redundantly
-   reinstalls.
-3. Inform the user that the prerequisite was missing and has been installed, per the
-   relevant phase guide's Escalation Trigger for missing prerequisites — the escalation
-   trigger still fires even on a successful self-install; it auto-resolves rather than
-   being suppressed. The user is always told, not just silently routed around.
-4. If the install cannot be completed (no known-good install path, permissions issue,
-   etc.), the agent stops and escalates without proceeding — it does not guess at a
-   workaround.
+**MANDATE: A missing tool/prerequisite that resolves cleanly does not stop the session.**
+1. Attempt to install it (per `agents/PREFERRED_TOOLS.md`/`agents/PREFERRED_SERVICES.md`).
+2. **Append the install command(s) idempotently** to `scripts/setup_env.sh` (bash) and
+   `scripts/setup_env.bat` (Windows), creating either if absent (e.g.
+   `command -v <tool> >/dev/null 2>&1 || <install command>`).
+3. **If the install succeeds cleanly:** inform the user, then proceed — this is the sole
+   case that continues without stopping.
+4. **If the install fails, or the tool resolves but a version conflict, incompatibility,
+   or other unexpected failure follows:** this is no longer a "trivial resolve." A
+   Development Phase session stops entirely per `agents/DEVELOPMENT.md` §4's escalation
+   model (write the Phase Summary, stop — no further troubleshooting, no partial
+   continuation). A Design Phase session escalates per the relevant step's gate.
 
 ### 2.7. Mandate Against Reproducing Shared Working Documents
 **MANDATE: The agent MUST use the Development Checklist and any other shared, in-place
@@ -141,6 +134,18 @@ Development Checklist (continuously edited in place across many sessions, per
 principle extends to any file the workflow defines as a single, persistent, shared artifact
 rather than a per-session deliverable.
 
+**Further, a Development Phase session's write access is exclusive and scoped, not just
+non-duplicating:** the Development Checklist is the *only* documentation/planning file such a
+session is permitted to edit at all — every other doc file it reads (Architecture
+Specification, Development Plan, Kickoff/Dev-Agent Prompt, prior handoff notes, Phase
+Summaries) is read-only, full stop; an apparent error or inconsistency in one of them is an
+Escalation Trigger, never a same-session fix. Within the Checklist itself, a session's edits
+are further scoped to marking DoD sub-items/tasks complete and appending its own Session Log
+row, **strictly within its own current, identified Phase** — never a mark belonging to any
+other phase, and never the Checklist's structural text (phase/task wording, Entry/Exit
+Criteria, DoD item wording). See `agents/DEVELOPMENT.md` §4 for the operational detail this
+mandate drives.
+
 ### 2.8. Mandate for One Phase Per Development Session
 **MANDATE: A Development Phase agent session completes at most one Development Plan phase.**
 Even where session capacity or time remains after a phase's Exit Criteria is satisfied and
@@ -151,13 +156,28 @@ mistakes to one phase and keeps Phase Summaries meaningful as a per-session reco
 
 ## 3. User Interaction
 ### 3.1. Formal Approval Protocol
-When "user approval" is required, the agent must follow this protocol:
-1.  **Propose with ID and Wait:** The agent must state its proposal and assign it a unique ID (e.g., `PLAN-20251010-0001`). It must then wait for an explicit instruction to proceed (e.g., "Proceed", "Continue") or the keyword "APPROVED".
-2.  **Clarification is not Approval:** A user response that only asks a question or provides clarification is NOT approval. The agent must update its plan based on the clarification and re-request approval with a new plan ID.
-3.  **Partial Approval:** If the user provides the keyword "APPROVED" but also includes additional instructions, the approval is considered partial. The agent MUST update its plan to incorporate the new instructions and then re-request approval. Final, unambiguous approval is achieved only when the user responds with the single word "APPROVED" or a direct, explicit instruction to proceed.
+**"APPROVED" — exact, all-uppercase, standalone — is the only token that satisfies an
+approval requirement.** "Continue," "Proceed," "Go ahead," and any other phrasing are
+**not** accepted substitutes, for a Step Approval Gate, a Minor Change, a Major Change,
+or preparation of a handoff package/file bump (`CLAUDE.md` §3.10) — all four require
+exact `APPROVED`.
+1.  **Propose with ID and Wait:** state the proposal, assign a unique ID (e.g.
+    `PLAN-20251010-0001`), wait for exact `APPROVED`.
+2.  **Clarification is not Approval:** a reply that only asks a question or clarifies is
+    NOT approval — update the plan, re-request approval with a new plan ID.
+3.  **Partial Approval:** `APPROVED` plus additional instructions is partial — incorporate
+    the new instructions and re-request approval. Final approval requires the single,
+    exact word `APPROVED` with nothing else needed to resolve.
 
 **EXCEPTION: Minor Change Protocol**
-For trivial changes that do not impact system logic, architecture, or critical protocols (e.g., fixing typos, updating non-functional comments, or minor formatting), the agent may propose the change and request permission to execute it in a single turn without assigning a unique Plan ID. The agent must still wait for an explicit "Go ahead" or "APPROVED" before proceeding.
+For trivial changes (typos, non-functional comments, minor formatting), the agent may
+propose and request permission in a single turn without a Plan ID — but still requires
+exact `APPROVED` before proceeding; no lighter-weight phrasing substitutes.
+
+**Other exact-phrase decision tokens** exist for specific, narrower mechanisms and are
+distinct from `APPROVED` — each is its own token, not a synonym or substitute for it:
+`BACKTRACK APPROVED` and `SURGICAL FIX OVERRIDE` (`CLAUDE.md` §3.6.1, choosing between a
+full backtrack and a compressed single-session fix).
 
 ### 3.2. Responding to User Questions
 If the user asks a question, the agent's response MUST be a written answer to that question and only that question. The agent is explicitly forbidden from taking any other action. See §3.2.1 for the specific "CHAT:" protocol governing this.
@@ -180,9 +200,9 @@ as a pure, completely benign information request, with no side effects of any ki
 - **One Gate at a Time:** The agent is **ABSOLUTELY FORBIDDEN** from executing multiple gated steps in a single turn.
 - **Stop and Present:** Upon reaching a "GATE" defined in any phase guide, the agent MUST stop all execution, present the required output for that step, and explicitly ask for user approval to proceed.
 - **No Speculative Progress:** The agent must not begin work on Step N+1 until Step N has received explicit, unambiguous approval.
-- **Iterative Elicitation:** For iterative loops (e.g., User Stories, Requirements, Test Identification), the elicitation mechanism depends on operating mode — the two modes have genuinely different interaction costs per round-trip:
+- **Iterative Elicitation:** For iterative loops (e.g., User Stories, Requirements, Test Identification), the elicitation mechanism depends on operating mode:
     - **Autonomous Mode:** elicit and process **one item at a time** — present the processed item, ask for the next, exit only when the user confirms no more items remain.
-    - **Advisory Mode:** strict one-at-a-time dictation is a real, avoidable cost where each round-trip is a full message exchange, not a live interaction. Instead, **propose-with-flagged-assumptions**: draft a full candidate batch from already-approved upstream content, present it at once (organized by theme/category where applicable), and **explicitly flag every item where something was inferred rather than stated** — an unflagged assumption folded silently into a batch item violates this mandate. The user corrects the batch in bulk; the agent then asks explicitly whether anything is missing. The underlying guarantee — every item individually visible and individually confirmed or rejected before being final — is the same in both modes; only the mechanism differs. May repeat if corrections reveal the batch was built on a substantially incorrect reading.
+    - **Advisory Mode:** strict one-at-a-time dictation is a real, avoidable cost where each round-trip is a full message exchange, not a live interaction. Instead: **draft the full candidate batch in one pass, research-backed** (general and competitive research folded into the drafting itself, not bolted on after); **present it as a whole for bulk acceptance**; **run every item the agent could not just decide** — an assumption, a flagged item, an open question — **individually through research → full analysis and recommendation → the same in table form → a selectable-options prompt**, resolving each to exactly one of: Resolved, Deferred to a specific later point, Future Feature, or Rejected. A phase guide's own working-arrangement file (e.g. `CLAUDE.md`) elaborates this into its concrete named procedure (e.g. RCD/RATS) — the guarantee itself (every batch is research-backed; every non-obvious item is individually visible, researched, and resolved to a terminal outcome before being final) is what's binding here, not any particular procedure name.
     - **Completeness signal (either mode):** the user's explicit confirmation, never the agent's own assessment of coverage/variety/quality, closes the loop.
     - **Mechanical vs. substantive delegation (Advisory Mode):** an objective, checkable quality bar (e.g. a fixed set of criteria every requirement must satisfy) may be applied unsupervised while drafting a batch — it's mechanical, not a judgment call about the user's actual needs. This doesn't extend to what the criteria don't cover: necessity, correctness, real-world feasibility, or whether an assumption made to satisfy a mechanical criterion (e.g. inventing a missing detail to make an item "Complete") is actually correct. Those remain the user's call and must be flagged, not folded silently into the mechanical result.
 

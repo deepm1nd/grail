@@ -24,17 +24,17 @@ Per `AGENTS.md` §1.5.2, not Autonomous:
   don't apply; Claude won't simulate running them.
 - If a mandate assumes access Claude doesn't have, Claude says so rather than skipping or
   improvising silently.
-- **Every Step, and every repeated run of a Step (user-requested per §3.10, or automatic,
-  e.g. a Step 7 re-audit per §3.12), runs in its own separate chat session — a hard rule.**
+- **Every Step, and every repeated run of a Step (user-requested per §3.9, or automatic,
+  e.g. a Step 7 re-audit per §3.11), runs in its own separate chat session — a hard rule.**
   Step 2 (User Story Elicitation) is one session, not split into named passes (§3.4). Nothing
   "earlier in this conversation" can be referred back to once a new session starts; whatever a
   new session needs from a prior Step must be re-provided directly (uploaded/pasted/linked),
   same as any other file dependency in Advisory Mode. Consequence: **every Step Approval Gate
   (§3.4) is also a session-boundary packaging point** — presenting a step's output for approval
   always means packaging every file and handoff note the next session could need, not just the
-  step's headline deliverable. See §3.11 for what this requires as files (not chat text), §3.12
+  step's headline deliverable. See §3.10 for what this requires as files (not chat text), §3.11
   for Step 7 re-runs specifically (Step 9's backtrack mechanics, `agents/DESIGN.md` §5.9, mirror
-  §3.12), and §3.13 for the open-items review every gate must also carry forward.
+  §3.11), and §3.12 for the open-items review every gate must also carry forward.
 
 ---
 
@@ -54,7 +54,7 @@ the Plan has no equivalent per-step authorship history to preserve.
 `agents/exemplars/architecture_specification_template.md`,
 `agents/exemplars/development_plan_template.md`,
 `agents/exemplars/development_checklist_template.md`,
-`agents/exemplars/dev_agent_prompt_template.md` (complex/multi-phase Rust variant).
+`agents/exemplars/dev_prompt_template.md` (complex/multi-phase Rust variant).
 Plan and Checklist stay in lockstep (one checklist line per task DoD item). A later template
 revision means Claude conforms existing documents to it and flags the restructuring as a
 Major Change (§3.6) — never silently.
@@ -82,178 +82,132 @@ design goal is **multithreading wherever possible, native and WASM**, via Web Wo
 constraint to design around. Requirement language using null/inheritance/exception framing
 that doesn't map onto `Option<T>`/traits/`Result` is a Requirement Smell (§3, Step 3) needing
 translation, not pass-through. `agents/PREFERRED_TOOLS.md` is relevant here (dev tool/MSRV
-policy); `agents/SCRIPT_RULES.md` is not (Advisory Mode runs no scripts).
+policy); `agents/SCRIPT_RULES.md` is not (Advisory Mode runs no scripts). **For any project
+with an ESP32/ESP-IDF embedded component,** `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md` is the
+binding toolchain/build reference (target triples, `.cargo/config.toml`, `tokio`-on-ESP-IDF
+configuration) — consult it at Step 5 alongside `agents/PREFERRED_DEPENDENCIES.md`'s and
+`agents/PREFERRED_TOOLS.md`'s Embedded sections.
 
 ### 2.2. Visual & Media Asset Input
 
 Where a project has a human-facing UI, the user supplies reference **assets** — HTML,
 images, and optionally audio/video — tracked as first-class, filename-stable artifacts across
 both Design (this file) and Development, not consumed once and discarded. Full mechanism:
-§3.8. Physical tracking record: the **Asset Manifest**, a table inside the Architecture
-Specification (§3.8 states which file currently owns it under §4's Step-aligned split).
+§3.7. Physical tracking record: the **Asset Manifest**, a table inside the Architecture
+Specification (§3.7 states which file currently owns it under §4's Step-aligned split).
 
 ---
 
 ## 3. Core Mechanisms and the Gated Workflow
 
 `agents/DESIGN.md` §5 defines a **9-step gated lifecycle** — no skipping, no combining, no
-proceeding past a gate without explicit approval (full-rigor, all-interactive baseline; §3.7
-for the autonomy toggle and its presets). §§3.1–3.3 define mechanisms shared across steps;
-§3.4 lists the steps, stating only what's specific to each.
+proceeding past a gate without explicit approval. §§3.1–3.2 define the single, fixed
+procedure (RCD/RATS) shared across every step but 7 and 9; §3.4 lists the steps, stating
+only what's specific to each.
 
-### 3.1. Propose-with-Flagged-Assumptions
+### 3.1. The Standard Procedure: Research → Draft, then RATS
 
-Within any of Steps 1, 3–5: some work is **mechanical** (checkable against an explicit,
-objective standard — e.g. the 9 requirement-quality criteria, deriving a test case from an
-already-verifiable requirement, matching a tool to a need category) and some is
-**substantive** (depends on facts about the user's actual needs/environment Claude cannot
-verify — necessity, correctness, real feasibility). Claude does mechanical work unsupervised;
-for substantive work it drafts its best answer but **flags every place it had to assume or
-infer** rather than derive from something already stated. Only the user's explicit
-confirmation — never Claude's own sense of "probably fine" — settles a flagged item.
-Concretely: draft fully, flag inline, route everything (batch + flagged items) through the
-Grouped Closing Protocol (§3.2), and never declare a set "sufficient"/"done" on Claude's own
-judgment alone.
+**Every step except 7 and 9 follows one fixed procedure — no toggle, no mode, no
+Tailoring.** There is no longer a mechanical/substantive split at the batch level: *all*
+core step content generation is research-backed by default; only genuine open
+items/assumptions/questions run through individual resolution.
 
-### 3.2. The Grouped Closing Protocol
+**Step 1 — RCD (Research, Competitive-research, Draft).** For the step's core
+deliverable (User Stories, requirements, test cases, viewpoints, etc.):
+1. **Research:** general web research on the subject matter.
+2. **Competitive research:** how comparable/competitive systems solve the same problem.
+3. **Draft:** generate the full batch in one pass, informed by 1–2 — not drafted first
+   and researched after. For large sets, sub-batch into groups of **~50 items**; each
+   group completes this full procedure (RCD → bulk-accept → RATS, below) before the next
+   group starts.
 
-How Claude closes any batch this phase produces (User Stories at Step 2; requirements, test
-cases, tool choices, etc. at Steps 3–5) — governs **every** batch-producing step, not just
-Step 2. Replaces one-item-at-a-time dictation while keeping the same guarantee: every item
-individually visible, individually confirmed or rejected, before being final.
+**Step 2 — Bulk-accept pass.** Present the batch as a whole. The user accepts in bulk in
+one reply. This is expected to close the great majority of the batch — RATS below applies
+only to what bulk-accept didn't settle: genuine assumptions, flagged items, and open
+questions the agent could not simply decide while drafting.
 
-**Grouping:** the full batch is organized into groups at draft time (actor/theme/sub-topic),
-decided once, not discovered incrementally.
+**Step 3 — RATS (Research, Analysis, recommendation, Table, Selectable-options), per
+residual item.** For each item left after bulk-accept:
+1. Research (general + competitive), same as RCD's research step, scoped to that item.
+2. Full prose analysis and recommendation — uncompressed, complete reasoning.
+3. The same content in table form: **Item — Choices — Recommendation**.
+4. A selectable-options prompt (§3.2) for that item, with short recognizable per-choice
+   text (the prompt UI truncates; the analysis and table above already carry the full
+   content — the prompt is purely the input mechanism).
 
-**Per group, in order, not advancing until each stage settles:**
-1. **Content pass.** Present the batch as plain numbered text. User strikes/edits/confirms/
-   adds in bulk. Settles *what exists*, not attached assumptions.
-2. **Assumption stage.** Table: **Item — Choices — Recommendation**, covering **every**
-   flagged assumption on a surviving item, no exceptions — including items where the
-   resolution seems obvious or is reuse of an accepted pattern; "doesn't need real
-   deliberation" is not license to skip the table row (a one-line row still gets one). A
-   struck item drops its assumption automatically. User resolves in bulk, or names specific
-   items for individual treatment ("show me the analysis for items 6, 9, 13"). For named
-   items: full research/analysis in prose (§3.3's three-layer requirement), then the table
-   row(s), **then** the selectable-options question — no analysis option (already given;
-   dead weight to re-offer) — keeping Defer + substantive choices, recommendation first and
-   labeled (§3.3). Anything still open (Deferred, or ambiguous) flows to the next stage, not
-   re-litigated here.
-3. **Deferred-items stage.** Separate table (not merged) of everything marked Defer, any
-   source. Same bulk-then-named pattern; leftovers flow forward.
-4. **Remaining-ambiguous stage.** Separate table of what's still unresolved. Same pattern.
-   Residue after this stage carries into later-step Defer resolution and, per §3.13, is
-   re-surfaced at every subsequent gate until resolved or explicitly accepted as standing.
-5. **Next group**, restarting at content pass.
+**Step 4 — Terminal outcome, every item, no exceptions.** Each item resolves to exactly
+one of:
+- **Resolved** — settled now.
+- **Deferred to Step N** — N must be ≥ the current step; dormant, not "open," until Step N
+  is reached (§3.12). If the right target step isn't yet obvious, defer to the nearest
+  step that plausibly governs the decision type and flag that placement as provisional.
+- **Future Feature** — recorded per Spec §2.6 (originating ID, description, deferral
+  reason, dependency if known).
+- **Rejected** — recorded in the Open Items Register (§3.12), tagged `Rejected`, ID
+  retired per the stable-ID rule — considered, not silently dropped.
 
-**Bulk-reply handling, every stage — and any standalone flagged item outside the Grouped
-Closing Protocol (e.g. Step 6's per-element notation judgment, Step 8's environment/config
-assumptions):** one covering reply ("all accepted") closes the whole table. A partial reply
-closes only what it addresses — **whatever it leaves unresolved automatically proceeds into
-the per-item selectable-options loop (§3.3's three-layer presentation, then the tool), no
-separate request required.** "Review individually" still works as an accelerator straight to
-per-item, no longer the *only* door in. An ambiguous reply (genuinely unclear, not merely
-partial) gets a plain clarifying question first (§3.1, `AGENTS.md` §3.1) — never treated as a
-trigger for anything.
-
-**Early-resolution exception:** if a content-pass reply already explicitly answers a flagged
-assumption (not just touches the item), Claude doesn't re-ask later — unless the answer
-raises a *new* unstated assumption, which still goes through the assumption stage.
-
-**Completeness:** after the last group's last stage, Claude asks once whether anything's
-missing from the batch overall — user confirmation closes it, not Claude's judgment.
-
-**Expected scale:** bulk resolution should shrink each stage to a handful of items — an
-expectation, not a hard cap; an unshrunk stage still runs against what remains.
-
----
-
-### 3.3. The Selectable-Options Convention
-
-Applies wherever Claude uses the selectable-options/multiple-choice tool (a genuinely
-discrete choice — a multi-item list, like a Grouped Closing Protocol content pass, stays
-plain text; see §3.2).
-
-- **Three-layer presentation, every time — precondition for everything below.** The tool is a
-  picker, not a display surface (truncates to ~one line), so it can never be the sole place
-  substantive content lives. Before the tool is invoked, for any decision — standalone or
-  within a Grouped Closing Protocol round — Claude presents, in order: (1) full
-  research/analysis in prose (findings, reasoning, uncompressed); (2) the full **Issue —
-  Choices — Recommendation & Rationale** table, complete sentences, not truncated; (3) only
-  then the selectable-options prompt, which exists solely as the input mechanism for a
-  decision the user is already fully informed about — its own truncation is fine *because*
-  it's no longer the only place the content lives.
-- **Mandatory pre-analysis.** Before building *any* such question, Claude works out real
-  pros/cons of the substantive options and derives its recommendation from that — never picks
-  a recommendation first and rationalizes after. Unconditional, independent of whether shown.
-  **Exception:** in a Grouped Closing Protocol individual round (§3.2), the analysis option
-  (below) is omitted — already shown as the reason the item reached individual treatment.
-- **Research triggers — four categories, independent of decision "importance"** (not
-  exhaustive; the user may flag more as real cases surface):
+**Research is mandatory by default for every substantive item**, not gated behind a
+narrow trigger list. As a guide to what's substantive (a genuine decision) versus
+mechanical (no real ambiguity — an ID-uniqueness check, a keyword-collision check): a
+purely mechanical check that has no real decision content is not RATS'd. The four
+historical trigger categories below remain useful *examples* of what commonly needs
+research, but are not an exhaustive gate — **anything not cleanly matching them is still
+researched by default, not skipped for lack of a matching category:**
   - **A — checkable/time-sensitive factual claims:** a specific tool/crate/library/version,
-    or a "current best practice" assertion that could be stale (e.g. naming a crate without
-    checking; any specific Rust toolchain/dev-tool version — `agents/RUST_PREFERENCES.md`
-    §0 — which is why no Rust version is ever hardcoded into a process document; determined
-    fresh per project at Step 5).
+    or a "current best practice" claim that could be stale.
   - **B — under-determined design parameters with no objectively correct value:** research
-    grounds the choice in what comparable/competitive systems converged on (e.g. an
-    outage-detection threshold — no "true" answer, but convergence is informative).
-  - **C — option-space completeness:** not "is this stale" but "is Claude even aware of the
-    full option set" — training-era knowledge may miss a newer/domain-specific approach a
-    search would surface (e.g. serialization format, concurrency pattern, auth scheme).
-  - **D — user-facing capability/feature-surface decisions:** opportunity-seeking, not
-    risk-avoidance. Checks whether a best-in-class/competitive-advantage/novel-capability
-    option exists that wouldn't otherwise get proposed — distinct motivation from A–C; can
-    overlap with B for product-facing parameters.
-  A purely conceptual tradeoff fitting none of these doesn't need a search.
-- **Recommendation first, labeled.** Option #1 is Claude's recommendation, explicitly
-  labeled — position never silently implies endorsement. Most of these questions exist
-  *because* the answer depends on something only the user knows; the recommendation is a
-  convenience, not a claim of likely correctness.
-- **Standing "Defer" option.** Not now. Resolved via the Grouped Closing Protocol's
-  deferred-items stage (§3.2) — never an ad hoc list, never silently dropped, re-surfaced at
-  every subsequent gate per §3.13 until closed.
-- **Standing "Provide analysis and recommendation" option, always listed last where
-  present.** Since the three-layer rule already shows the analysis upfront, this exists for
-  **re-surfacing** it (user lost track) or where the tool-capacity ladder (below) dropped
-  analysis into inline framing text instead. Doesn't close the question — re-presents it
-  (Defer and this option included again). Repeatable; a repeated request may mean the
-  question needs reframing.
-- **Tool-capacity ceiling (checked before the above): max 4 options total.** Defer + analysis
-  option are 2 standing slots, leaving room for only 2 substantive choices at full capacity.
-  - **3 substantive options:** drop the analysis option (keep Defer); state the analysis
-    inline in the framing text instead — same information, different delivery; pre-analysis
-    still mandatory.
-  - **4+ substantive options:** even Defer alone would overflow. First try to consolidate to
-    ≤3 genuinely distinct choices (4+ often means the question is underspecified). If
-    consolidation isn't honest, fall back to plain text: analysis and recommendation inline,
-    Defer noted as available by reply.
-- **3+ surviving options is expected to be rare — flag it when it happens.** Real analysis
-  should usually collapse apparent 3-way choices to 2; a genuine 3-way survivor (most often an
-  architectural tradeoff with no dominant option) gets a brief note distinguishing it from
-  Claude simply failing to narrow the question. Frequent unflagged 3+-option questions would
-  itself indicate the analysis isn't rigorous.
+    grounds the choice in what comparable systems converged on.
+  - **C — option-space completeness:** is Claude aware of the full option set, or might a
+    search surface a newer/domain-specific approach it would otherwise miss.
+  - **D — user-facing capability/feature-surface decisions:** opportunity-seeking —
+    whether a best-in-class/competitive option exists that wouldn't otherwise get proposed.
+
+**Recommendation first, labeled.** Option #1 in any table/prompt is Claude's
+recommendation, explicitly labeled — position never silently implies endorsement.
+
+### 3.2. The Selectable-Options Convention
+
+Applies wherever Claude uses the selectable-options tool for a RATS item.
+
+- **Three layers, every time:** (1) full prose research/analysis; (2) the full Item —
+  Choices — Recommendation table; (3) only then the selectable-options prompt — the input
+  mechanism for a decision the user is already fully informed about.
+- **Standing "Defer" option** — resolves to Step 4's Deferred-to-Step-N outcome, never
+  silently dropped.
+- **Tool-capacity ceiling: max 4 options.** Defer is 1 standing slot; a
+  "provide analysis" option is included only if room remains and the analysis wasn't
+  already shown in full above (normally it was, so this is rarely needed). With 3+
+  substantive options, state analysis inline in framing text rather than adding more
+  slots; with 4+ genuinely distinct options, first try to consolidate to ≤3 (usually
+  possible — 4+ often means the question is underspecified) before falling back to plain
+  text with Defer noted as available by reply.
+- **3+ surviving options is expected to be rare** — flag it when it happens, since real
+  analysis should usually collapse apparent 3-way choices to 2.
 
 ---
 
 ### 3.4. The 9 Steps
 
-| # | Step | Output | Mechanism |
-|---|---|---|---|
-| 1 | Concept Intake & Context Mapping | Architecture file `_01_introduction` (Draft) | §3.1. Mechanical: structuring the concept statement into problem-space + boundaries. Substantive (flag, don't assume): actual in/out-of-scope, real boundaries, which adjacent actors matter — the highest-cost place in the workflow for an unflagged wrong guess, since every later step inherits it; never autonomous, any mode (§3.7). **Always** attempts deep web research and competitive analysis (how comparable systems/frameworks solve the same problem), aiming at best-in-class/competitive-advantage/novel-capability framing — an honest "no meaningful competitive landscape, here's why" is an acceptable outcome; a fabricated comparison is not. **Actively solicits screen mockups, reference HTML, brand/image assets, and (if relevant) audio/video assets, as early as possible** (§3.8/§2.2) — not deferred to when UI work is imminent. |
-| 2 | User Story Elicitation | Architecture file `_02_user_stories` | §3.1 + §3.2 in full, one **single session** (no A/B split). Claude drafts the full candidate batch (by actor/theme) from `_01_introduction`; user runs the Grouped Closing Protocol over it in one pass, covering both the story list and each story's Interaction Sequence together, not as separate-session stages. |
-| 3 | Requirement Decomposition | Architecture file `_03_requirements` | §3.1 + §3.2. Mechanical: 3-pass decomposition (Functional → Logical → Detailed) and the 9-criteria/Requirement-Smell check (`agents/DESIGN.md` §4.5), unsupervised — internal iteration passes within the one Step 3 session, not separate sessions. Substantive: necessity, correctness, completeness — flagged per requirement, resolved via §3.2. |
-| 4 | Test Identification | Architecture file `_04_test_strategy` | §3.1 + §3.2. Mechanical: deriving test cases from an already-verifiable requirement, plus the 9-criteria table and Rust Requirement Smell catalog. Substantive: what bar a DoD must clear ("verifiable" only guarantees *some* objective test exists, not which one) — flagged, resolved via §3.2. |
-| 5 | Verification Feasibility | Architecture file `_05_verified_traceability` | §3.1 + §3.2. Mechanical: matching a need to a tool *category*; checking Rust dependencies directly against `agents/PREFERRED_DEPENDENCIES.md` (preferred used without confirmation; **Forbidden** never proposed; **Requires-Approval**/unlisted flagged; `tokio`+WASM never proposed together); checking dev tools/`agents/PREFERRED_TOOLS.md` and infra services/`agents/PREFERRED_SERVICES.md`; **setting the workspace MSRV** per `agents/RUST_PREFERENCES.md` §0 (and dual-MSRV if a publishable library crate exists) — recorded here as a flagged placeholder, relocated to `_07_interfaces_and_stack` §6 at Step 6. Substantive: real environment feasibility (infra, budget, licensing, team familiarity) for anything not list-checkable — flagged, resolved via §3.2. Claude never certifies "technical sufficiency" unilaterally; it's a proposal pending confirmation. |
-| 6 | Final Architecture Synthesis (ISO 42010) | Architecture files `_06_viewpoints`, `_07_interfaces_and_stack`, `_08_constraints_and_roadmap` (new this step); `_05_verified_traceability` (finalized — MSRV relocated out) | Mostly recombination of already-approved content from `_01`–`_05` — less to delegate. One live judgment call: formal notation (SysML-style) vs. prose, per element, with a brief stated reason so the user can override per-element without re-litigating the viewpoint. Must cover all 4 mandatory viewpoints: Functional, Information (Data Dictionary), Deployment, Interface Control. Also where the Asset Manifest (§3.8) migrates into its permanent home, `_06`'s §4.13 (UX & UI Design). |
-| 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | **No propose-with-flagged-assumptions here — by design.** An audit's value depends on adversarial independence from the rest of the process, including Claude's own prior work; the last systematic check before anything is built on the Spec. Checks, on Claude's own analysis: every User Story maps to a requirement; every requirement is atomic; no approved content elided/summarized/replaced with a "see previous version" reference; no gap could force a stub/partial implementation downstream; every Asset Manifest entry is actually referenced where it should be; **every deliverable filename conforms to the §4 naming convention.** **Zero findings closes Step 7 normally — proceed to Step 8. Any finding at all (even one) triggers the Step 7 Backtrack Workflow (§3.12) instead of normal gate approval.** |
-| 8 | Development Plan & Checklist | Development Plan + Checklist + Dev-Agent Kickoff Prompt | Before drafting environment/config content (toolchain, CI, local setup — Steps 1–7 are about *what*, not *where/how built*): elicit concrete facts directly; for anything unspecified with a reasonable default, propose the default as a flagged assumption (§3.1), once per Plan, not once per phase. **Phase Sizing:** each phase must complete within one agent session, sized for an agent **less capable than Claude**, with margin for debugging. Complexity is computed, not eyeballed: `Score = (task_count × 1) + (new_public_interfaces × 2) + (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)` — interfaces/cross-file coordination weighted higher (likeliest error source for a weaker agent). Default ceiling **≤15**, user-tunable over time; the weighting is the stable part, the ceiling the adjustable part. **Frontend phase sequencing, where a UI exists:** *targeted interleaving* — each screen/component's frontend task sits in the same phase as its real (non-mock) backend/data dependency, never earlier (forces a throwaway stub, contradicting the Anti-Stub Mandate) and never deferred once its real dependency is available. **Final deliverable:** a reusable kickoff prompt (`agents/exemplars/dev_agent_prompt_template.md`), produced once, reused at the start of every Development-Phase session, not regenerated per session. |
-| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No propose-with-flagged-assumptions here either — by design, mirroring Step 7.** Step 8's output used the same flagged-assumption mechanism as every step; nothing so far independently verified it. Step 9 runs `agents/exemplars/development_plan_template.md` §15 (Plan-Level DoD) directly as an audit checklist, on Claude's own analysis: every Core requirement traced, no orphan citations, every phase has non-empty Entry/Exit Criteria, every task has a Verification Method and DoD, the Phase Dependency Graph is acyclic, Checklist/Plan lockstep with no drift, every filename conforms to §4. Also cross-checks Build Order fidelity against the finalized Spec and, where a UI exists, that phase sequencing reflects Frontend Targeted Interleaving rather than a backend-then-frontend split. **Zero findings closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only** — reopen Step 8 alone, fix, re-package, re-audit — **or (B) Spec-originating** — reopen the relevant Architecture Spec step (1–6), re-clear Step 7, then return to Step 8 — never patch the Plan around a still-defective Spec. Repeats until a Step 9 run is clean. See `agents/DESIGN.md` §5.9 for full backtrack mechanics, mirroring §3.12. |
+**Every step below except 7 and 9 runs the standard procedure (§3.1): RCD-drafted batch →
+bulk-accept → RATS on residuals → terminal outcome per item.** No toggle, no autonomy
+preset — this is fixed. The table states only what's specific to each step.
 
-Every step ends with **STOP, present output, await explicit approval** — never combined,
-never skipped, in full-rigor mode (§3.7 for the autonomy toggle). Per §1, every step (and
+| # | Step | Output | Specifics |
+|---|---|---|---|
+| 1 | Concept Intake & Context Mapping | Architecture file `_01_introduction` (Draft) | Highest-cost step for an unflagged wrong guess — every later step inherits it. Deep web + competitive research is mandatory, aiming at best-in-class/competitive-advantage/novel-capability framing; an honest "no meaningful competitive landscape, here's why" is acceptable, a fabricated comparison is not. **Actively solicits screen mockups, reference HTML, brand/image assets, and (if relevant) audio/video assets, as early as possible** (§3.7/§2.2). |
+| 2 | User Story Elicitation | Architecture file `_02_user_stories` | Always runs, in full, regardless of project size — no skip path. Single session; the story list and each story's Interaction Sequence are drafted and closed together. |
+| 3 | Requirement Decomposition | Architecture file `_03_requirements` | 3-pass decomposition (Functional → Logical → Detailed) plus the 9-criteria/Requirement-Smell check (`agents/DESIGN.md` §4.5) as part of core-batch generation. |
+| 4 | Test Identification | Architecture file `_04_test_strategy` | Test cases derived per requirement; the 9-criteria table and Rust Requirement Smell catalog checked as part of core-batch generation. |
+| 5 | Verification Feasibility | Architecture file `_05_verified_traceability` | Rust dependencies checked against `agents/PREFERRED_DEPENDENCIES.md` (preferred used directly; Forbidden never proposed; Requires-Approval/unlisted is a RATS item); dev tools/`agents/PREFERRED_TOOLS.md`, infra services/`agents/PREFERRED_SERVICES.md`; ESP32/ESP-IDF components cross-checked against `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md`; **sets the workspace MSRV** (`agents/RUST_PREFERENCES.md` §0) — flagged placeholder here, relocated to `_07_interfaces_and_stack` §6 at Step 6. Claude never certifies "technical sufficiency" unilaterally. |
+| 6 | Final Architecture Synthesis (ISO 42010) | Architecture files `_06_viewpoints`, `_07_interfaces_and_stack`, `_08_constraints_and_roadmap` (new); `_05_verified_traceability` (finalized) | Mostly recombination of already-approved content — less new drafting. One live judgment call: formal notation vs. prose per element, stated briefly so the user can override without re-litigating. Covers all 4 mandatory viewpoints. Asset Manifest migrates to permanent home in `_06`'s §4.13. |
+| 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | **No RCD/RATS here — by design.** Adversarial independence from the rest of the process, including Claude's own prior work. Checks, on Claude's own analysis: every User Story maps to a requirement; every requirement atomic; no elided/summarized content; no gap forcing a stub downstream; every Asset Manifest entry referenced; every filename conforms to §4; **every Open Items Register entry has a terminal RATS outcome** (Resolved/Deferred-to-a-valid-step/Future Feature/Rejected) — a lingering open item is itself a finding. **Zero findings → proceed to Step 8. Any finding → Step 7 Backtrack Workflow (§3.11).** |
+| 8 | Development Plan & Checklist | Development Plan + Checklist + Dev Prompt + draft README | Environment/config facts (toolchain, CI, local setup) elicited directly; unspecified items with a reasonable default proposed once per Plan via RATS, not once per phase. **Phase Sizing:** `Score = (task_count × 1) + (new_public_interfaces × 2) + (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)`, default ceiling **≤15**. **Frontend targeted interleaving** where a UI exists: each screen/component's frontend task sits in the same phase as its real backend/data dependency. **Drafts the project README** (overview/stack/roadmap) — Development Phase's Phase 0 task reviews/confirms/enhances it. **Deliverable:** `agents/exemplars/dev_prompt_template.md` → `[projectname]_dev_prompt.md`, produced once, reused every Development-Phase session. |
+| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No RCD/RATS here either — mirrors Step 7's independence.** Runs `agents/exemplars/development_plan_template.md` §15 directly as an audit checklist: every Core requirement traced, no orphan citations, every phase has Entry/Exit Criteria, every task has a Verification Method and DoD, Phase Dependency Graph acyclic, Checklist/Plan lockstep, every filename conforms to §4, Build Order fidelity, Frontend Targeted Interleaving where a UI exists, and **every Open Items Register entry has a terminal RATS outcome.** **Zero findings closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only** — reopen Step 8 alone — **or (B) Spec-originating** — reopen the relevant Spec step, re-clear Step 7, then return to Step 8. Repeats until clean. See `agents/DESIGN.md` §5.9. |
+
+Every step ends with **STOP, present output, await explicit `APPROVED`** — never combined,
+never skipped. Per §1, every step (and
 every repeated run) is its own session — a step's gate output is always a complete file
-package for the next session (§3.11), and always includes the §3.13 accumulated open-items
+package for the next session (§3.10), and always includes the §3.12 accumulated open-items
 review.
 
 ---
@@ -289,7 +243,7 @@ collapses that into a plain exclusion.
 
 Per `agents/DESIGN.md`, the user may return to any previous step, most often when a later
 step reveals an earlier step's content — flagged or not — was wrong. For normal forward
-iteration (i.e. *not* a Step 7 or Step 9 finding — §3.12 for Step 7's mandatory case,
+iteration (i.e. *not* a Step 7 or Step 9 finding — §3.11 for Step 7's mandatory case,
 `agents/DESIGN.md` §5.9 for Step 9's analogous one), Claude: (1) names the originating step
 and specific content at issue, rather than patching around it; (2) presents — doesn't
 unilaterally decide — the choice between a local patch vs. reopening the earlier step, since
@@ -300,52 +254,52 @@ materially changes scope/requirements/architecture — not just when convenient.
 Changes generally** are flagged explicitly, by name, the moment Claude recognizes one — never
 buried in a diff or folded silently into the next deliverable.
 
+#### 3.6.1. Surgical Fix Override
+
+An explicit, per-instance opt-out from the normal multi-session backtrack — available for
+**both** an ordinary backtrack above **and** a Step 7/Step 9 finding (§3.11,
+`agents/DESIGN.md` §5.9), which otherwise always requires the full workflow.
+
+1. Claude flags the Major Change/backtrack requirement as normal, naming the originating
+   step and content.
+2. The user may request a surgical fix in plain language (e.g. "I would like to perform a
+   surgical fix").
+3. **Claude gives a real recommendation, not a formality** — either agreeing with reasoning,
+   or recommending against with a thorough explanation of what the full multi-session
+   backtrack catches that this shortcut doesn't (separate sessions and individual gate
+   approvals per intervening step), plus a best-effort, in-session-only check of the
+   immediate blast radius (not the guaranteed full sweep a real backtrack performs).
+4. The user decides with one of two **exact** phrases:
+   - **`BACKTRACK APPROVED`** — normal full multi-session backtrack workflow, no override.
+   - **`SURGICAL FIX OVERRIDE`** — proceeds as below.
+5. **What the override actually compresses is session count and gate friction, not
+   thoroughness.** Claude still fixes the originating content and works forward through
+   every step between it and Step 6 (or, for a mid-step trigger, through whatever cascading
+   effects exist) — same real work as a normal backtrack, just in one session instead of
+   several, without an intermediate approval per step.
+6. **Mid-step trigger:** documented as a brief section in this session's own handoff note,
+   carried forward unmodified through every subsequent handoff note until the next Step
+   7/9 audit actually runs — no new file created for this.
+7. **Audit-originated trigger (a Step 7 or Step 9 finding):** the fix starts at the earliest
+   originating step and works forward through every intervening step's own file, through
+   Step 6, resolving cascading effects and — where applicable — other findings from the
+   same audit report, all in one session. At session end, package every touched file
+   exactly as at a normal post-Step-6 handoff, plus a handoff note describing the backtrack
+   work performed under the override, as though Step 6 had just completed normally. This
+   hands off into a **new Step 7 (or Step 9) session** using the existing `pass2`/`pass3`
+   naming convention (no new variant) — **mandatory, never waivable**, re-auditing from
+   scratch independent of the surgical session's own account.
+8. **Major Change Notification still fires regardless of which path is chosen.**
+
 ---
 
-### 3.7. Autonomy: a Per-Step Toggle, with Two Named Presets
+> **The former "Autonomy Toggle" section is removed.** There is no interactive/autonomous
+> mode choice and no Tailored/Full-Autonomous preset — §3.1's standard RCD/RATS procedure is
+> the single, fixed workflow for every step but 7 and 9; Step 2 always runs in full
+> regardless of project size. All subsequent sections in this document are renumbered down
+> by one accordingly.
 
-Each step is either **interactive** (normal §3.4 behavior, full elicitation per §3.1/3.2) or
-**autonomous** (internal process runs silently, no mid-step elicitation, but the **gate
-itself is unchanged** — Claude still stops and presents output for approval). This is
-**prompt-invoked**, never a standing default; full-rigor, all-interactive (§3.4) is the
-baseline absent an explicit instruction.
-
-**Which steps can ever be autonomous:** 2, 3, 4+5, 6, 8. **Steps 1, 7, and 9 can never be
-autonomous, in any mode** — Step 1 because it's the highest-cost place for an unflagged wrong
-guess (§3.4); Step 7 and Step 9 because audit independence is non-negotiable (§3.4). No
-prompt overrides this. ("4+5" = Steps 4 and 5 handled as one combined autonomous session when
-this toggle is invoked — the only case two Steps share a session; in interactive/default mode
-they remain separate sessions per §1/§3.4.)
-
-**Autonomous gate output, every eligible step:** not just a result — a consolidated
-**"Assumption/Issue — Choices — Decision & Rationale"** note per substantive item resolved
-internally, alongside the step's normal output, plus the §3.13 open-items review like any
-other gate. Richer than a flat assumptions list: the user sees what the live options were and
-why Claude picked one — the same content a selectable-options question would have shown
-interactively, presented as a statement rather than a question.
-
-**Two named presets** (the only real difference between "small project" and "trust this
-step's judgment" is whether Step 2 happens at all):
-
-- **Tailored Mode** ("treat this as a small project, tailored mode"): Step 2 **skipped**
-  entirely (not autonomous — gone; Step 1 absorbs what it would have surfaced); Steps 3, 4+5,
-  6, 8 autonomous by default; Step 1 unconditionally high-rigor per §3.4 *and* additionally
-  expanded to cover persona/interaction/edge-case content Step 2 would otherwise surface.
-- **Full Autonomous Mode** ("run this project in full autonomous mode"): identical to
-  Tailored Mode except Step 2 **runs**, autonomously, instead of being skipped — for a
-  full-size project where Step 2's actual artifact is still wanted, just without interactive
-  elicitation.
-
-**Single-step invocation** (independent of either preset): "run Step [N] in autonomous mode"
-— toggles one eligible step (2, 3, 4+5, 6, or 8) without invoking a whole preset. No combined
-shorthand exists for "preset + extra step" — name the preset and the additional step
-explicitly if stacking (little left to stack once a preset is active, since both presets
-already make every eligible step but 2-in-Tailored autonomous by default).
-
-Every gate in §3.4 still applies regardless of preset/toggle — autonomy changes only the
-*visibility of process*, never removes a stop-and-approve point.
-
-### 3.8. Visual & Media Asset Input: Discovery Source and Tracked Artifact
+### 3.7. Visual & Media Asset Input: Discovery Source and Tracked Artifact
 
 The user may provide **HTML, images, and (where relevant) audio/video** showing or
 constituting how the system's UI should look, sound, and behave. This plays two roles that
@@ -394,9 +348,8 @@ flagged-placeholder-then-relocate pattern used for the Step 5 MSRV decision.
 
 **Triggers a completeness check whenever provided, at any point** — not only at Step 1.
 Claude checks already-approved Data Dictionary/requirements content against what the visual
-input implies. Any gap is a **flagged open item for user confirmation** (§3.1), routed through
-the Grouped Closing Protocol (§3.2) like any other flagged batch item — never silently
-patched into already-approved content, however obvious the gap seems.
+input implies. Any gap is a flagged item run through RATS (§3.1) like any other residual
+item — never silently patched into already-approved content, however obvious the gap seems.
 
 **Both image and HTML are reviewed when both are provided for the same screen/component —
 neither substitutes for the other:** HTML exposes behavior/state/content an image can't show;
@@ -408,8 +361,8 @@ framework capability, that choice still goes through Step 5's normal
 `agents/PREFERRED_DEPENDENCIES.md`/`agents/PREFERRED_TOOLS.md` feasibility check like any
 other dependency — visual input motivates the need but does not bypass approval.
 
-**Assets are never carried forward as files in a handoff note (§3.11) — a deliberate
-exception to §3.11's general "anything crossing a session boundary is a file" rule.** During
+**Assets are never carried forward as files in a handoff note (§3.10) — a deliberate
+exception to §3.10's general "anything crossing a session boundary is a file" rule.** During
 Design, a provided asset is reasonably authoritative only for informing UI vision as it bears
 on whichever step is currently using it — not a durable input the next session needs
 re-attached. By Development, the actual asset will likely be refined/modified somewhat from
@@ -429,7 +382,7 @@ just propagate a stale version. Concretely:
   Architecture Specification content (§4.1) — only the underlying asset files are excluded
   from handoff packaging.
 
-### 3.9. No Agent-Side Certification of Technical Sufficiency
+### 3.8. No Agent-Side Certification of Technical Sufficiency
 
 Claude cannot certify technical sufficiency unilaterally at any step (§3.4 Step 5 states this
 explicitly; it holds everywhere). Research (§3.3, §3.4 Step 1) narrows the substantive gap
@@ -437,9 +390,9 @@ between Claude's proposal and the right answer — it never closes it, since rea
 infrastructure, budget, and team constraints remain unverifiable from inside this chat. More
 rigor produces a better-informed proposal, never a certified one.
 
-### 3.10. Requesting More Depth ("Not Enough — Another Pass")
+### 3.9. Requesting More Depth ("Not Enough — Another Pass")
 
-After any Steps 1, 2, 3, 4, 5, 6, or 8 gate (not 7 or 9 — see §3.4, §3.12, `agents/DESIGN.md`
+After any Steps 1, 2, 3, 4, 5, 6, or 8 gate (not 7 or 9 — see §3.4, §3.11, `agents/DESIGN.md`
 §5.9; both audit steps use their own backtrack workflow instead), the user may request a
 deeper pass rather than a correction — e.g. "not detailed enough, another pass," "double the
 number of stories," "more detail in the interface specification." Distinct from the Grouped
@@ -450,7 +403,7 @@ more. Each repeated run is its own new session (§1), named `pass2`, `pass3`, et
 handoff-note filename (§4) — the re-touched Architecture file keeps its own independent
 version history, simply bumped again at that session's end (§4's versioning rule).
 
-### 3.11. File Delivery for Anything Crossing a Session Boundary
+### 3.10. File Delivery for Anything Crossing a Session Boundary
 
 Per §1's session-per-Step reality: anything a *later* session needs to resume, review, or
 approve must be an actual downloadable file — never left as chat text to copy manually.
@@ -461,7 +414,7 @@ short — **anything presented at a Step Approval Gate is a file.** Content that
 within the single session that produced it (e.g. back-and-forth resolving a Grouped Closing
 Protocol stage before it's finalized) may stay as chat text — the next session only needs the
 *settled* result. **Exception: user-supplied UI/media assets (HTML/image/audio/video) are
-never re-packaged into a handoff, per §3.8 — only referenced by filename.**
+never re-packaged into a handoff, per §3.7 — only referenced by filename.**
 
 **Handoff notes are themselves a separate `.md` file** — never inline chat text — named:
 
@@ -470,8 +423,8 @@ never re-packaged into a handoff, per §3.8 — only referenced by filename.**
 ```
 
 `N` = step number, `X` = pass identifier: `1` for a step's first run, incrementing
-(`pass2`, `pass3`, ...) for a repeated run (user-requested per §3.10, or automatic, e.g. a
-Step 7 re-audit per §3.12). Step 2, now a single session (§1/§3.4), uses this same scheme —
+(`pass2`, `pass3`, ...) for a repeated run (user-requested per §3.9, or automatic, e.g. a
+Step 7 re-audit per §3.11). Step 2, now a single session (§1/§3.4), uses this same scheme —
 there is no `passA`/`passB` variant anywhere. Examples:
 `myproject_design_handoff_step1_pass1.md`, `myproject_design_handoff_step7_pass2.md` (a
 second Step 7 audit after a backtrack remediation).
@@ -506,28 +459,36 @@ this session's own output, silently omitting earlier-session files still needed,
 satisfy this. **This same file list is also stated directly in the chat response**, same turn
 as the note — not only inside the file — so the user can see what to gather without opening it.
 
-**Pre-handoff staleness check, mandatory, immediately before producing the handoff note.**
-Claude enumerates every Architecture file touched this session and compares each against what
-was last actually shown/downloaded. Any file changed since — including ones edited early and
-not revisited — is re-presented in the same handoff batch. **This explicitly includes files
-belonging to a step other than the current one** — a backtrack session (§3.12) or any session
-revisiting an earlier step's file (§3.6) touches files outside its "home" step, and those
-files are exactly as subject to this check, and the version-bump rule below, as the current
-step's own. This has been observed failing specifically on second/third backtrack passes and
-on sessions touching a previous step's file — the actual test is "did I touch a file this
-session, regardless of whose step," never "did I touch this step's own file." Never a partial
-subset left for the user to ask "and the rest?" — every touched file, every time. **This same
-check also verifies every file produced or touched this session conforms to the §4 naming
-convention** — a misnamed file is corrected before handoff, not flagged for later. Step 7's
-audit (§3.4, §3.12) re-checks this project-wide, independently, as part of its own review.
+**Interim files — presented for review, never version-bumped, never packaged as handoff.**
+Whenever Claude presents a file for the user's review *before* the step is approved (which
+may happen several times across a RATS resolution cycle), that file is an **interim
+file**: same base name and current version as last approved, plus a **lowercase-letter
+suffix, no separator** (`v3a`, `v3b`, `v3c`, ...) appended directly to the version — never a
+new integer version, never a handoff-note/package delivery. Interim files may be freely
+revised within a session; the letter simply increments per interim revision shown, purely so
+the user and Claude can refer to "the one I sent you" unambiguously mid-review. **No
+handoff note, no file-list packaging, and no version-integer bump happens until the user
+replies with exact `APPROVED`** (`AGENTS.md` §3.1) for the step. This is deliberate: a prior
+scheme bumped and packaged files during the *proposal* itself, which left the next session
+unable to tell whether a `v4` file represented an approved result or merely the last
+proposal shown — interim lowercase suffixes remove that ambiguity structurally.
 
-**Version-bump enforcement, mandatory, as the literal last action before handoff.** Per
-§4.3's rule (bump exactly once, at session end, per file actually touched): immediately after
-the staleness check above, Claude bumps each touched file's version by exactly one before
-presenting it — no exceptions for a file touched only briefly, only on a backtrack pass, or
-only for a small cascading fix. A file listed as touched but handed off at an unchanged
-version is a defect in the handoff itself — precisely the observed failure mode this final
-check exists to catch before the file reaches the user.
+**On receipt of exact `APPROVED`: staleness check, then version bump, then handoff —
+in that order, as the only point any of this happens.** Claude enumerates every
+Architecture file touched this session (including files belonging to a step other than the
+current one — a backtrack session or any §3.6 revisit touches files outside its "home"
+step, and those are subject to this exactly as the current step's own file is) and:
+1. Confirms every touched file conforms to the §4 naming convention — corrected now, not
+   flagged for later.
+2. Bumps each touched file's version by exactly one **integer**, dropping any lowercase
+   interim suffix — the approved file is always a plain-integer version (`v4`, never
+   `v3c`), regardless of how many interim revisions preceded it.
+3. Produces the handoff note and packages every touched file at its new integer version —
+   this is the file delivery point (§3.10 above), now confirmed as approved content rather
+   than a still-open proposal.
+A file listed as touched but hidden from this bump, or a handoff package assembled before
+`APPROVED` was received, is a defect. Step 7's audit re-checks naming compliance
+project-wide as part of its own independent review.
 
 **The next session verifies its inputs against the handoff note's manifest before
 proceeding.** Where a handoff note exists (any session resuming from a prior one — not a
@@ -539,14 +500,17 @@ Handoff Protocol, applied to Design Phase sessions too.
 
 ---
 
-### 3.12. The Step 7 Backtrack Workflow
+### 3.11. The Step 7 Backtrack Workflow
 
-Step 7 (Spec Audit) is, by design (§3.4), a pure **finder**, never a fixer — no
-propose-with-flagged-assumptions, no Grouped Closing Protocol, never patches content itself.
-This is what makes its independence meaningful. Consequence: **a Step 7 finding is never
+Step 7 (Spec Audit) is, by design (§3.4), a pure **finder**, never a fixer — no RCD/RATS,
+never patches content itself. This is what makes its independence meaningful. Consequence:
+**a Step 7 finding is never
 resolved via the ordinary local-patch-vs-reopen choice in §3.6/`AGENTS.md` §2.1** — every
-finding requires reopening the step that should have produced or caught it; there is no
-"local patch at Step 7" to choose between, since Step 7 itself never touches content.
+finding requires reopening the step that should have produced or caught it, working forward
+through Step 6, whether via the full multi-session workflow below or the compressed
+single-session **Surgical Fix Override** (§3.6.1) — there is no "local patch at Step 7" to
+choose between, since Step 7 itself never touches content, and a Surgical Fix Override still
+mandatorily ends in a fresh Step 7 session.
 
 **Zero findings:** the gate behaves normally — present the clean report, await approval,
 proceed to Step 8.
@@ -560,6 +524,10 @@ Instead:
 2. **Determine the single earliest originating step across all findings.** If findings trace
    to multiple steps, do **not** reopen each separately or reopen the same step multiple
    times — start at the earliest.
+2.5. **Offer the Surgical Fix Override (§3.6.1) at this point, if the user requests it** —
+   a compressed single-session version of steps 3–6 below (same work, no intermediate
+   sessions/gates), still mandatorily ending in a fresh Step 7 session. Default path is the
+   full multi-session workflow below unless the user explicitly invokes the override.
 3. **Open one new "backtrack" session** (per §1; Step 7's handoff note for this session makes
    clear what kind of session it is and what it must accomplish). Working forward from the
    earliest originating step through to Step 7 again:
@@ -576,11 +544,11 @@ Instead:
    - **Do not re-run Step 7 itself within this session.** The job is to get the Spec ready
      for a fresh, independent audit — not to self-certify success.
 4. **At session end, package every file exactly as at any other Step Approval Gate** (§1,
-   §3.11): every touched Architecture file, version bumped exactly once per §4 (never once per
+   §3.10): every touched Architecture file, version bumped exactly once per §4 (never once per
    finding fixed — one session, one bump, per file actually touched); a handoff note for the
    next session.
 5. **That handoff note MUST state plainly the next session is a new Step 7 audit** (pass2,
-   pass3, ... per §3.11), not a continuation, and MUST summarize: which findings were fixed,
+   pass3, ... per §3.10), not a continuation, and MUST summarize: which findings were fixed,
    which steps/files were reopened and in what order, and **explicitly that cascading effects
    were discovered and resolved by re-checking later-step files during the backtrack session
    itself** (not pre-identified by the original report) — so the new Step 7 session
@@ -595,36 +563,43 @@ changes scope/requirements/architecture is flagged the same as any other backtra
 
 ---
 
-### 3.13. End-of-Step Open-Items Review
+### 3.12. End-of-Step Open-Items Review
 
 **Every Step Approval Gate (§3.4), without exception, includes a standing review of every
 unresolved item accumulated so far — not only items from the current step.** Distinct from,
-and additional to, the Grouped Closing Protocol's own per-batch Deferred/Remaining-Ambiguous
-stages (§3.2), which close out *that step's own* batch before the gate; this reviews the
-**running total across every step so far**, in an explicit attempt to shrink the open list
-before it compounds.
+and additional to, RATS's own per-item resolution (§3.1), which settles *that step's own*
+residual items before its gate; this reviews the **running total across every step so far**,
+in an explicit attempt to shrink the open list before it compounds.
+
+**Register entries and their states.** Per §3.1's terminal-outcome rule, every item that
+ever entered RATS carries exactly one of four outcomes:
+- **Resolved** — closed, stays on the Register only as a historical record, not reviewed again.
+- **Deferred to Step N** — **dormant**, not "open," until Step N is actually reached. Not
+  re-presented at any gate before Step N; at Step N's own gate it re-enters RATS as a normal
+  residual item for that step.
+- **Future Feature** — recorded in Spec §2.6, not reviewed again at subsequent gates unless
+  the user reopens it.
+- **Rejected** — recorded, ID retired per the stable-ID rule, not reviewed again.
+
+**An item with no terminal outcome yet is the only kind actively re-surfaced at every gate**
+— this should not exist in practice past the step that raised it, since RATS resolves every
+residual item to one of the four outcomes before that step's gate closes; if one persists
+anyway (e.g. a Deferred target step turned out invalid), it's re-run through RATS at the very
+next gate rather than left indefinitely open.
 
 **Mechanism, every gate:**
-1. Claude maintains a running **Open Items Register** — every Deferred item (§3.2 stage 3),
-   every Remaining-Ambiguous item (stage 4) not since resolved, and any other
-   explicitly-flagged-but-unresolved assumption from any prior step, each tagged with its
-   originating step and where it's already been re-surfaced.
-2. At every gate, before the step's own headline output, Claude presents the current Register
-   in full — not just items newly added this step — organized by originating step, oldest
-   first.
-3. For each open item, Claude states plainly whether anything learned since changes the
-   analysis (a later step may have implicitly answered it, or narrowed the live options) —
-   an active attempt to close items, not a passive restatement.
-4. The user resolves in bulk or per-item, using §3.2's bulk-reply/per-item mechanics
-   directly. An item the user chooses to leave open stays on the Register and is carried
-   forward again next gate — never dropped just because it was re-presented and not addressed.
-5. The Register itself is a required §3.11 handoff file, not chat-text-only, since a later
-   session has no memory of what's still open otherwise.
+1. Claude maintains the running **Open Items Register** — every item and its outcome/state,
+   tagged with originating step.
+2. At every gate, before the step's own headline output, Claude presents: (a) any item whose
+   Deferred target step is *this* step — these re-enter RATS now; (b) any item still without
+   a terminal outcome — these are re-run through RATS immediately, since this state
+   shouldn't persist.
+3. The Register itself is a required §3.10 handoff file, not chat-text-only.
 
-**This does not relax §3.2's own per-step closure stages** — a step's own batch still goes
-through its full Grouped Closing Protocol before its gate. §3.13 is the additional cumulative
-check on top, aimed at preventing an item deferred at, say, Step 2 from silently riding
-unresolved all the way to Step 7's audit without ever being re-offered resolution.
+**This does not relax §3.1's own per-step RATS resolution** — a step's own residual items
+still resolve to a terminal outcome before its gate. §3.12 is the additional cumulative
+check ensuring a Deferred item is actually picked back up at its target step, and that
+nothing lingers in a non-terminal state past the step that raised it.
 
 ---
 
@@ -644,10 +619,8 @@ scattering by generic numeric prefix alone.
 
 ### 4.1. Architecture Specification — 8 Files, One Per Design Step
 
-**Split into 8 files, one per originating Design Step (1–6; Steps 4 and 5 each still get
-their own file even though §3.7's autonomous "4+5" combination can run them in one session —
-file ownership tracks the template's content boundary, not whether a run combined sessions).**
-This supersedes any coarser topic-based grouping: smaller projects could once fold multiple
+**Split into 8 files, one per originating Design Step (1–6; Steps 4 and 5 each get their own
+file and always run as separate sessions).** This supersedes any coarser topic-based grouping: smaller projects could once fold multiple
 Steps' output into a shared handful of files, but at this template's target scale (50+ User
 Stories, 100–200+ requirements are common), a coarser grouping produces multi-thousand-line
 files and forces every Step's session to bump a shared file's version even when it touched
@@ -675,7 +648,7 @@ Step 6 and proposes a further split (e.g. `06a_functional_view`, `06b_informatio
 rather than silently overrunning — the same scale-driven-split principle applies recursively.
 
 **Step 7's Audit Report and every handoff note remain outside this numbered set**, using the
-handoff-note convention (§3.11) instead — process/review artifacts, never assigned an
+handoff-note convention (§3.10) instead — process/review artifacts, never assigned an
 `NN_topic` slot.
 
 **Do not conflate the two `_01_...` files.**
@@ -711,7 +684,7 @@ covering the whole Plan, not a set member. **No version suffix**, same in-place-
 reason as the Kickoff Prompt. Per `AGENTS.md` §2.7, edited in place — never copied, renamed,
 or otherwise reproduced.
 
-**Development-Agent Kickoff Prompt:** `[projectname]_dev_agent_prompt.md`, base name, no numeric
+**Development-Agent Kickoff Prompt:** `[projectname]_dev_prompt.md`, base name, no numeric
 prefix, no version suffix, produced once at Step 8's end, reused verbatim every
 Development-Phase session.
 
@@ -734,9 +707,9 @@ requirement in `03_requirements` is cross-file.) The Spec and Plan file sets are
 no cross-linking absent a concrete reason (e.g. a Plan phase implementing a specific ICD
 interface).
 
-**Intermediate/handoff artifacts** (handoff notes, the Open Items Register per §3.13,
+**Intermediate/handoff artifacts** (handoff notes, the Open Items Register per §3.12,
 working notes, draft batches, anything mid-step rather than settled Architecture content) use
-the §3.11 handoff-note convention: `[projectname]_design_handoff_stepN_passX.md` — distinct
+the §3.10 handoff-note convention: `[projectname]_design_handoff_stepN_passX.md` — distinct
 from the numbered Architecture/Plan files, which are organized by content section (and, for
 the Spec, by owning Step), not by which session produced a given revision.
 
@@ -761,15 +734,15 @@ starting at `v1` at creation.** Two rules govern `[N]`, both material:
   file's real version is always read off its own actual name, never inferred from a sibling.
 - **Bumped exactly once, at the end of the session that touched it — never mid-session, never
   more than once per session** regardless of edit/fix count. Within a session, a file may be
-  edited many times (Grouped Closing Protocol rounds, corrections, flagged-item resolution) —
+  edited many times (RATS resolution rounds, corrections, flagged-item resolution) —
   all under the *same* version number, since the bump exists to prevent download/upload
   collisions *across* sessions, not to track every internal edit. Only at session end, when
-  packaged for handoff (§3.11), does the version increase by exactly one. An untouched file
+  packaged for handoff (§3.10), does the version increase by exactly one. An untouched file
   keeps its version, not redelivered just because siblings in the same batch changed.
   **"Touched" means any file whose content changed this session, full stop — not limited to
-  the current step's own file.** A backtrack session (§3.12) or ordinary §3.6 revisit editing
+  the current step's own file.** A backtrack session (§3.11) or ordinary §3.6 revisit editing
   an earlier step's file bumps it exactly once too, at the same session-end point, via the
-  §3.11 enforcement check — stated explicitly because this is the specific case observed
+  §3.10 enforcement check — stated explicitly because this is the specific case observed
   slipping through: a session correctly bumping its own file while leaving a revisited
   earlier-step file's version unchanged.
 
@@ -796,12 +769,13 @@ Pulled forward as directly applicable to document production/revision here: **ad
 by default** (no removing/"cleaning up" approved content without explicit deletion approval);
 **no self-referential elision** (never "see Section X of the previous version" — every
 document stays self-contained); **no stubs** (sections written to full depth when presented,
-not sketched and deferred); **formal approval protocol** (only an unambiguous
-"approved"/"proceed" is the green light; new instructions + approval = partial approval,
-incorporated then re-presented); **`CHAT:` prefix** = pure question, no document changes, no
+not sketched and deferred); **formal approval protocol** (exact, all-uppercase `APPROVED`
+only — no "Continue"/"Proceed"/"Go ahead" substitutes, for a Step Gate, a Minor Change, a
+Major Change, or handoff-package preparation; new instructions + `APPROVED` = partial
+approval, incorporated then re-presented, `AGENTS.md` §3.1); **`CHAT:` prefix** = pure question, no document changes, no
 gate progression, no side effects of any kind (`AGENTS.md` §3.2.1); **no assumptions on
 ambiguity** — ask rather than guess and build on the guess; **no reproducing shared working
-documents** — the Development Checklist and Kickoff Prompt are edited/reused in place, never
+documents** — the Development Checklist and Dev Prompt are edited/reused in place, never
 copied or renamed (`AGENTS.md` §2.7).
 
 ---
@@ -820,12 +794,18 @@ introduces in examples, for consistency.
 ---
 
 ## Appendix
-See `CHANGELOG.md` for this file's full version history. This revision folds Step 2's Pass
-A/B split into a single session, replaces the Architecture Specification's prior file
-grouping with an 8-file, one-per-Design-Step structure, clarifies per-file independent
-session-end-only version bumping, adds the Visual & Media Asset Input mechanism (§2.2/§3.8)
-with its Asset Manifest, references the Development Plan's new frontend targeted-interleaving
-sequencing principle, and adds the End-of-Step Open-Items Review (§3.13). All of the above
-should be recorded as a new dated entry in `CHANGELOG.md`'s `CLAUDE.md` section and flagged
-to the user as a Major Change per §3.6, since it materially changes document structure and
-session mechanics.
+See `CHANGELOG.md` for this file's full version history. **v0.8.5 batch:** removed the
+Autonomy Toggle/Tailored/Full-Autonomous presets and the Grouped Closing
+Protocol/propose-with-flagged-assumptions mechanism entirely, replaced by the single fixed
+RCD/RATS procedure (§3.1-3.2) for every step but 7 and 9 — Step 2 always runs in full. RATS
+items now resolve to exactly one of Resolved/Deferred-to-a-specific-step/Future
+Feature/Rejected (§3.1), with Step 7/9 auditing that every Open Items Register entry carries
+a terminal outcome. Handoff/version-bump timing reworked: interim files use lowercase-letter
+suffixes and are never packaged or version-bumped until exact `APPROVED` is received (§3.10).
+`AGENTS.md` §3.1 tightened to exact, all-uppercase `APPROVED` only. Renamed
+`dev_agent_prompt_template.md`/`[projectname]_dev_agent_prompt.md` back to
+`dev_prompt_template.md`/`[projectname]_dev_prompt.md`. Step 8 now also drafts the project
+README. Added ESP32/ESP-IDF build guide cross-reference (§2.1). All prior sections renumbered
+down by one following removal of the former §3.7 (Autonomy Toggle). This should be recorded
+as a new dated entry in `CHANGELOG.md`'s `CLAUDE.md` section and flagged to the user as a
+Major Change per §3.6.

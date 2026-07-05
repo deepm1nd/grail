@@ -23,7 +23,7 @@ The goal of this phase is to write, test, and build the software, following the 
 
 ## 3. Session Prompt
 **MANDATE:** At the end of Design Phase Step 8, a re-invocable kickoff prompt file,
-`[projectname]_dev_agent_prompt.md` (per `agents/exemplars/dev_agent_prompt_template.md`),
+`[projectname]_dev_prompt.md` (per `agents/exemplars/dev_prompt_template.md`),
 is produced once and reused verbatim at the start of every Development-Phase session. This
 prompt guides the agent through the development plan, using the checklist and Phase Summary
 files to track progress. Per `AGENTS.md` §2.7, the agent uses this prompt file and the
@@ -37,7 +37,7 @@ of either.
     - **Style Matching:** Match the existing style of the file, even if it differs from the agent's preference.
     - **Orphan Cleanup:** Remove imports, variables, or functions that the agent's changes made unused. Do not remove pre-existing dead code unless explicitly asked.
 - **No Reproducing Shared Working Documents (`AGENTS.md` §2.7):** The Development Checklist
-  (`[projectname]_dev_checklist.md`) and the Kickoff Prompt (`[projectname]_dev_agent_prompt.md`)
+  (`[projectname]_dev_checklist.md`) and the Dev Prompt (`[projectname]_dev_prompt.md`)
   are edited or read in place, directly in the repository, by every session. The agent is
   explicitly forbidden from creating a copy, a renamed version, a "v2," a session-specific
   duplicate, or any other one-off reproduction of either file. If a session believes either
@@ -46,7 +46,7 @@ of either.
   silently forked into a new file.
 - **`[projectname]_dev_checklist.md` is the only `docs`/planning file a development-agent
   session is permitted to edit.** Every other file in the documentation set — the
-  Architecture Specification files, the Development Plan files, the Kickoff Prompt, any
+  Architecture Specification files, the Development Plan files, the Dev Prompt, any
   handoff note or Phase Summary from a prior Design or Development session — is
   **read-only** to a development-agent session; none of them are ever modified, even to fix
   an apparent typo or inconsistency (that's an Escalation Trigger, Development Plan §13, not
@@ -59,17 +59,23 @@ of either.
   checklist's structural content (phase/task text, Entry/Exit Criteria wording, DoD item
   wording) — a genuine need to change checklist *content* (not just check a box) is the
   Plan-Change Escalation path above, never a same-session direct edit.
-- **Missing Tool / Prerequisite Protocol (`AGENTS.md` §2.6):** When the agent encounters a
-  missing tool or prerequisite — a different development agent's environment may not match
-  what a prior session assumed — it MUST NOT simply halt and report. It attempts to install
-  the missing tool for the current session (per `agents/PREFERRED_TOOLS.md` and
-  `agents/PREFERRED_SERVICES.md`), **appends the install command idempotently to
-  `scripts/setup_env.sh` (Linux/bash, the assumed default environment) and
-  `scripts/setup_env.bat` (Windows)**, creating either file if absent, and only then informs
-  the user that the prerequisite was missing and has been installed — Escalation Trigger #4
-  (Development Plan §13) still fires; a successful self-install auto-resolves it rather than
-  suppressing it. If no known-good install path exists, the agent escalates without guessing
-  at a workaround.
+- **Escalation Model — Stop, Summarize, Wait (`AGENTS.md` §2.6):** A missing tool with a
+  known install command that installs cleanly is the **sole case that continues without
+  stopping**: install, append idempotently to `scripts/setup_env.sh`/`.bat`, inform the
+  user, proceed. **Everything else the agent cannot resolve itself — a package/version
+  conflict, an install that fails, a persistent test failure, an ambiguous spec question,
+  an unverifiable Entry Criteria/DoR — stops the entire session immediately.** No PR, no
+  partial continuation to other tasks, no further troubleshooting attempt. The agent:
+  1. Halts all task work.
+  2. Writes `[projectname]_phaseN_summary.md` (§11.3) with full diagnostic detail: what was
+     tried, exact failure output, and — if determinable — whether the root cause looks
+     Plan/Checklist-level or Architecture-level (Plan §13.1's A/B classification).
+  3. Leaves the repository in its last clean, committed state (no half-applied change).
+  4. Stops. The human brings the Phase Summary to a **Design Phase session**, which
+     diagnoses the issue, updates the Architecture Spec and/or Development Plan as
+     needed, determines the correct restart phase, and restructures the Plan/Checklist.
+     The human then rolls the repository back to the end of the last known-good phase and
+     hands a fresh Development Phase session the updated documents to resume from there.
 - **One Phase Per Session (`AGENTS.md` §2.8):** A Development Phase session completes **at
   most one** Development Plan phase. Even with session capacity remaining after a phase's
   Exit Criteria is satisfied and its Phase Summary is written, the agent stops and awaits a
@@ -107,7 +113,7 @@ The workflow for a single Development Phase **session** is as follows. Per §4's
 Per Session mandate, this workflow covers exactly one phase per session — a session never
 advances into a second phase even if time/capacity remains.
 
-1.  **Run the Session-Start Sequence:** Per the Kickoff Prompt (`[projectname]_dev_agent_prompt.md`): review all relevant `docs\` files, run the environment check (including the pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above), and verify repository build/test state before touching any code.
+1.  **Run the Session-Start Sequence:** Per the Dev Prompt (`[projectname]_dev_prompt.md`): review all relevant `docs\` files, run the environment check (including the pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above), and verify repository build/test state before touching any code.
 2.  **Identify Current Phase:** Determine the first phase in `[projectname]_dev_checklist.md` whose Exit Criteria is not yet checked. Verify its Entry Criteria are actually true against the current repository state, not assumed from the checklist alone.
 3.  **Implement All Tasks in Phase:** For each task within the current phase, in order (respecting stated dependencies), the agent must follow the **Core Development Cycle** (§5.1). Once a task is implemented and its DoD is fully satisfied, the agent updates the checklist **continuously, in place** — not batched until end of phase, and never via a copy of the checklist (§4).
 4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome.
@@ -120,13 +126,15 @@ advances into a second phase even if time/capacity remains.
 
 #### 5.2.1. Project README
 
-The project's root `README.md` is scaffolded as an early task in the first Development Phase
-session — derived from the already-approved Architecture Specification (overview, stack,
-roadmap), not written from scratch — and is revisited for a final accuracy/completeness
-review during the last phase, once the actual built system may have diverged in minor ways
-from the original Spec's framing. It is not otherwise required to be touched every phase,
-though any phase that materially changes how the project is built, run, or used should update
-it as part of that phase's normal documentation-integrity check (§5.2 step 5).
+**The project's root `README.md` is now drafted during Design Phase, at Step 8**, alongside
+the Development Plan/Checklist/Dev Prompt (`agents/DESIGN.md` §5.8) — not authored from
+scratch by the Development agent. The first Development Phase session's task
+(Phase 0, per the Checklist template) is **review, confirmation, and enhancement** of that
+already-drafted README against the actual repository as it starts to take shape — not
+initial scaffolding. It is revisited for a final accuracy/completeness review during the
+last phase, once the built system may have diverged in minor ways from the Design-time
+draft. Any phase that materially changes how the project is built, run, or used should
+update it as part of that phase's documentation-integrity check (§5.2 step 5).
 
 ### 5.3. Completion of Development
 After all phases in the `Development Plan` are complete, the agent must notify the user and await instruction on next steps, which may include a post-development remediation cycle.

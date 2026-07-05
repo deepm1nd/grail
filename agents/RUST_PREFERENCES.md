@@ -55,6 +55,9 @@ See `CHANGELOG.md` for version history.
   `agents/PREFERRED_TOOLS.md`) — it uses a stable compiler flag rather than hooking compiler
   internals, and is materially more robust across Rust version upgrades than alternatives
   that have historically broken on point releases.
+- **ESP32/ESP-IDF projects:** see `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md` for the full
+  toolchain, `.cargo/config.toml`, and `tokio`-on-ESP-IDF configuration this policy assumes
+  for any embedded component on that stack.
 
 ---
 
@@ -269,4 +272,4 @@ As with the rest of the Design Phase workflow, any translation Claude performs t
 these constraints (e.g. converting "nullable" to `Option<T>` with a stated meaning for
 `None`, or choosing message-passing vs. `SharedArrayBuffer` for a given component) is
 presented as a flagged assumption for user confirmation, not asserted as a settled fact —
-consistent with `CLAUDE.md` Section 3's propose-with-flagged-assumptions model.
+consistent with `CLAUDE.md` Section 3's RCD/RATS standard procedure.

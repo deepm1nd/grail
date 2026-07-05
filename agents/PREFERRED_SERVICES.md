@@ -163,9 +163,7 @@ component using the ESP-IDF stack (see `agents/PREFERRED_DEPENDENCIES.md`'s Embe
 section), but not exclusive to embedded use.
 
 - **Default ports:** 1883 (MQTT, unencrypted), 8883 (MQTT over TLS), 9001 (MQTT over WebSockets, if enabled)
-- **Rust crates:** requires an MQTT client crate — not currently listed in
-  `agents/PREFERRED_DEPENDENCIES.md`; propose one (e.g. `rumqttc`) for explicit approval per
-  that file's Unlisted Dependencies rule before use
+- **Rust crates:** `rumqttc` (approved, `agents/PREFERRED_DEPENDENCIES.md`)
 - **Docker image:** `eclipse-mosquitto:2` (or latest stable)
 
 ```yaml

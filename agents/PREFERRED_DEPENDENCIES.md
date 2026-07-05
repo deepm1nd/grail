@@ -2,7 +2,8 @@
 
 **MANDATE: Adherence to this guide is not optional. It is a strict requirement.**
 
-This file governs **Rust library dependencies** compiled into the project. For development tools (cargo-nextest, trunk, cargo-llvm-cov, etc.) see `agents/PREFERRED_TOOLS.md`. For infrastructure services (Postgres, Neo4j, etc.) see `agents/PREFERRED_SERVICES.md`.
+Governs **Rust library dependencies** compiled into the project. Dev tools:
+`agents/PREFERRED_TOOLS.md`. Infra services: `agents/PREFERRED_SERVICES.md`.
 
 See `CHANGELOG.md` for version history.
 
@@ -11,19 +12,17 @@ See `CHANGELOG.md` for version history.
 ## Language Specific Mandates
 
 ### Rust
-- **Rust 2024 edition is mandatory.** Specify `edition = "2024"` in every workspace `Cargo.toml`. See `agents/PREFERRED_TOOLS.md` for the MSRV policy (workspace MSRV is determined at Design Step 5, not hardcoded here) and the dual-MSRV pattern for projects with publishable library crates.
-- **Naming Conventions:** The agent is **STRONGLY FORBIDDEN** from using dashes (`-`) or hyphens in identifiers, variable names, file names, or folder names. These characters are incompatible with Rust's module and crate system. The agent MUST use underscores (`_`) for word separation in all contexts.
-
----
+- **Rust 2024 edition is mandatory.** `edition = "2024"` in every workspace `Cargo.toml`.
+  MSRV policy: `agents/PREFERRED_TOOLS.md` (set at Design Step 5, not hardcoded here).
+- **No dashes/hyphens** in identifiers, file names, or folder names — use underscores.
 
 ## Dependencies
-
-- **Preferred Dependencies:** You SHOULD prioritize using dependencies from the preferred lists below.
-- **Unlisted Dependencies:** If a desired dependency is NOT on the preferred list, you MUST follow the "Dependency and Tool Selection" mandate in `AGENTS.md` to get explicit user approval before proceeding.
-- **Forbidden Dependencies:** You are **ABSOLUTELY FORBIDDEN** from using any dependency on the forbidden list. There are no exceptions.
+- **Preferred:** use without additional approval.
+- **Unlisted:** requires explicit user approval (`AGENTS.md` §2.2) before use.
+- **Forbidden:** never used, no exceptions.
 
 ## Web & Networking
-- tokio  # MANDATE: For native applications ONLY. Incompatible with WASM.
+- tokio  # Native only. Incompatible with WASM.
 - axum
 - reqwest
 - tonic
@@ -44,9 +43,16 @@ See `CHANGELOG.md` for version history.
 - gloo-storage
 
 ## WASM Threading
-- gloo-worker  # DEFAULT for WASM concurrency. Message-passing only (postMessage); no SharedArrayBuffer, no COOP/COEP requirement.
-- wasm-bindgen-rayon  # EXCEPTION, not default — use only when message-passing is demonstrably insufficient for a data-parallel workload. Requires COOP/COEP headers.
-- wasm_thread  # EXCEPTION, not default — use only when message-passing is demonstrably insufficient for a long-running background worker. Same COOP/COEP requirement. Do NOT combine with wasm-bindgen-rayon in the same component.
+- gloo-worker  # DEFAULT. Message-passing (postMessage) only; no SharedArrayBuffer/COOP/COEP requirement.
+- wasm-bindgen-rayon  # EXCEPTION — data-parallel workloads only. Requires COOP/COEP.
+- wasm_thread  # EXCEPTION — long-running background worker only. Requires COOP/COEP. Do not combine with wasm-bindgen-rayon in the same component.
+
+## WASM Component Model (Sandboxed Execution)
+> For any project needing to execute untrusted/user-supplied code in a sandbox — not
+> project-specific; a general pattern approved for reuse whenever that need exists.
+- wasmtime  # Sandboxed component runtime; deny-by-default WASI capability model.
+- wasmtime-wasi  # WASI host implementation. Tied to a tokio executor.
+- wit-bindgen  # WIT interface codegen (guest side). Host side ships inside wasmtime itself.
 
 ## Data & Serialization
 - serde
@@ -59,6 +65,27 @@ See `CHANGELOG.md` for version history.
 - qdrant-client
 - rdkafka
 - sqlx  # With appropriate feature flags (postgres, sqlite, etc.) per project
+
+## Messaging / IoT
+- rumqttc  # MQTT client, pairs with the Mosquitto service in PREFERRED_SERVICES.md.
+  Now approved — resolves the prior "propose one, e.g. rumqttc" placeholder there.
+
+## Bluetooth
+- btleplug  # Cross-platform BLE. Native only — incompatible with WASM.
+
+## Machine Learning / Inference
+> Use when a project needs ONNX-model inference in pure Rust (no C-binding surface).
+- tract-onnx
+- tokenizers  # Hugging Face Rust tokenizer, commonly paired with tract-onnx.
+
+## Cryptography
+- aes-gcm  # RustCrypto AEAD (NCC-audited, pure Rust). Standard choice for
+  application-level encryption-at-rest of secrets/tokens.
+- totp-rs  # RFC 6238 TOTP generation/verification, standard 2FA building block.
+
+## Scheduling
+- tokio-cron-scheduler  # STANDING CONVENTION for in-process periodic/deferred jobs,
+  unless a case needs to survive a process restart in a way this alone can't guarantee.
 
 ## Async
 - async-trait
@@ -82,23 +109,43 @@ See `CHANGELOG.md` for version history.
 - regex
 - once_cell
 - bcrypt
+- qrcode  # QR matrix generation, commonly paired with totp-rs.
+- image  # Rasterizes qrcode output to PNG/SVG; general-purpose image handling.
 
 ## Docker
 - bollard
 
+## Testing-Only Dependencies
+> MUST NOT ship in any production build artifact — dev-dependencies/test-target only.
+- wiremock  # HTTP mocking; asserting zero calls to an external service in tests.
+
 ## Embedded (ESP32 / ESP-IDF)
-> Applies primarily to embedded Rust projects. Only relevant when the project has an
-> ESP32/ESP-IDF-targeted component; not applicable to native or WASM-only projects.
+> Primarily for embedded Rust projects with an ESP32/ESP-IDF-targeted component. See
+> `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md` for the full toolchain/build setup this
+> pairs with.
 - esp-idf-hal
 - esp-idf-svc
 - esp-camera-rs
 
-**MSRV note (Step 5):** these crates target `esp-idf` via `std`, not `wasm32-unknown-unknown`
-or a bare native host triple. An embedded component has its own toolchain track (via
-`espup`, not `rustup` alone) independent of the workspace MSRV policy in
-`agents/RUST_PREFERENCES.md` §0 and independent of any WASM component's target in the same
-workspace — state this explicitly in Architecture Specification §6.1/§6.2 (per-component
-stack).
+## Display / Graphics (ESP32 / ESP-IDF)
+> `embedded-graphics`'s `DrawTarget` trait is the core display abstraction — the
+> extension point for any panel, not a limit on what's supported. `ssd1306`/`mipidsi`
+> are the two concretely wired backends.
+- embedded-graphics  # Core display abstraction (DrawTarget trait).
+- ssd1306            # OLED backend (I2C/SPI), implements DrawTarget.
+- mipidsi            # TFT backend (MIPI DSI/SPI), implements DrawTarget.
+
+**MSRV note:** embedded components target `esp-idf` via `std`, on a separate
+`espup`-managed toolchain track independent of the workspace MSRV and any WASM
+component's target in the same workspace — state explicitly in Architecture
+Specification §6.1/§6.2.
+
+## Dependencies Requiring Approval (Seen Before, Not Pre-Blessed)
+> Vetted in a prior project engagement but vendor/integration-specific — still requires
+> per-project approval (`AGENTS.md` §2.2) rather than being pre-approved policy.
+- oauth2, oauth10a  (SSO / broker-specific OAuth clients)
+- async-stripe, autogen-squareup  (payment processors)
+- feed-rs  (RSS/Atom parsing)
 
 ## Forbidden Dependencies
 (None currently listed)
