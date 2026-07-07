@@ -66,6 +66,31 @@ possibly updated relative to what was shown during Design.
 `assets/` directory; see `agents/PREFERRED_TOOLS.md` for the required `Trunk.toml` pin
 preventing collision.
 
+**`.gitignore` — required file, Phase 0 responsibility.** Every project MUST have a
+`.gitignore` at the repository root. The following entries are mandatory for any Rust
+project under this methodology; additional project-specific entries are added as needed:
+
+```gitignore
+# Cargo build outputs — all profiles (debug, release, test, bench, doc)
+/target
+
+# Trunk WASM build output (remove if no WASM/Trunk component)
+/dist
+
+# Local environment — real credentials never committed; commit .env.example instead
+.env
+
+# IDE and OS noise (extend as needed for the team's tooling)
+.DS_Store
+.idea/
+.vscode/
+```
+
+Per `AGENTS.md` §2.1, non-reproducible evidence artifacts (`test_outs/`, screenshots,
+coverage reports) are **not** gitignored — they are committed, as they cannot be recreated
+after a session crash. `/target` and `/dist` are reproducible from source and MUST be
+gitignored, not committed.
+
 ## 4. Environment & Prerequisites Setup
 
 | Prerequisite | Required for | Verification command |
@@ -252,6 +277,13 @@ actually completed. Task/Phase IDs are never renumbered — new tasks get new ID
 ones marked `[DEPRECATED]`. Changes spanning more than one phase, or changing Exit Criteria,
 are "Major" and must be surfaced to the reviewer even without a Spec change. **The Checklist
 and Dev Prompt are amended in place, never reproduced as a new file** (`AGENTS.md` §2.7).
+
+**Ambiguity-resolving amendments.** Any amendment that resolves an ambiguity — where
+already-completed phases might not have satisfied the now-clarified intent — MUST add a
+verification task to the next dependent, not-yet-started phase. That task explicitly checks
+whether prior work satisfies the clarified requirement, corrects it if not, and confirms the
+result via the standard DoD/Verification-Method pattern (§8). It never assumes the old work
+happens to be compatible.
 
 ## 15. Plan-Level Definition of Done
 
