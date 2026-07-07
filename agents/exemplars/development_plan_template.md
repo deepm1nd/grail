@@ -134,8 +134,13 @@ on — never earlier (forces a stub) and never batched into a trailing frontend-
 
 ### 6.1. Phase Index
 
-| Phase | Build-Order Step(s) | Component(s) | Title | Entry Criteria | Exit Criteria | Req Domains | Task Count |
-|---|---|---|---|---|---|---|---|
+**Session Unit** (`AGENTS.md` §2.8): declared per phase — `Phase` (default, whole phase per
+session), `Task` (one task per session), or `Code+Verify` (one Code or Verify sub-task per
+session — only meaningful for phases dominated by split tasks, §8). Changed later only via
+§14 Plan-Change Escalation, never unilaterally by an executing session.
+
+| Phase | Build-Order Step(s) | Component(s) | Title | Session Unit | Entry Criteria | Exit Criteria | Req Domains | Task Count |
+|---|---|---|---|---|---|---|---|---|
 
 **Final phase includes a README review/finalization task** — the README itself is drafted
 at Design Step 8, not scaffolded here; Development's Phase 0 task is to review, confirm, and
@@ -170,12 +175,42 @@ cross-component contract a later phase depends on.
 - **DoD:** code builds (`command`) · verification passes (`command(s)`) · Test Case ID
   verified · Required Artifacts captured
 - **Traceability:** REQ-XXX-NNN[, ...] — every task cites at least one requirement
+- **Design Refs** (mandatory, every task, no exceptions): the specific Architecture Spec
+  file + section + item-level ID/name this task's content derives from — e.g. `_06_viewpoints
+  §4.5, EntityName`; `_07_interfaces_and_stack §5, endpoint-name`. No `_v[N]` version suffix
+  (only one current version of each Spec file exists in the docs folder at any time). A
+  trivial task with no meaningful external reference states so explicitly (e.g. "trivial —
+  no external refs needed") rather than omitting the field. This is the drafting-time
+  counterpart to `dev_prompt_template.md`'s on-demand reference table: known dependencies are
+  pre-resolved here; the on-demand table remains the fallback for anything unanticipated.
+- **Submit Point:** where in this task's execution a `submit` fires (`AGENTS.md` §2.1,
+  `agents/AGENT_TOOL_POLICY.md`). At minimum, every task (or sub-task, if split below) has
+  exactly one task-complete Submit Point at its own DoD satisfaction. Additionally flag
+  **WIP-Checkpoint-Eligible: Yes/No** — Yes for any task identified at drafting time as
+  long/risky (e.g. initial scaffolding, a large multi-file refactor) where a mid-task
+  crash-safety submit is worth pre-declaring; the WIP checkpoint itself still fires only if
+  actually needed during execution (§5.1 mechanics in `agents/DEVELOPMENT.md`).
 - **Context for executing agent:** the one or two sentences resolving the likeliest
   ambiguity a lower-context agent would get wrong
 
+**Mandatory Code/Verify Split** (`agents/DEVELOPMENT.md` §5.1): any task whose Verification
+Method is **Build+Test** or **Hybrid** is split into two sub-tasks at the same Task ID,
+suffixed `a` (Code) and `b` (Verify) — e.g. `DOMAIN-005a`, `DOMAIN-005b`. Neither suffix is
+ever renumbered once assigned (stable-ID rule, `AGENTS.md` §2.1). Exempt only for pure
+Visual/Behavioral tasks (no build-test-debug cycle exists to isolate).
+- **`005a` (Code):** DoD is a clean build only — no test execution required to close it. Own
+  Submit Point at its own DoD.
+- **`005b` (Verify):** DoR is `005a`'s Submit Point reached. DoD is the task's original DoD
+  (tests pass, artifacts captured) — this is where the build-test-debug loop lives, isolated
+  from `005a`'s own session/context. Own Submit Point at its own DoD.
+- **Counts as two tasks** against the §6 Phase Sizing complexity formula — stated explicitly
+  so sizing doesn't silently overrun once splits are applied.
+
 **README task (final phase):** `DOC-FINAL` — review the Design-drafted `README.md` against
 the as-built system, correct any divergence, get user approval. **DoD:** N/A build command;
-DoD is content review and user approval.
+DoD is content review and user approval. **Design Refs:** N/A — sourced from the as-built
+repository, not an Architecture Spec section. **Submit Point:** at DoD satisfaction; not
+split (Visual/Behavioral-equivalent, no build-test-debug cycle).
 
 ## 9. Test Strategy & Plan
 Unit / Integration / System & Acceptance (for any UI/Tauri component: browser/device-target
@@ -191,8 +226,14 @@ sanity check; (2) read the Checklist (`[projectname]_dev_checklist.md`, used **i
 never copied) and identify the first phase with any unchecked task; (3) run the project's
 current build/test commands and confirm the result matches what the Checklist claims — a
 discrepancy is itself an escalation, not something silently fixed; (4) confirm the phase's
-Entry Criteria by inspecting repo state directly; (5) work only within the identified
-phase — never begin a later phase's tasks, even with capacity remaining.
+Entry Criteria by inspecting repo state directly; (5) **for the identified phase's tasks,
+run the three-way task-state check against declared Submit Points**
+(`agents/DEVELOPMENT.md` §5.2 step 2): no submit → not started; a WIP-Checkpoint submit only
+→ resume in place from that checkpoint's own description, never redo from scratch; a
+task-complete submit → done. A checklist mark with no matching submit, or vice versa, is an
+Escalation Trigger (§13), never silently patched over. (6) work only within the identified
+phase and the session's declared Session Unit (`AGENTS.md` §2.8) — never begin work outside
+that scope, even with capacity remaining.
 
 **At session end, on normal completion:** update the Checklist in place; leave every
 component hermetically buildable even if the phase isn't fully done; produce/update the
@@ -227,12 +268,15 @@ Required content:
 Treat a task/phase as aborted (not silently reworked) when: the chosen approach is found to
 violate an Architecture Spec constraint; a DoR turns out false; completing as specified
 would require modifying a file/contract outside its stated scope. **On abort:** revert
-uncommitted changes for that task to last known-good; do not mark it complete; record the
-abort and cause in the Phase Summary. **Per §13, an abort the agent cannot resolve itself
-now stops the entire session** — it does not continue with other unaffected tasks in the
-phase. Rollback never crosses a phase boundary except when root cause is a defect in
-already-completed earlier-phase work — that's an Escalation Trigger (§13), not a unilateral
-rollback.
+uncommitted changes for that task to its **last submitted state** (its most recent
+task-complete submit, or its most recent WIP checkpoint if no task-complete submit exists,
+or a clean pre-task state if neither exists) — never to a phase-level checkpoint, since
+per-task Submit Points (§8) mean sibling tasks' completed work is never at risk from this
+task's abort; do not mark it complete; record the abort and cause in the Phase Summary.
+**Per §13, an abort the agent cannot resolve itself now stops the entire session** — it does
+not continue with other unaffected tasks in the phase. Rollback never crosses a phase
+boundary except when root cause is a defect in already-completed earlier-phase work — that's
+an Escalation Trigger (§13), not a unilateral rollback.
 
 ## 13. Escalation Triggers — Stop, Summarize, Wait
 
@@ -296,6 +340,12 @@ happens to be compatible.
 - [ ] §0's Architecture Cross-Reference lists every source document cited in §8.
 - [ ] Every filename conforms to `CLAUDE.md` §4 (`[projectname]_dev_plan_NN_topic_v[N].md`,
   `[projectname]_dev_checklist.md`, `[projectname]_dev_prompt.md`).
+- [ ] Every task (§8) has a non-empty Design Refs entry (or an explicit "trivial — no
+  external refs needed" statement) and a stated Submit Point.
+- [ ] Every task whose Verification Method is Build+Test or Hybrid is split into `a`/`b`
+  sub-tasks per §8's mandatory Code/Verify split rule; no such task remains unsplit.
+- [ ] Every phase (§6.1) has a stated Session Unit, consistent with its task composition
+  (e.g. `Code+Verify` only where the phase is dominated by split tasks).
 
 ## Appendix G — Glossary
 

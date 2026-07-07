@@ -15,6 +15,13 @@
   deferred (only for Plan-marked-deferred tasks, never to silently skip a Core task).
 - **Continuous updates, in place** — each DoD sub-item checked the moment it's satisfied,
   not batched to end of task/phase.
+- **Submitted** checkbox — every task/sub-task carries its own, checked only when its
+  declared Submit Point (Plan §8) has actually fired via `submit`, not when DoD items are
+  merely satisfied locally. A task with all DoD items checked but `Submitted` unchecked is
+  an inconsistency, not a completed task.
+- **Code/Verify split tasks (Plan §8):** rendered as two adjacent `### Task:` sub-sections,
+  `[DOMAIN]-[NNN]a` (Code) and `[DOMAIN]-[NNN]b` (Verify), each with its own DoD checkboxes
+  and its own `Submitted` checkbox — never merged into one task block.
 
 ---
 
@@ -30,11 +37,15 @@
   instructions, and project structure confirmed accurate or corrected
 - [ ] Content reviewed and approved by user
 
-### Task: [DOMAIN-002]
+### Task: [DOMAIN-002a] (Code)
 - [ ] Code implemented and hermetically builds (`[command]`)
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+
+### Task: [DOMAIN-002b] (Verify)
 - [ ] Verification Method checks pass (`[command]`)
 - [ ] Test Case [ID] verified
 - [ ] Required artifact captured: [artifact]
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
 
 **Exit Criteria:** [ ] [copied verbatim from Plan §6.1]
 

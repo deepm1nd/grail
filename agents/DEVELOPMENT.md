@@ -31,11 +31,14 @@ checklist file in place — it never copies, renames, or otherwise reproduces a 
 of either.
 
 ## 4. Phase-Specific Mandates
-- **Error-Free Builds:** All code submitted to the repository MUST build without errors. Code that fails to build is considered a critical failure and must be rectified immediately. Strive to eliminate warnings as well.
+- **Error-Free Builds:** All code submitted to the repository MUST build without errors. Code that fails to build is considered a critical failure and must be rectified immediately. Strive to eliminate warnings as well. **The sole exception is a WIP Checkpoint** (`AGENTS.md` §2.1) — a `submit` explicitly not claiming task DoD, prefixed `[WIP-CHECKPOINT]`, used only as a crash-safety net during a long/risky or not-yet-converging task. This exception is scoped to WIP checkpoints alone and never extends to a task-complete or Code-only submit, both of which must still build and (per their own DoD) pass verification.
 - **Surgical Changes:** The agent MUST touch only what is necessary.
     - **No "Drive-by" Improvements:** Do not "improve" adjacent code, comments, or formatting that is unrelated to the task.
     - **Style Matching:** Match the existing style of the file, even if it differs from the agent's preference.
     - **Orphan Cleanup:** Remove imports, variables, or functions that the agent's changes made unused. Do not remove pre-existing dead code unless explicitly asked.
+- **Agent Tool Tiers and Submit Mechanics:** All platform tool usage (submit, file
+  deletion/reset/restore, PR-comment tools) follows `agents/AGENT_TOOL_POLICY.md`. Code
+  review invocation follows `AGENTS.md` §2.2's Code Review Policy (bypassed by default).
 - **No Reproducing Shared Working Documents (`AGENTS.md` §2.7):** The Development Checklist
   (`[projectname]_dev_checklist.md`) and the Dev Prompt (`[projectname]_dev_prompt.md`)
   are edited or read in place, directly in the repository, by every session. The agent is
@@ -76,11 +79,14 @@ of either.
      needed, determines the correct restart phase, and restructures the Plan/Checklist.
      The human then rolls the repository back to the end of the last known-good phase and
      hands a fresh Development Phase session the updated documents to resume from there.
-- **One Phase Per Session (`AGENTS.md` §2.8):** A Development Phase session completes **at
-  most one** Development Plan phase. Even with session capacity remaining after a phase's
-  Exit Criteria is satisfied and its Phase Summary is written, the agent stops and awaits a
-  new session rather than beginning the next phase. See §5.2 below for the concrete
-  workflow this constrains.
+- **One Session Unit Per Session (`AGENTS.md` §2.8):** A Development Phase session completes
+  **at most one** declared Session Unit — a full Phase (default), a single Task, or one
+  Code/Verify sub-task, per the Plan's per-phase declaration
+  (`agents/exemplars/development_plan_template.md` §6.1). Even with session capacity
+  remaining after the unit's own exit condition is satisfied and its Phase Summary is
+  written (or updated, for a Task/Code+Verify unit within an in-progress phase), the agent
+  stops and awaits a new session rather than beginning the next unit. See §5.2 below for the
+  concrete workflow this constrains.
 - **Infrastructure Services via Docker:** Any infrastructure service the project depends on
   (databases, object storage, message brokers — see `agents/PREFERRED_SERVICES.md`) is run
   via Docker/`docker-compose`, with service definitions in `deploy/`, rather than installed
@@ -93,6 +99,33 @@ The development process is iterative and checklist-driven.
 
 ### 5.1. Core Development Cycle: The Evidence Loop
 For every individual task, which corresponds to a "software unit" as defined in the `agents/DESIGN.md` guide, the agent MUST follow the iterative build-fix loop defined in `agents/SCRIPT_RULES.md`.
+
+**Mandatory Code/Verify Split.** Any task whose Verification Method
+(`agents/exemplars/development_plan_template.md` §8) is **Build+Test** or **Hybrid** —
+i.e., any task where a real test run is part of DoD — is split into two sub-tasks, ID
+suffixed `a` (Code) and `b` (Verify), per that template's §8 convention. A task whose
+Verification Method is pure **Visual/Behavioral** (no build-test-debug cycle) is exempt and
+stays a single task. This is mechanical, derived from the Verification Method already
+stated in the Plan — never a separate judgment call at execution time.
+- **`a` (Code):** implement the code; DoD is satisfied by a clean build alone
+  (`cargo build` or equivalent) — no test execution required to close it. Ends in its own
+  Submit Point (task-complete submit for the `a` half).
+- **`b` (Verify):** DoR is `a` complete and submitted. This is where the build-test-debug
+  loop lives — isolated in its own session/context per the Session Unit in force
+  (`AGENTS.md` §2.8). DoD is the task's original DoD (tests pass, artifacts captured).
+  Ends in its own Submit Point.
+- A split task counts as **two** tasks against the Phase Sizing complexity formula
+  (`CLAUDE.md` §3.4 Step 8) — stated explicitly so Step 8 sizing doesn't silently overrun.
+
+**Submit Points.** Per `agents/exemplars/development_plan_template.md` §8, every task (or
+sub-task, for a split task) states its own Submit Point at drafting time. The agent submits
+at minimum at every declared Submit Point — never batching multiple tasks' completions into
+one end-of-phase submit. Where a task is flagged long/risky at drafting time, or where its
+build-test-debug cycle is visibly not converging, the agent additionally issues a WIP
+Checkpoint submit mid-task per `AGENTS.md` §2.1. **After every `submit` call, the session
+stops; the user says "Continue" or "Proceed" to resume** (`agents/AGENT_TOOL_POLICY.md` §2)
+— this is expected, normal flow at every declared Submit Point, not a stopping condition or
+an Escalation Trigger in itself.
 
 **MANDATE: Goal-Driven Execution**
 The agent MUST transform every task into a verifiable goal.
@@ -113,16 +146,34 @@ The workflow for a single Development Phase **session** is as follows. Per §4's
 Per Session mandate, this workflow covers exactly one phase per session — a session never
 advances into a second phase even if time/capacity remains.
 
-1.  **Run the Session-Start Sequence:** Per the Dev Prompt (`[projectname]_dev_prompt.md`): review all relevant `docs\` files, run the environment check (including the pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above), and verify repository build/test state before touching any code.
-2.  **Identify Current Phase:** Determine the first phase in `[projectname]_dev_checklist.md` whose Exit Criteria is not yet checked. Verify its Entry Criteria are actually true against the current repository state, not assumed from the checklist alone.
-3.  **Implement All Tasks in Phase:** For each task within the current phase, in order (respecting stated dependencies), the agent must follow the **Core Development Cycle** (§5.1). Once a task is implemented and its DoD is fully satisfied, the agent updates the checklist **continuously, in place** — not batched until end of phase, and never via a copy of the checklist (§4).
+1.  **Run the Session-Start Sequence:** Per the Dev Prompt (`[projectname]_dev_prompt.md`): read the checklist, prior phase summaries, the current phase's plan section (§6.1 Phase Index + §8 current-phase tasks only), and the protocols file — in that order, using targeted extraction for the plan sections (`sed`/`grep`, never whole-file reads of large documents). Do **not** read all Architecture Specification files or all Development Plan files upfront; do **not** perform a broad repository scan. Architecture Specification and remaining plan sections are referenced on demand only, when a specific uncertainty arises during task work, using the reference table in the Dev Prompt. Then run the environment check (pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above) and verify repository build/test state before touching any code.
+2.  **Identify Current Phase and Task State:** Determine the first phase in `[projectname]_dev_checklist.md` whose Exit Criteria is not yet checked. Verify its Entry Criteria are actually true against the current repository state, not assumed from the checklist alone. **Then, for the current phase's tasks, run the three-way task-state check** (mirrored in `[projectname]_dev_prompt.md`'s "find next unit" step) against each declared Submit Point, not raw git-log archaeology:
+    - **No submit exists for this task/sub-task** → not started; begin fresh.
+    - **A WIP Checkpoint submit exists, no task-complete submit** → resume-in-place: check
+      out the WIP state as the actual starting point (never redo from scratch, never
+      discard it), and continue from exactly what its `[WIP-CHECKPOINT]` description states
+      was attempted, confirmed working, and known incomplete (`AGENTS.md` §2.1). A WIP
+      checkpoint whose description doesn't support this — too vague to resume from — is
+      corrected before further work continues, not worked around.
+    - **A task-complete submit exists** → done; move to the next task/sub-task.
+    A checklist box checked with no corresponding submit, or a submit with no corresponding
+    checklist entry, is an inconsistency — an Escalation Trigger (§13's model below), never
+    silently patched over.
+3.  **Implement the Current Session Unit** (`AGENTS.md` §2.8 — `Phase`, `Task`, or
+    `Code+Verify`, as declared for this phase): for each task within scope of the session's
+    declared unit, in order (respecting stated dependencies), the agent must follow the
+    **Core Development Cycle** (§5.1), including the mandatory Code/Verify split and Submit
+    Point cadence. Once a task (or sub-task) is implemented and its DoD is fully satisfied,
+    the agent updates the checklist **continuously, in place** — not batched until end of
+    phase, and never via a copy of the checklist (§4) — and submits at that task's declared
+    Submit Point immediately, not deferred to end-of-phase.
 4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome.
 5.  **Pre-Commit Verification & Quality Assurance:**
     -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below); for the final phase, this includes a final README review.
     -   **Assurance Review:** Perform a final, active review of all code and changes in the current phase. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists.
 6.  **Write the Phase Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_phaseN_summary.md`.
-7.  **Commit Phase Changes:** After all tests have passed and the **Phase-End Quality Assurance** is complete, the agent MUST commit (finalize and submit) all changes. This is a mandatory checkpoint to prevent work loss from session crashes.
-8.  **Stop. Do Not Proceed to the Next Phase.** Per §4's One Phase Per Session mandate, the session ends here regardless of remaining capacity. Notify the user the phase is complete and await a new session to begin the next phase.
+7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the phase-level wrap-up only: docs, README updates, and the Phase Summary itself, submitted together after the **Phase-End Quality Assurance** is complete. This is not the sole checkpoint for the phase's work (per-task submits already provide that); it closes out anything not itself task-scoped.
+8.  **Stop. Do Not Proceed to the Next Session Unit.** Per `AGENTS.md` §2.8, the session ends here regardless of remaining capacity, whether the declared Session Unit was a full Phase, a single Task, or one Code/Verify sub-task. Notify the user the unit is complete and await a new session to begin the next one.
 
 #### 5.2.1. Project README
 

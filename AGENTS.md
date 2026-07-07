@@ -73,6 +73,34 @@ for which steps, if any, are exempt from its standard procedure.
 -   **No Self-Referential Elision:** The agent is **ABSOLUTELY FORBIDDEN** from replacing document sections with references to "previous versions" or "Section X of version Y." Since older versions are not persistently available for reference, every document MUST remain self-contained and fully detailed.
 -   **No Unauthorized Copying or Duplication of Working Documents:** The agent is explicitly forbidden from copying, cloning, or replicating any file or directory from this repository to any other location (e.g., local scratch folders, other repositories, or external services) unless specifically instructed by the user for a valid technical reason (e.g., a deployment task). This extends specifically to project working documents during the Development Phase: the agent MUST edit the Development Checklist and other shared, in-place documents directly, never create a copy, rename, "v2," or otherwise reproduce a one-off version of any input file it has been given to work from. See `agents/DEVELOPMENT.md` §4 for the concrete rule.
 -   **Mandatory Artifact Preservation:** The agent MUST commit all non-reproducible evidence artifacts — test output logs, screenshots, coverage reports, and any other verification artifacts (e.g., in `test_outs/`) — to the repository. These cannot be recreated after a session crash and are critical for maintaining state across sessions. **Reproducible build outputs are explicitly excluded from this mandate and MUST be gitignored, not committed** — committing them causes enormous diffs, breaks standard tooling, and provides no state-preservation benefit since they can be recreated from source. The required `.gitignore` entries are specified in `agents/exemplars/development_plan_template.md` §3.
+-   **Task-Level Submit Cadence (the core work-preservation mechanism):** A Development Phase
+    session's only real save point is a `submit` call (`agents/AGENT_TOOL_POLICY.md`) — nothing
+    is safe from a session crash until submitted. Per `agents/DEVELOPMENT.md` §5.1/§5.2, the
+    agent submits **at every declared Submit Point**, which — per
+    `agents/exemplars/development_plan_template.md` §8 — occurs at minimum at the end of every
+    task (or every sub-task, for a Code/Verify-split task), never batched until end-of-phase.
+    This bounds crash blast-radius to the single task or sub-task in flight, not the whole
+    phase. Never call `reset_all()` or `restore_file()` to discard a submitted or
+    WIP-checkpointed state without explicit user approval — this is the same additive-only
+    prohibition as above, and is what makes the submit cadence below actually safe to rely on;
+    see `agents/AGENT_TOOL_POLICY.md` for the full tool-tier treatment of both.
+-   **WIP Checkpoint (safety net for work that is not yet DoD-complete):** Where a task is
+    flagged at drafting time as long/risky (per `development_plan_template.md` §8), or where a
+    task's own build-test-debug cycle is visibly not converging, the agent submits an
+    intermediate **WIP checkpoint** — a `submit` call that does **not** claim the task's DoD is
+    satisfied and is **explicitly exempt from the Error-Free Builds mandate**
+    (`agents/DEVELOPMENT.md` §4) for this one purpose only. A WIP checkpoint:
+    - Always bypasses code review (`agents/AGENT_TOOL_POLICY.md`), regardless of the Code
+      Review Policy setting in §2.2 below, since it never claims finished work.
+    - Uses the commit title/description prefix `[WIP-CHECKPOINT]`.
+    - **Must state, in its description, what was attempted, what is confirmed working, and
+      what is known broken or incomplete** — a bare `[WIP-CHECKPOINT]` label with no content
+      is insufficient, since a later session resuming from this state (`agents/DEVELOPMENT.md`
+      §5.2 step 2's three-way task-state check) depends entirely on this description to know
+      where to pick up; a WIP checkpoint description this vague is itself a defect to correct
+      before ending the session.
+    - Is never treated by a resuming session as evidence the task is complete — only a
+      subsequent task-complete submit (satisfying the real DoD) closes a task.
 -   **Stable Identifier Assignment:** Any artifact requiring a unique ID under a phase guide's schema (a requirement, user story, test case, task, decision record, threat, or equivalent) MUST receive that ID **at first draft**, not deferred to a later "finalization" pass. IDs are never renumbered or reused once assigned, even if a later correction round rejects or merges the item the ID was assigned to — a rejected or merged item's ID is retired (recorded as superseded), never reassigned to a different item. This preserves the traceability links other documents may already have written against that ID.
 -   **Explicit Backtracking:** A phase guide may permit the user to return to a previously approved step to refine it. When a later step reveals that an earlier step's content — flagged assumption or not — was incorrect, the agent MUST: (1) name the originating step and the specific content at issue, rather than silently patching the current step's output around the problem; (2) present the user with the choice between a local patch at the current step versus formally re-opening the earlier step, rather than deciding unilaterally which is warranted, since this determines how much already-approved work needs re-approval; (3) if the earlier step is re-opened, preserve all already-approved content from steps after it, revisiting that later content only as needed once the earlier step is re-approved — this is governed by the same additive-only, no-silent-elision rules as the rest of this section, not a license to discard later work wholesale; (4) treat the correction as a "Major Change" per the relevant phase guide's notification mandate whenever it materially changes scope, requirements, or architecture. **Exception: findings from Step 7 (Spec Audit) or Step 9 are never handled via the local-patch-vs-reopen choice above — they always require reopening the originating step, via the full multi-session workflow or the Surgical Fix Override (`CLAUDE.md` §3.6.1) — a compressed single-session alternative available only on the user's explicit `SURGICAL FIX OVERRIDE` instruction, which still mandatorily ends in a fresh Step 7/9 audit session. See `CLAUDE.md` §3.11 for the concrete, mandatory Step 7 Backtrack Workflow.**
 
@@ -81,10 +109,22 @@ for which steps, if any, are exempt from its standard procedure.
 -   **Session Initialization:** The agent MUST follow the session initialization protocols, including acknowledging its mandates, running startup scripts, and internalizing the rules.
 -   **Technology and Tools:** The agent MUST adhere to the policies defined in `agents/PREFERRED_DEPENDENCIES.md` (Rust library dependencies), `agents/PREFERRED_TOOLS.md` (development tools), and `agents/PREFERRED_SERVICES.md` (infrastructure services).
 -   **Scripts and Commands:** The agent MUST adhere to all rules for script and command execution as defined in `agents/SCRIPT_RULES.md`.
+-   **Agent Tool Tiers:** The agent MUST adhere to `agents/AGENT_TOOL_POLICY.md` for which of
+    its own platform tools (submit, file deletion/reset/restore, PR-comment tools, etc.) are
+    freely usable, require approval, or require the two-step "propose, then `ARE YOU SURE?`"
+    confirmation ritual.
+-   **Code Review Policy: BYPASSED.** The agent MUST NOT call `request_code_review` for any
+    submit — WIP checkpoint, Code-only task, or task-complete/Verify task. This methodology's
+    own DoD and Verification Method (`agents/DEVELOPMENT.md` §5.1) are the sole quality gate
+    for Development Phase work. **To re-enable code review:** delete this bullet — a WIP
+    checkpoint and a Code-only submit still always bypass regardless, since neither claims
+    finished work; only a task-complete/Verify submit would then go through normal review.
 -   **Hermetic Environment Mandate:** The agent MUST ensure that the development environment is hermetic and reproducible using `scripts/setup_env.sh` (Linux) and `scripts/setup_env.bat` (Windows).
 -   **Evidence-Based Completion Mandate:** The agent is forbidden from claiming task or requirement completion without presenting the Required Artifacts (Logs, Screenshots, etc.) defined in the planning phase.
 -   **Mandatory Screenshot Approval:** Any and all screenshots captured by the agent MUST be explicitly shown to the user and approved by the user before the corresponding task or requirement is marked as complete.
 -   **Mandate for Phase-End Quality Assurance:** At the conclusion of every phase (Design, Development) and before finalizing the work, the agent MUST perform a comprehensive Assurance Review. The agent must verify that all planned steps were executed correctly and ensure that NO partial, incomplete, unimplemented, stubbed, or "good enough" work exists in the deliverables for that phase.
+-   **Selective Reading Mandate:** The agent is **EXPLICITLY FORBIDDEN** from reading whole documentation files (Architecture Specification, Development Plan) using a whole-file read tool unless the file is known to be short (e.g. the protocols file, `[projectname]_dev_plan_04_protocols_and_dod`). All other documentation reads MUST use targeted extraction (`sed -n 'START,ENDp'`, `grep -n "pattern" -A N`, `awk`) scoped to the specific section needed. Whole-file reads of large documents consume context window unnecessarily and are a primary cause of session failures on complex or mature projects. The reference table in `agents/exemplars/dev_prompt_template.md` maps uncertainty types to specific file+section+extraction targets.
+-   **No Broad Repository Scan Mandate:** The agent is **EXPLICITLY FORBIDDEN** from performing a broad repository scan or structural survey at session start or at any other point during a Development Phase session. The agent MUST NOT enumerate, list, or speculatively read directories and files. Navigation is to specific known paths only — the checklist, prior phase summaries, the current phase's plan section, and source files named in the current task. Any other file is accessed only when a specific documented uncertainty arises and the reference table identifies it as the target.
 
 ### 2.3. Mandate for Quality and Completeness
 **MANDATE: All work must be implemented to the fullest, most robust, and most complete potential.**
@@ -147,11 +187,17 @@ Criteria, DoD item wording). See `agents/DEVELOPMENT.md` §4 for the operational
 mandate drives.
 
 ### 2.8. Mandate for One Phase Per Development Session
-**MANDATE: A Development Phase agent session completes at most one Development Plan phase.**
-Even where session capacity or time remains after a phase's Exit Criteria is satisfied and
-its Phase Summary is written, the agent MUST stop and await a new session rather than
-beginning the next phase's tasks. This bounds the blast radius of any single session's
-mistakes to one phase and keeps Phase Summaries meaningful as a per-session record. See
+**MANDATE: A Development Phase agent session completes at most one Development Plan
+Session Unit,** where the Session Unit is declared per-phase at Design Step 8
+(`development_plan_template.md` §6.1) as one of **`Phase`** (default — the whole phase, as
+originally specified below), **`Task`** (one task per session), or **`Code+Verify`** (one
+Code or Verify sub-task per session, for any task split per §5.1's mandatory Code/Verify
+split rule). Even where session capacity or time remains after the declared Session Unit's
+own exit condition is satisfied, the agent MUST stop and await a new session rather than
+beginning the next unit's work. This bounds the blast radius of any single session's
+mistakes and keeps Phase Summaries meaningful as a per-session record. A phase's declared
+Session Unit is changed only via the ordinary Plan-Change Escalation path
+(`development_plan_template.md` §14), never unilaterally by an executing session. See
 `agents/DEVELOPMENT.md` §5.2 for the concrete workflow this constrains.
 
 ## 3. User Interaction
