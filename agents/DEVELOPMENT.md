@@ -16,7 +16,10 @@ See `CHANGELOG.md` for full version history.
 ---
 
 ## 1. Introduction
-This guide outlines the Development Phase. All session-level rules are defined in `AGENTS.md` and all script and command rules are in `agents/SCRIPT_RULES.md`. Both MUST be adhered to at all times.
+This guide outlines the Development Phase, executed by a Jules agent session (as distinct
+from the Claude-based Design Phase — see `README.md` for the overall human-facing workflow).
+All session-level rules are defined in `AGENTS.md` and all script and command rules are in
+`agents/SCRIPT_RULES.md`. Both MUST be adhered to at all times.
 
 ## 2. Goal
 The goal of this phase is to write, test, and build the software, following the `Development Plan` and checklist to create a feature-complete product.
@@ -146,7 +149,7 @@ The workflow for a single Development Phase **session** is as follows. Per §4's
 Per Session mandate, this workflow covers exactly one phase per session — a session never
 advances into a second phase even if time/capacity remains.
 
-1.  **Run the Session-Start Sequence:** Per the Dev Prompt (`[projectname]_dev_prompt.md`): read the checklist, prior phase summaries, the current phase's plan section (§6.1 Phase Index + §8 current-phase tasks only), and the protocols file — in that order, using targeted extraction for the plan sections (`sed`/`grep`, never whole-file reads of large documents). Do **not** read all Architecture Specification files or all Development Plan files upfront; do **not** perform a broad repository scan. Architecture Specification and remaining plan sections are referenced on demand only, when a specific uncertainty arises during task work, using the reference table in the Dev Prompt. Then run the environment check (pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above) and verify repository build/test state before touching any code.
+1.  **Run the Session-Start Sequence:** Per the Dev Prompt (`[projectname]_dev_prompt.md`): read the checklist, prior phase summaries, the current phase's plan section (§6.1 Phase Index + §8 current-phase tasks only), and the protocols file — in that order, using targeted extraction for the plan sections (`sed`/`grep`, never whole-file reads of large documents). Do **not** read all Architecture Specification files or all Development Plan files upfront; do **not** perform a broad repository scan. Architecture Specification and remaining plan sections are referenced on demand only, when a specific uncertainty arises during task work, using the reference table in the Dev Prompt. **Check out the current phase's Branch Name** (`agents/exemplars/development_plan_template.md` §6.1) — creating it from the default branch if it doesn't yet exist, or resuming it if a prior session already started the phase — before touching any code; never work the phase's tasks on the default branch. Then run the environment check (pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above) and verify repository build/test state before touching any code.
 2.  **Identify Current Phase and Task State:** Determine the first phase in `[projectname]_dev_checklist.md` whose Exit Criteria is not yet checked. Verify its Entry Criteria are actually true against the current repository state, not assumed from the checklist alone. **Then, for the current phase's tasks, run the three-way task-state check** (mirrored in `[projectname]_dev_prompt.md`'s "find next unit" step) against each declared Submit Point, not raw git-log archaeology:
     - **No submit exists for this task/sub-task** → not started; begin fresh.
     - **A WIP Checkpoint submit exists, no task-complete submit** → resume-in-place: check
@@ -164,9 +167,13 @@ advances into a second phase even if time/capacity remains.
     declared unit, in order (respecting stated dependencies), the agent must follow the
     **Core Development Cycle** (§5.1), including the mandatory Code/Verify split and Submit
     Point cadence. Once a task (or sub-task) is implemented and its DoD is fully satisfied,
-    the agent updates the checklist **continuously, in place** — not batched until end of
-    phase, and never via a copy of the checklist (§4) — and submits at that task's declared
-    Submit Point immediately, not deferred to end-of-phase.
+    the agent, in this order: (a) appends that task's entry to
+    `test/[projectname]_phase_[N]_verification.md` and drops any screenshots/clips into
+    `test/phase_[N]/` per `agents/exemplars/development_plan_template.md` §11.4 (skip for
+    tasks with no Verification Method beyond human review/approval); (b) updates the
+    checklist **continuously, in place** — not batched until end of phase, and never via a
+    copy of the checklist (§4); (c) submits at that task's declared Submit Point
+    immediately, not deferred to end-of-phase, and before starting the next task.
 4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome.
 5.  **Pre-Commit Verification & Quality Assurance:**
     -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below); for the final phase, this includes a final README review.

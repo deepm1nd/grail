@@ -155,7 +155,9 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
 - **Content Continuity Check:** Verify no previously approved technical detail, diagrams, or requirements were elided or summarized; the process MUST be strictly additive unless deletion was explicitly requested; no section replaced with a "previous versions" reference.
 - **Anti-Stub Mandate:** Verify no logical gap could force a stubbed or partial implementation.
 - **Notification:** Notify the user of any "Major Changes" from iterations.
-- **Output:** Final Deficiency Audit Report.
+- **Output:** Final Deficiency Audit Report — presented in chat at the gate; not a
+  standalone required file. On any finding, its content is embedded directly in the
+  backtrack handoff note (`CLAUDE.md` §3.10/§3.11) rather than delivered separately.
 - **GATE behavior depends on the report's findings:**
   - **Zero findings:** the gate behaves normally — STOP, present the clean Audit Report, await User Approval to proceed to Step 8.
   - **Any finding at all (even one):** the normal approval gate does NOT apply. Instead, the
@@ -181,7 +183,7 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
   specific Architecture Spec file/section/item it derives from; the mandatory Code/Verify
   split (`agents/DEVELOPMENT.md` §5.1) is derived mechanically from each task's Verification
   Method; each phase's Session Unit (`AGENTS.md` §2.8) is declared explicitly.
-- **Checklist:** Generate a task-level checklist using `agents/exemplars/development_checklist_template.md`.
+- **Checklist:** Generate a task-level checklist using `agents/exemplars/development_checklist_template.md` — every phase and every task written out in full, individually, in order; never a "repeat this block" placeholder or an ellipsis standing in for omitted phases/tasks (`AGENTS.md` §2.3 No Compressed Formats).
 - **Kickoff Prompt:** Generate the reusable development-agent kickoff prompt using `agents/exemplars/dev_prompt_template.md`, output as `[projectname]_dev_prompt.md`.
 - **Project README:** Draft the root `README.md` (overview, build/run instructions, project
   structure) derived from the finalized Architecture Specification — Development Phase's
@@ -193,7 +195,10 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
 ### 5.9. Step 9: Plan & Checklist Audit
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
 - **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that every Open Items Register entry carries a terminal RATS outcome** — same check as Step 7, re-verified here in case anything slipped through since.
-- **Output:** Plan & Checklist Audit Report.
+- **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
+  standalone required file. On any finding, its content is embedded directly in the
+  backtrack handoff note that reopens Step 8 (or the relevant Spec step), same convention
+  as Step 7 (`CLAUDE.md` §3.10/§3.11).
 - **GATE behavior depends on the report's findings, mirroring Step 7 (`CLAUDE.md` §3.11's mechanics, applied here):**
   - **Zero findings:** the gate behaves normally — STOP, present the clean report, await User Approval. This closes the Design Phase (§6).
   - **Any finding at all (even one):** the normal approval gate does not apply. Every finding is classified as it's found:

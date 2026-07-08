@@ -16,7 +16,7 @@ Complex/Multi-Domain Rust Project Variant
 4. System Architecture (ISO 42010) · 5. External Interfaces & Integrations · 6. Technology
 Stack & Dependencies · 7. Constraints & Assumptions · 8. Risks & Technical Debt ·
 9. Implementation Roadmap & Build Order · 10. Public API & Framework Consumer Contract ·
-11. Appendices
+11. Appendices · Appendix R Version History
 
 ---
 
@@ -30,6 +30,17 @@ Stack & Dependencies · 7. Constraints & Assumptions · 8. Risks & Technical Deb
 1.5 **Definitions, Acronyms, Abbreviations** — local to this doc; durable terms go in §11.1.
 1.6 **References** — originating concept statement, prior spec if any, governing process
 docs, external standards cited elsewhere (ISO 42010, RFCs).
+1.7 **Open Items Register** (`CLAUDE.md` §3.12) — the running, project-wide log of every
+item that has ever entered RATS, one row per item, updated at every Step's gate from Step 1
+onward: ID, originating Step, one-line description, and outcome (`Resolved` /
+`Deferred to Step N` / `Future Feature` / `Rejected` — never left blank past the gate that
+raised it). Lives here, not as a separate file, because this is the one Architecture file
+created at Step 1 and present at every subsequent gate; every Step's session touches this
+section to append/update entries even when its own owned file is a different one (the
+ordinary "touched file" versioning rule, `CLAUDE.md` §4.3, already covers a session bumping
+more than just its home file). Historical entries (`Resolved`, `Future Feature`, `Rejected`)
+are never deleted or reworded once terminal — only appended to and, for a `Deferred` entry,
+updated in place when its target Step actually resolves it.
 
 ---
 
@@ -407,6 +418,20 @@ port = 8080
 
 | ADR ID | Title | Status |
 |---|---|---|
+
+## Appendix R — Version History
+
+**Per `CLAUDE.md` §4.3 — this file's own version history, and only this file's.** One row
+per session that bumped *this specific* numbered file (e.g. `_01_introduction`), never the
+whole Spec's combined history — each of the 8 Architecture Spec files carries its own
+independent Appendix R, matching its own independent `_v[N]` counter. Appended to, one new
+row per bump, in the same pass as the bump itself; prior rows are never rewritten or removed.
+This is the file's *only* changelog surface — no version/revision commentary anywhere else
+in the file (not under the title, not in §1 Introduction, not inline near changed content).
+
+| Version | Date | Session / Step | Changes |
+|---|---|---|---|
+| v1 | [date] | Step [N] (initial) | Initial creation. |
 
 ---
 See `CHANGELOG.md` for this file's full version history.

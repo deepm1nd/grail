@@ -498,6 +498,28 @@ named is missing, Claude says so and asks for it directly, rather than proceedin
 or silently assuming. Mirrors `agents/exemplars/development_plan_template.md` §11's Session
 Handoff Protocol, applied to Design Phase sessions too.
 
+**Required inputs, minimized: the numbered Architecture Spec files actually needed, the Dev
+Plan files (once they exist, post Step 8), and the handoff note — nothing else, by
+default.** Two artifacts that used to be separate required files are now embedded instead,
+specifically to keep this list short:
+- **The Open Items Register lives inside `01_introduction`** (§4.1's Step 1 file, present
+  from the first gate onward) — not a standalone file, so it's never separately listed or
+  requested; it travels automatically with whichever Architecture files a session already
+  needs.
+- **An Audit Report (Step 7 or Step 9) is embedded directly in the backtrack handoff note's
+  own text when the audit found anything** (§3.11) — the backtrack session needs the
+  findings to act on, and folding them into the note it already receives avoids a second
+  required file. On a **clean** audit (zero findings), the report is presented in chat at
+  the gate and is not a required input to Step 8/the next session — nothing to carry
+  forward when there's nothing to act on.
+
+**Any additional file a step genuinely needs beyond this default set is an exception, not a
+standing option** — Claude names the specific file and the concrete reason it's needed, and
+proceeds only once the user approves adding it. This keeps the ordinary case (numbered Spec
+files + Plan files + handoff note) the only thing a user has to gather without being asked,
+while still allowing a real edge case to surface explicitly rather than silently expanding
+what gets requested every time.
+
 ---
 
 ### 3.11. The Step 7 Backtrack Workflow
@@ -546,7 +568,9 @@ Instead:
 4. **At session end, package every file exactly as at any other Step Approval Gate** (§1,
    §3.10): every touched Architecture file, version bumped exactly once per §4 (never once per
    finding fixed — one session, one bump, per file actually touched); a handoff note for the
-   next session.
+   next session. **The triggering Audit Report's findings are embedded directly in this
+   handoff note's own text** (§3.10) — not shipped as a separate file — since this backtrack
+   session is the only consumer that needs them.
 5. **That handoff note MUST state plainly the next session is a new Step 7 audit** (pass2,
    pass3, ... per §3.10), not a continuation, and MUST summarize: which findings were fixed,
    which steps/files were reopened and in what order, and **explicitly that cascading effects
@@ -594,7 +618,11 @@ next gate rather than left indefinitely open.
    Deferred target step is *this* step — these re-enter RATS now; (b) any item still without
    a terminal outcome — these are re-run through RATS immediately, since this state
    shouldn't persist.
-3. The Register itself is a required §3.10 handoff file, not chat-text-only.
+3. **The Register lives inside `01_introduction`** (§4.1) as a dedicated subsection
+   (§1.7 of the Architecture Spec template) — not a separate file. Every step's gate touches
+   `01_introduction` to append/update it, even when that step's own owned file is a
+   different one; this is an explicit, standing case of §4.3's "touched file" bump rule, not
+   an exception to it.
 
 **This does not relax §3.1's own per-step RATS resolution** — a step's own residual items
 still resolve to a terminal outcome before its gate. §3.12 is the additional cumulative
@@ -633,7 +661,7 @@ Pattern: `[projectname]_architecture_NN_<topic>_v[N].md`, `NN`/`<topic>` fixed p
 
 | File (`NN_topic`) | Template content | Owning Step | Created at |
 |---|---|---|---|
-| `01_introduction` | §1 Introduction | Step 1 | Step 1 |
+| `01_introduction` | §1 Introduction, including §1.7 Open Items Register (§3.12) — updated at every subsequent Step's gate, not just Step 1's own | Step 1 | Step 1 |
 | `02_user_stories` | §2.1 Personas, §2.2 User Stories, §2.5 Out-of-Scope, §2.6 Future Features | Step 2 | Step 2 |
 | `03_requirements` | §2.3 Core Functional Requirements, §2.4 Non-Functional/Quality Attribute Scenarios | Step 3 | Step 3 |
 | `04_test_strategy` | §3.1 9 Criteria (self-check ref), §3.2 Test Case Catalog, §3.3 Rust Requirement Smells | Step 4 | Step 4 |
@@ -647,9 +675,11 @@ If `06_viewpoints` alone overruns a reasonable size once real content volume is 
 Step 6 and proposes a further split (e.g. `06a_functional_view`, `06b_information_view`, ...)
 rather than silently overrunning — the same scale-driven-split principle applies recursively.
 
-**Step 7's Audit Report and every handoff note remain outside this numbered set**, using the
-handoff-note convention (§3.10) instead — process/review artifacts, never assigned an
-`NN_topic` slot.
+**A Step 7 or Step 9 Audit Report is never a standalone numbered file.** On zero findings,
+it's presented in chat at the gate — nothing to carry forward. On any finding, its content
+is embedded directly in the backtrack handoff note (§3.10, §3.11) rather than delivered
+separately. Handoff notes themselves also remain outside this numbered set, per §3.10's
+own naming convention.
 
 **Do not conflate the two `_01_...` files.**
 `[projectname]_architecture_01_introduction_v1.md` (this section) and
@@ -707,11 +737,13 @@ requirement in `03_requirements` is cross-file.) The Spec and Plan file sets are
 no cross-linking absent a concrete reason (e.g. a Plan phase implementing a specific ICD
 interface).
 
-**Intermediate/handoff artifacts** (handoff notes, the Open Items Register per §3.12,
-working notes, draft batches, anything mid-step rather than settled Architecture content) use
-the §3.10 handoff-note convention: `[projectname]_design_handoff_stepN_passX.md` — distinct
-from the numbered Architecture/Plan files, which are organized by content section (and, for
-the Spec, by owning Step), not by which session produced a given revision.
+**Intermediate/handoff artifacts** (handoff notes — which, on an audit finding, embed that
+audit's report content directly, §3.10/§3.11 — plus working notes, draft batches, anything
+mid-step rather than settled Architecture content) use the §3.10 handoff-note convention:
+`[projectname]_design_handoff_stepN_passX.md` — distinct from the numbered Architecture/Plan
+files, which are organized by content section (and, for the Spec, by owning Step), not by
+which session produced a given revision. **The Open Items Register is not in this
+category** — it's embedded in `01_introduction` (§4.1, §3.12), not a handoff artifact.
 
 ### 4.3. Versioning: Per-File, Bumped Once at Session End
 
@@ -760,6 +792,22 @@ file's own internal links if their targets also changed version, and (2) check e
 file in the current set for links to this file's *old* version name, updating them. This
 recurs every bump; skipping it silently reintroduces broken cross-links the same way skipping
 filename versioning reintroduced download collisions.
+
+**Version history lives in `Appendix R — Version History`, at the end of the file — never as
+commentary at the front.** Every Architecture Spec and Dev Plan file ends with this appendix
+(after its last content section — e.g. after §11 Appendices for the Spec, after Appendix G
+for the Plan): one row per session that bumped *this file*, in order, each row stating the
+version reached, the date, and a brief description of what changed in that file this session.
+This is deliberately **not** a separate carried-along file — unlike grail's own meta-repo
+`CHANGELOG.md` (which tracks grail's own instruction/template files, a different system
+entirely), a per-project deliverable's version history travels with the file
+itself, so it's automatically present whenever the file is, with nothing extra to request or
+enumerate in a handoff note. On a version bump, Claude appends exactly one new row to this
+appendix, in the same pass as the bump itself — never rewriting or removing a prior row.
+**Nothing resembling a changelog, revision note, or "what changed" commentary belongs
+anywhere else in the file** — not under the title, not in the Introduction, not inline near
+whatever content changed. If Claude finds itself about to write a version-related note
+anywhere but this appendix, that's the signal to relocate it here instead.
 
 ---
 

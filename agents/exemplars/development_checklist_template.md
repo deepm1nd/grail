@@ -13,6 +13,21 @@
 - Each phase closes with an **Exit Criteria** line, checked only when every task above it is.
 - `[ ]` not done · `[x]` done, DoD fully satisfied incl. artifacts · `[D]` deliberately
   deferred (only for Plan-marked-deferred tasks, never to silently skip a Core task).
+- **A "Required artifact captured" item points at the phase's Verification file/folder** —
+  `test/[projectname]_phase_[N]_verification.md` and `test/phase_[N]/`
+  (`agents/exemplars/development_plan_template.md` §11.4) — not a description of the
+  artifact inline in the Checklist.
+- **A Development Phase session's edits to this file are bracket-content-only**
+  (`AGENTS.md` §2.7): flipping a mark inside an existing `[ ]`, checking a `Submitted` box,
+  or appending a new Session Log row. Rewording a task/DoD line, adding commentary next to a
+  checkbox, inserting or restructuring content, or touching any other phase's marks are all
+  out of scope for a Development Phase session — an apparent error in the wording itself is
+  an Escalation Trigger, not a same-session fix.
+- **No compressed formats** (`AGENTS.md` §2.3): the generated Checklist writes out every
+  phase and every task in full, individually, in order — never a "repeat this block per
+  phase" placeholder, an ellipsis standing in for omitted phases/tasks, or any other
+  shorthand. This template's own `## Phase 1` block below is illustrative only; a real,
+  delivered Checklist expands the entire Plan.
 - **Continuous updates, in place** — each DoD sub-item checked the moment it's satisfied,
   not batched to end of task/phase.
 - **Submitted** checkbox — every task/sub-task carries its own, checked only when its
@@ -66,7 +81,12 @@
 
 ---
 
-*(repeat one `## Phase N` block per phase in Plan §6.1, in order)*
+*(This `## Phase 1` block is this template's own illustrative placeholder — one example of
+the shape a phase section takes. Per `AGENTS.md` §2.3's No Compressed Formats mandate, the
+actual generated Checklist for a real project MUST NOT contain a "repeat this block"
+instruction: it fully writes out one complete `## Phase N` block per phase in Plan §6.1, in
+order, each with every one of its real tasks and DoD items spelled out individually — never
+collapsed, abbreviated, or left as a placeholder for the user/agent to expand later.)*
 
 ---
 

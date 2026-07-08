@@ -84,30 +84,38 @@ only the named section using the method shown, resolve it, then continue.
 | Dev plan: risk management | `[projectname]_dev_plan_03_tasks_and_testing_v[N].md` | §7 Risk Management | `awk '/^## 7\./,/^## 8\./' FILE` |
 | Dev plan: test/logging strategy | `[projectname]_dev_plan_03_tasks_and_testing_v[N].md` | §9–10 | `awk '/^## 9\./,/^## 11\./' FILE` |
 | Dev plan: environment, prerequisites, config | `[projectname]_dev_plan_02_environment_and_phases_v[N].md` | §4–5 | `awk '/^## 4\./,/^## 6\./' FILE` |
+| Verification file format/scope, Branch Name convention | `agents/exemplars/development_plan_template.md` | §11.4, §6.1 | `grep -n "Verification File\|Branch Name" FILE -A 15` |
 | Dev plan: technology stack | `[projectname]_dev_plan_01_overview_v[N].md` | §2 | `awk '/^## 2\./,/^## 3\./' FILE` |
 
-### 3. Environment check and version sanity check
+### 3. Check out the phase branch
+Before anything else touches the repo: check out the current phase's **Branch Name**
+(Plan §6.1) — create it from the default branch if it doesn't exist yet, or resume it if a
+prior session already started the phase. Never work a phase's tasks directly on the default
+branch.
+
+### 4. Environment check and version sanity check
 ```bash
 bash scripts/setup_env.sh    # or scripts/check_env.sh if present
 ```
 If absent, manually verify each Plan §4 prerequisite. Per tool: present+correct → proceed;
 **missing or wrong version, install succeeds cleanly** → append idempotently to
 `scripts/setup_env.sh`/`.bat`, inform the user, proceed; **install fails, or any resulting
-conflict/incompatibility surfaces → stop the session now** (§4 below).
+conflict/incompatibility surfaces → stop the session now** (§5 below).
 
-### 4. Start infrastructure services (if required)
+### 5. Start infrastructure services (if required)
 ```bash
 docker compose -f deploy/docker-compose.dev.yml up -d
 docker compose -f deploy/docker-compose.dev.yml ps
 ```
-Docker unavailable → treat as a missing prerequisite (step 3's rule).
+Docker unavailable → treat as a missing prerequisite (step 4's rule).
 
-### 5. Verify repository state before touching any code
+
+### 6. Verify repository state before touching any code
 Run the project's actual build/test commands (Plan §2/§4). **If the Checklist claims a
 phase is complete but either fails: stop the session now** — write the Phase Summary
-(step 8) describing the discrepancy and stop. Do not silently fix and continue.
+(step 9) describing the discrepancy and stop. Do not silently fix and continue.
 
-### 6. Find the next unit
+### 7. Find the next unit
 In the Checklist, find the first phase whose Exit Criteria isn't checked. Verify its Entry
 Criteria are actually true from current repo state — not assumed from the Checklist alone.
 Unverifiable → stop the session now.
@@ -122,15 +130,25 @@ Point (Plan §8) — not raw git-log archaeology:
 - **A task-complete submit exists** → done; move to the next task/sub-task.
 
 A Checklist mark with no matching submit, or a submit with no matching Checklist mark, is an
-inconsistency — go to step 8 now, do not silently reconcile it yourself.
+inconsistency — go to step 9 now, do not silently reconcile it yourself.
 
 Work only within the phase's declared **Session Unit** (`Phase` / `Task` / `Code+Verify`) —
 never begin work outside that scope even with capacity remaining.
 
-### 7. Work the unit, one task (or sub-task) at a time
+### 8. Work the unit, one task (or sub-task) at a time
 Confirm each task's DoR before starting. Code in `src\`, never `docs\`. **Check off DoD
 sub-items the moment each is satisfied** — continuously, not batched. Mark the task line
 itself `[x]` only when every DoD sub-item is `[x]` and Required Artifacts exist.
+
+**The instant a task's (or sub-task's) DoD is satisfied, before moving to the next task:**
+if it has a real Verification Method (Build+Test, Hybrid, or Visual/Behavioral — not a pure
+documentation/review task), append its entry to
+`test/[projectname]_phase_[N]_verification.md` (Plan §11.4) — the build/test summary line
+only, never the raw log, plus any screenshots (static views: one final-state shot) or clips
+(dynamic scenes: three ~5s clips — start/middle/finish) saved under `test/phase_[N]/` named
+`[TASK_ID]_[short_description].[ext]`. Then flip the Checklist boxes, then submit. This is
+Checklist-adjacent bookkeeping, not a Checklist edit — the Checklist itself stays
+bracket-content-only (`AGENTS.md` §2.7).
 
 **If the task's Verification Method is Build+Test or Hybrid, it is already split into `a`
 (Code) and `b` (Verify) sub-tasks in the Plan/Checklist** — work `a` to its own DoD (clean
@@ -151,37 +169,46 @@ Do not open other files or scan the repository.
 **If anything cannot be resolved via the reference table** — a package/version conflict, a
 persistent test failure, an unverifiable DoR, a low-confidence artifact, a requirement for
 a production credential — **stop immediately.** Do not troubleshoot further, do not continue
-with other tasks in the phase. Go to step 8 now.
+with other tasks in the phase. Go to step 9 now.
 
-### 8. Write the Phase Summary — on normal completion or on stopping
+### 9. Write the Phase Summary — on normal completion or on stopping
 Write/update `[projectname]_phaseN_summary.md` (Plan §11.3): header block, tasks completed
-with evidence, deviations, issues/problems (with full diagnostic detail if this is why you
-stopped), assumptions, unplanned changes, incomplete tasks, open items, and **Escalation
-Required: Yes/No** — if Yes, classify (A) replanning or (B) re-architecting if you can tell.
+with evidence (**link to `test/[projectname]_phase_[N]_verification.md` rather than
+repeating its content**), deviations, issues/problems (with full diagnostic detail if this is
+why you stopped), assumptions, unplanned changes, incomplete tasks, open items, and
+**Escalation Required: Yes/No** — if Yes, classify (A) replanning or (B) re-architecting if
+you can tell.
 
 **If you stopped on an unresolved issue: this is the end of the session.** No PR, no further
 progress, no commit of anything beyond what's already clean. The human takes this Phase
 Summary to a Design Phase session to diagnose, update the Spec/Plan, and hand back a
 restructured Plan/Checklist for a fresh session to resume from the last known-good phase.
 
-### 9. On normal completion only: final wrap-up submit and stop
-Individual tasks are already submitted at their own declared Submit Points (step 7) — this
+### 10. On normal completion only: final wrap-up submit and stop
+Individual tasks are already submitted at their own declared Submit Points (step 8) — this
 is the phase-level wrap-up only: docs, README updates, and the Phase Summary, submitted
 together. Confirm build/tests green. Notify the user the declared Session Unit is complete.
 **Do not begin the next unit**, regardless of remaining capacity — it starts in a new
 session.
 
-### 10. Session-End Checklist
+### 11. Session-End Checklist
 - [ ] Every DoD item you completed is checked in the Checklist — all of them.
 - [ ] Any aborted task has its boxes unchecked, with a note explaining why.
-- [ ] Build and test commands pass (unless you stopped per step 7/8, in which case this is
+- [ ] Build and test commands pass (unless you stopped per step 8/9, in which case this is
   the reason the Phase Summary exists).
 - [ ] Phase Summary written and saved.
+- [ ] The Verification file (`test/[projectname]_phase_[N]_verification.md`) has an entry for
+  every task completed this session that has a real Verification Method, with any
+  screenshots/clips saved under `test/phase_[N]/` — nothing beyond the summary line/artifact
+  reference (no raw logs).
+- [ ] You worked on the phase's checked-out Branch Name (Plan §6.1), not the default branch.
 - [ ] No half-applied change left uncommitted.
 - [ ] `scripts/setup_env.sh`/`.bat` reflect any prerequisites self-installed this session.
 - [ ] You have not begun any task belonging to the next phase.
-- [ ] The Checklist was the only doc file you edited, and every mark belongs to your
-  current Phase — no other phase's box touched, no structural text edited.
+- [ ] The Checklist was the only doc file you edited. Every edit was bracket-content-only —
+  a mark changed inside an existing `[ ]`, a `Submitted` box checked, or a new Session Log
+  row appended — within your current Phase only. You did not reword any task/DoD line, add
+  commentary, insert or restructure anything, or touch a mark from another phase.
 - [ ] You did not perform a broad repository scan or read any Architecture Spec / Dev Plan
   file in full (except the protocols file). Every doc reference was a targeted extraction
   triggered by a specific uncertainty, using the method in the step 2 table.
@@ -200,8 +227,8 @@ session.
   values. Architecture Spec file versions are independent per file — each has its own `[N]`.
 - In step 1 items 3 and 4, replace `[N]` in the grep/awk commands with the actual phase
   identifier from the checklist before handing this to a development agent.
-- Fill step 5's build/test commands from Plan §2/§4.
-- Fill step 4 only if the project uses infrastructure services; remove entirely if not.
+- Fill step 6's build/test commands from Plan §2/§4.
+- Fill step 5 only if the project uses infrastructure services; remove entirely if not.
 - In the reference table, replace `FILE` with the actual filename in each row; replace
   example IDs (`REQ-ID`, `EntityName`, etc.) with project-specific examples where helpful.
 - Reused verbatim every session — fix this file once, in place, if something's wrong for

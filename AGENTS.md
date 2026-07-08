@@ -72,13 +72,18 @@ for which steps, if any, are exempt from its standard procedure.
 -   **Content Preservation & Continuity:** The agent must NEVER elide, summarize, or remove any content from a document unless given explicit approval. During iterations (especially of architecture specifications), the agent MUST ensure technical continuity. All existing detail must be preserved; any additions or modifications must be strictly additive by default. Removing or "cleaning up" previously approved technical detail is forbidden without an unambiguous user instruction to delete a specific section.
 -   **No Self-Referential Elision:** The agent is **ABSOLUTELY FORBIDDEN** from replacing document sections with references to "previous versions" or "Section X of version Y." Since older versions are not persistently available for reference, every document MUST remain self-contained and fully detailed.
 -   **No Unauthorized Copying or Duplication of Working Documents:** The agent is explicitly forbidden from copying, cloning, or replicating any file or directory from this repository to any other location (e.g., local scratch folders, other repositories, or external services) unless specifically instructed by the user for a valid technical reason (e.g., a deployment task). This extends specifically to project working documents during the Development Phase: the agent MUST edit the Development Checklist and other shared, in-place documents directly, never create a copy, rename, "v2," or otherwise reproduce a one-off version of any input file it has been given to work from. See `agents/DEVELOPMENT.md` §4 for the concrete rule.
--   **Mandatory Artifact Preservation:** The agent MUST commit all non-reproducible evidence artifacts — test output logs, screenshots, coverage reports, and any other verification artifacts (e.g., in `test_outs/`) — to the repository. These cannot be recreated after a session crash and are critical for maintaining state across sessions. **Reproducible build outputs are explicitly excluded from this mandate and MUST be gitignored, not committed** — committing them causes enormous diffs, breaks standard tooling, and provides no state-preservation benefit since they can be recreated from source. The required `.gitignore` entries are specified in `agents/exemplars/development_plan_template.md` §3.
+-   **Mandatory Artifact Preservation:** The agent MUST commit all non-reproducible evidence artifacts to the repository under `test/` — the concise per-phase Verification file (`test/[projectname]_phase_[N]_verification.md`) and each phase's screenshots/clips in `test/phase_[N]/` — per `agents/exemplars/development_plan_template.md` §11.4. These cannot be recreated after a session crash and are critical for maintaining state across sessions. Raw build/test logs are not retained beyond the Verification file's own summary line. **Reproducible build outputs are explicitly excluded from this mandate and MUST be gitignored, not committed** — committing them causes enormous diffs, breaks standard tooling, and provides no state-preservation benefit since they can be recreated from source. The required `.gitignore` entries are specified in `agents/exemplars/development_plan_template.md` §3.
 -   **Task-Level Submit Cadence (the core work-preservation mechanism):** A Development Phase
     session's only real save point is a `submit` call (`agents/AGENT_TOOL_POLICY.md`) — nothing
     is safe from a session crash until submitted. Per `agents/DEVELOPMENT.md` §5.1/§5.2, the
     agent submits **at every declared Submit Point**, which — per
     `agents/exemplars/development_plan_template.md` §8 — occurs at minimum at the end of every
     task (or every sub-task, for a Code/Verify-split task), never batched until end-of-phase.
+    **The moment a task's (or sub-task's) DoD is fully satisfied and its Checklist boxes are
+    flipped, the agent MUST submit before doing anything else** — before reading ahead into the
+    next task, before any cleanup pass, before continuing to work "while it's fresh." A
+    task's work is not actually finished until it is submitted; treat "DoD satisfied but not
+    yet submitted" as an incomplete task, not a completed one paused for later bookkeeping.
     This bounds crash blast-radius to the single task or sub-task in flight, not the whole
     phase. Never call `reset_all()` or `restore_file()` to discard a submitted or
     WIP-checkpointed state without explicit user approval — this is the same additive-only
@@ -130,6 +135,7 @@ for which steps, if any, are exempt from its standard procedure.
 **MANDATE: All work must be implemented to the fullest, most robust, and most complete potential.**
 -   **Sole Responsibility:** The agent is solely responsible for the technical quality and completeness of its work. If information is insufficient, the agent MUST ask the user well-formed questions to elicit the required detail.
 -   **Maximal Implementation:** Stub implementations, partial solutions, or "good enough" functionality are explicitly forbidden.
+-   **No Compressed Formats in Delivered Content:** Every phase, task, section, list item, or repeated structure in a delivered file (Architecture Spec, Development Plan, Development Checklist, or any other deliverable) MUST be written out in full, individually — never collapsed into a placeholder like `(repeat one block per phase)`, `... (similar for remaining tasks)`, an ellipsis run standing in for omitted items, or any other compressed/templated shorthand. This applies everywhere such content appears, not only in the Checklist. A template file's own illustrative placeholder (e.g. `agents/exemplars/development_checklist_template.md`'s single example `## Phase N` block) is the sole exception — it exists to be filled in, not delivered as-is; the actual generated deliverable for a real project always expands every phase and task explicitly, with no "repeat" instruction left in the delivered content.
 -   **Pre-Commit Documentation Integrity:** No commit shall be made until all relevant documentation, including checklists and handoff files, is verifiably up-to-date.
 
 ### 2.4. Mandate for Behavioral Caution and Simplicity
@@ -179,11 +185,20 @@ non-duplicating:** the Development Checklist is the *only* documentation/plannin
 session is permitted to edit at all — every other doc file it reads (Architecture
 Specification, Development Plan, Kickoff/Dev-Agent Prompt, prior handoff notes, Phase
 Summaries) is read-only, full stop; an apparent error or inconsistency in one of them is an
-Escalation Trigger, never a same-session fix. Within the Checklist itself, a session's edits
-are further scoped to marking DoD sub-items/tasks complete and appending its own Session Log
-row, **strictly within its own current, identified Phase** — never a mark belonging to any
-other phase, and never the Checklist's structural text (phase/task wording, Entry/Exit
-Criteria, DoD item wording). See `agents/DEVELOPMENT.md` §4 for the operational detail this
+Escalation Trigger, never a same-session fix.
+
+**Within the Checklist itself, edits are bracket-content-only.** The agent may change only
+the mark inside an existing `[ ]` — to `[x]` (done) or, only where the Plan itself already
+marked that specific task as deferred, `[D]` — and may check the per-task/per-sub-task
+`Submitted` box once that Submit Point has actually fired. It may append its own Session Log
+row (`agents/exemplars/development_checklist_template.md`'s table, a new row only — never
+editing a prior row's content). **Nothing else in the file is writable by a Development Phase
+session:** no rewording a task or DoD line, no adding notes/commentary/explanation next to a
+checkbox, no inserting new bullets or sub-items, no reformatting, no fixing a perceived typo
+or ambiguity in the checklist text itself, and no touching any mark outside its own current,
+identified Phase. If checklist wording appears wrong, incomplete, or ambiguous, that is an
+Escalation Trigger (`agents/DEVELOPMENT.md` §4) — flag it and stop; do not rewrite it, however
+small the change seems. See `agents/DEVELOPMENT.md` §4 for the operational detail this
 mandate drives.
 
 ### 2.8. Mandate for One Phase Per Development Session

@@ -14,7 +14,8 @@ Complex/Multi-Phase Rust Project Variant
 Structure · 4. Environment & Prerequisites · 5. Dev & Test Configuration · 6. Phases &
 Milestones · 7. Risk Management · 8. Task Decomposition · 9. Test Strategy · 10. Logging
 Strategy · 11. Session Handoff Protocol · 12. Abort/Rollback Protocol · 13. Escalation
-Triggers · 14. Change Control · 15. Plan-Level Definition of Done · Appendix G Glossary
+Triggers · 14. Change Control · 15. Plan-Level Definition of Done · Appendix G Glossary ·
+Appendix R Version History
 
 ---
 
@@ -86,10 +87,11 @@ project under this methodology; additional project-specific entries are added as
 .vscode/
 ```
 
-Per `AGENTS.md` §2.1, non-reproducible evidence artifacts (`test_outs/`, screenshots,
-coverage reports) are **not** gitignored — they are committed, as they cannot be recreated
-after a session crash. `/target` and `/dist` are reproducible from source and MUST be
-gitignored, not committed.
+Per `AGENTS.md` §2.1, non-reproducible evidence artifacts under `test/` (the concise
+per-phase Verification file plus each phase's detailed screenshots/logs subfolder — see
+§11.4 below) are **not** gitignored — they are committed, as they cannot be recreated after
+a session crash. `/target` and `/dist` are reproducible from source and MUST be gitignored,
+not committed.
 
 ## 4. Environment & Prerequisites Setup
 
@@ -139,8 +141,15 @@ session), `Task` (one task per session), or `Code+Verify` (one Code or Verify su
 session — only meaningful for phases dominated by split tasks, §8). Changed later only via
 §14 Plan-Change Escalation, never unilaterally by an executing session.
 
-| Phase | Build-Order Step(s) | Component(s) | Title | Session Unit | Entry Criteria | Exit Criteria | Req Domains | Task Count |
-|---|---|---|---|---|---|---|---|---|
+**Branch Name** (one per phase, assigned at drafting time): a human-readable, concise,
+descriptive `snake_case` name reflecting the phase's actual content — e.g.
+`phase2_auth_and_session_mgmt`, not `phase2` alone (uninformative) or the Title column
+mechanically underscored. Name it for what a human skimming `git branch -a` would want to
+see, based on the phase's real Title and task list. Assigned once here; changed later only
+via §14 Plan-Change Escalation like any other Phase Index field.
+
+| Phase | Build-Order Step(s) | Component(s) | Title | Branch Name | Session Unit | Entry Criteria | Exit Criteria | Req Domains | Task Count |
+|---|---|---|---|---|---|---|---|---|---|
 
 **Final phase includes a README review/finalization task** — the README itself is drafted
 at Design Step 8, not scaffolded here; Development's Phase 0 task is to review, confirm, and
@@ -263,6 +272,43 @@ Required content:
   change) — enough detail for a Design Phase session to act on cold, since per §13 the
   agent does not attempt further resolution itself.
 
+### 11.4. Verification File
+
+**One file per phase, `test/[projectname]_phase_[N]_verification.md`, appended to in
+place across every session that touches the phase** (never copied/renamed — same
+in-place discipline as the Checklist, `AGENTS.md` §2.7). It is the concise evidence
+receipt for the phase's task claims — distinct from the Phase Summary (§11.3), which is
+the narrative. The Phase Summary links to this file rather than repeating its content.
+
+**Scope — which tasks get an entry:** any task whose Verification Method
+(`agents/exemplars/development_plan_template.md` §8) is **Build+Test**, **Hybrid**, or
+**Visual/Behavioral** — i.e., any task that produces a real build result, test result, or
+UI state. A task with no Verification Method beyond human review/approval (e.g. a
+documentation-only task) has nothing to log and is exempt.
+
+**Format — evidence lines, not prose. Target 20–30 lines for the whole file.** One entry
+per task, appended immediately when that task's DoD is satisfied (same continuous-update
+timing as the Checklist), each entry no more than a few lines:
+- **Build/test tasks:** the final build status line (e.g. `cargo build --workspace:
+  Finished` or the equivalent failure line) and/or the test-runner summary line only —
+  e.g. `cargo nextest run --workspace: Summary [0.021s] 14 tests run: 14 passed, 177
+  skipped`. Never the full raw log — that's discarded, not committed.
+- **UI/visual tasks (static views** — landing, sign-in, sign-out, settings, a UI element
+  added to an existing page, or similar): one final-state screenshot is sufficient.
+- **UI/visual tasks (dynamic scenes** — animation, multi-step interaction, anything that
+  changes meaningfully over time): three short clips (start, middle, finishing — roughly
+  5 seconds each), not one long recording.
+- Each entry cites the artifact by filename, pointing into that phase's detail folder
+  (below) — e.g. `Task AUTH_003: cargo nextest ... 6 passed. Screenshot:
+  AUTH_003_login_success.png`.
+
+**Detail folder — `test/phase_[N]/`:** holds the actual screenshots/clips named
+`[TASK_ID]_[short_description].[ext]` (e.g. `AUTH_003_login_success.png`,
+`UI_007_toast_animation_start.mp4`). Raw build/test logs are **not** retained here —
+only the summary line goes in the Verification file itself, per the Mandatory Artifact
+Preservation policy's non-reproducible-evidence scope (`AGENTS.md` §2.1). Committed, not
+gitignored (§3 above).
+
 ## 12. Abort / Rollback Protocol
 
 Treat a task/phase as aborted (not silently reworked) when: the chosen approach is found to
@@ -353,6 +399,19 @@ happens to be compatible.
 |---|---|
 | DoD / DoR | Definition of Done / Ready |
 | [project-specific terms] | |
+
+## Appendix R — Version History
+
+**Per `CLAUDE.md` §4.3 — this file's own version history, and only this file's.** One row
+per session that bumped *this specific* numbered file (e.g. `_01_overview`), never the whole
+Plan's combined history — each of the 4 Dev Plan files carries its own independent Appendix
+R, matching its own independent `_v[N]` counter. Appended to, one new row per bump, in the
+same pass as the bump itself; prior rows are never rewritten or removed. This is the file's
+*only* changelog surface — no version/revision commentary anywhere else in the file.
+
+| Version | Date | Session / Step | Changes |
+|---|---|---|---|
+| v1 | [date] | Step 8 (initial) | Initial creation. |
 
 ---
 See `CHANGELOG.md` for this file's full version history.
