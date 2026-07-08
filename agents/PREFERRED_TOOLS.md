@@ -93,12 +93,52 @@ Use only for **npm-ecosystem publishing** or when Trunk isn't appropriate for th
 project's output type. Never alongside Trunk in the same project — different
 deployment targets, conflicting pipelines. Install: `cargo install wasm-pack --locked`.
 
+### getrandom on wasm32-unknown-unknown — mandatory backend config
+`getrandom` 0.3+ no longer auto-selects a WASM backend — anything pulling it in
+transitively (`rand`, `uuid`, both in `PREFERRED_DEPENDENCIES.md`) fails to compile for
+`wasm32-unknown-unknown` without **both** of the following set explicitly (the feature
+alone is not sufficient):
+
+```toml
+# Cargo.toml — the wasm-targeted crate (or workspace-wide if only one wasm target exists)
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
+```
+
+```toml
+# .cargo/config.toml
+[target.wasm32-unknown-unknown]
+rustflags = ["--cfg", "getrandom_backend=\"wasm_js\""]
+```
+
+Missing either half surfaces as a `getrandom`/`backends` compile error only on the WASM
+target — set both at Design Step 5/6 once the tech stack is finalized, not discovered via
+a failing CI run.
+
 ---
 
 ## Code Quality
-- **cargo-deny** — license/advisory checks. `cargo install cargo-deny --locked`; config `deny.toml`.
+- **cargo-deny** — license/advisory checks. **Pin the version explicitly**:
+  `cargo install cargo-deny --version 0.16 --locked` (or whatever the current stable
+  minor is at Step 5 — check and record it there); config `deny.toml`. An unpinned
+  `cargo install cargo-deny --locked` risks a schema-breaking version landing between
+  Design and a later Development session (e.g. `unmaintained`/`unsound` changed meaning
+  from a lint-level string to a dependency-scope filter across a past major) —
+  invalidating an already-approved `deny.toml` with no warning until CI fails. Known-good
+  skeleton matching the pinned version:
+  ```toml
+  # deny.toml
+  [advisories]
+  unmaintained = "all"       # dependency-scope filter, not a lint level, as of 0.16
+  unsound = "all"
+  yanked = "deny"
+  ```
 - **cargo-audit** — RustSec vulnerability scan. `cargo install cargo-audit --locked`.
 - **cargo-watch** — rebuild/retest on change. `cargo install cargo-watch --locked`.
+
+## GitHub Actions
+Pin actions to the current Node major at minimum (Node 24 as of this writing, e.g.
+`actions/checkout@v5`) — check for a newer default if the warning recurs.
 
 ## Database
 - **sqlx-cli** — `cargo install sqlx-cli --no-default-features --features native-tls,postgres --locked`.

@@ -100,10 +100,10 @@ See `CHANGELOG.md` for version history.
 - tracing
 
 ## Utilities
-- rand
+- rand  # WASM target: requires the `getrandom` wasm_js backend config, `PREFERRED_TOOLS.md`'s WASM section.
 - jsonwebtoken
 - chrono
-- uuid
+- uuid  # WASM target: same `getrandom` wasm_js backend config as rand.
 - dotenv
 - base64
 - regex

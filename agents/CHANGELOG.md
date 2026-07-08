@@ -110,6 +110,7 @@
 |---------|------|--------|---------|
 | 0.6.3 | 2026-06-29 | Claude | **v0.6.3 batch (initial versioned entry).** Rust 2024 edition mandate added. cargo-tarpaulin removed (replaced by cargo-llvm-cov in PREFERRED_TOOLS.md). trunk removed (moved to PREFERRED_TOOLS.md). webpack removed entirely. MSRV policy pointer added. CHANGELOG.md pointer added. |
 | 0.8.5 | 2026-07-04 | Claude | Added `btleplug`, `rumqttc`, `aes-gcm`, `tokio-cron-scheduler`, `totp-rs`, `qrcode`, `image`, `wiremock`, `wasmtime`/`wasmtime-wasi`/`wit-bindgen`, `embedded-graphics`/`ssd1306`/`mipidsi`. Added a Dependencies Requiring Approval section for vendor/integration-specific crates seen in a prior engagement. Cross-referenced `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md`. |
+| 0.8.8 | 2026-07-08 | Claude | `rand` and `uuid` flagged with a cross-reference to `PREFERRED_TOOLS.md`'s new `getrandom`/`wasm_js` backend config — required for either dependency to compile on `wasm32-unknown-unknown`, discovered via a real CI failure (`getrandom` 0.3's backend-selection breaking change). |
 
 ---
 
@@ -119,6 +120,7 @@
 |---------|------|--------|---------|
 | 0.1.0 | 2026-06-29 | Claude | Initial creation. Covers: cargo-nextest, cargo-llvm-cov, cargo-deny, cargo-audit, cargo-watch, trunk, sqlx-cli, cargo-expand, wasm-pack, protoc. Includes rust-toolchain.toml template and pre-flight version check guidance. |
 | 0.8.5 | 2026-07-04 | Claude | Merged in the Forbidden Tools section and non-fatal-tools guidance from `PREFERRED_TOOLS_proposed.md` v0.2.0. Added explicit Trunk `dist/` vs. project `assets/` disambiguation with a `Trunk.toml` pin example. Missing Tool Protocol updated to Stop-Summarize-Wait for anything beyond a clean install. Cross-referenced `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md`. |
+| 0.8.8 | 2026-07-08 | Claude | **v0.8.8 batch — three real CI failures resolved.** New WASM subsection: `getrandom` 0.3+'s wasm backend requires both a `Cargo.toml` feature (`wasm_js`) and a `.cargo/config.toml` `rustflags` cfg — either alone is insufficient; documented with the exact snippets. **cargo-deny** now requires an explicit version pin (was unpinned `--locked` only), plus a known-good `deny.toml` skeleton — an unpinned install let a schema-breaking `cargo-deny` release (`unmaintained`/`unsound` changed from lint-level strings to dependency-scope filters) invalidate an already-approved config with no warning until CI failed. New **GitHub Actions** section: pin actions to the current Node major at minimum (Node 24 as of this writing, e.g. `actions/checkout@v5`) to avoid the recurring Node-deprecation warning on hosted runners. |
 
 ---
 
