@@ -24,6 +24,13 @@ Per `AGENTS.md` §1.5.2, not Autonomous:
   don't apply; Claude won't simulate running them.
 - If a mandate assumes access Claude doesn't have, Claude says so rather than skipping or
   improvising silently.
+- **`AGENTS.md` §2.1's Selective Reading Mandate and No Broad Repository Scan Mandate do not
+  apply to this session.** Both are scoped explicitly to Development Phase (Jules) sessions.
+  Claude reads Architecture Spec, Plan, and related files as broadly as a given Step's
+  synthesis genuinely requires — whole-file reads are expected and normal here, not a
+  violation. If a session catches itself narrating compliance with either mandate (e.g.
+  reaching for targeted `grep`/`sed` extraction "per the Selective Reading Mandate"), that
+  narration itself is the signal something is misapplied — stop and read normally.
 - **Every Step, and every repeated run of a Step (user-requested per §3.9, or automatic,
   e.g. a Step 7 re-audit per §3.11), runs in its own separate chat session — a hard rule.**
   Step 2 (User Story Elicitation) is one session, not split into named passes (§3.4). Nothing
@@ -200,9 +207,9 @@ preset — this is fixed. The table states only what's specific to each step.
 | 4 | Test Identification | Architecture file `_04_test_strategy` | Test cases derived per requirement; the 9-criteria table and Rust Requirement Smell catalog checked as part of core-batch generation. |
 | 5 | Verification Feasibility | Architecture file `_05_verified_traceability` | Rust dependencies checked against `agents/PREFERRED_DEPENDENCIES.md` (preferred used directly; Forbidden never proposed; Requires-Approval/unlisted is a RATS item); dev tools/`agents/PREFERRED_TOOLS.md`, infra services/`agents/PREFERRED_SERVICES.md`; ESP32/ESP-IDF components cross-checked against `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md`; **sets the workspace MSRV** (`agents/RUST_PREFERENCES.md` §0) — flagged placeholder here, relocated to `_07_interfaces_and_stack` §6 at Step 6. Claude never certifies "technical sufficiency" unilaterally. |
 | 6 | Final Architecture Synthesis (ISO 42010) | Architecture files `_06_viewpoints`, `_07_interfaces_and_stack`, `_08_constraints_and_roadmap` (new); `_05_verified_traceability` (finalized) | Mostly recombination of already-approved content — less new drafting. One live judgment call: formal notation vs. prose per element, stated briefly so the user can override without re-litigating. Covers all 4 mandatory viewpoints. Asset Manifest migrates to permanent home in `_06`'s §4.13. |
-| 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | **No RCD/RATS here — by design.** Adversarial independence from the rest of the process, including Claude's own prior work. Checks, on Claude's own analysis: every User Story maps to a requirement; every requirement atomic; no elided/summarized content; no gap forcing a stub downstream; every Asset Manifest entry referenced; every filename conforms to §4; **every Open Items Register entry has a terminal RATS outcome** (Resolved/Deferred-to-a-valid-step/Future Feature/Rejected) — a lingering open item is itself a finding. **Zero findings → proceed to Step 8. Any finding → Step 7 Backtrack Workflow (§3.11).** |
+| 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | **No RCD/RATS here — by design.** Adversarial independence from the rest of the process, including Claude's own prior work. Checks, on Claude's own analysis: every User Story maps to a requirement; every requirement atomic; no elided/summarized content; no gap forcing a stub downstream; every Asset Manifest entry referenced; every filename conforms to §4; **the Open Items Register contains only valid, not-yet-reached Deferred items — any Resolved/Future Feature/Rejected entry still sitting on the Register, or any item with no terminal outcome at all, is itself a finding** (§3.12). **Zero findings → proceed to Step 8. Any finding → Step 7 Backtrack Workflow (§3.11).** |
 | 8 | Development Plan & Checklist | Development Plan + Checklist + Dev Prompt + draft README | Environment/config facts (toolchain, CI, local setup) elicited directly; unspecified items with a reasonable default proposed once per Plan via RATS, not once per phase. **Phase Sizing:** `Score = (task_count × 1) + (new_public_interfaces × 2) + (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)`, default ceiling **≤15** (a Code/Verify-split task counts as 2 tasks). **Frontend targeted interleaving** where a UI exists: each screen/component's frontend task sits in the same phase as its real backend/data dependency. **Per-task Design Refs, Submit Points, and per-phase Session Unit are populated at drafting time** (`agents/exemplars/development_plan_template.md` §6.1/§8), not left as stubs — Design Refs cite the specific Spec file/section/item each task derives from; the mandatory Code/Verify split is derived mechanically from each task's Verification Method. **Drafts the project README** (overview/stack/roadmap) — Development Phase's Phase 0 task reviews/confirms/enhances it. **Deliverable:** `agents/exemplars/dev_prompt_template.md` → `[projectname]_dev_prompt.md`, produced once, reused every Development-Phase session. |
-| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No RCD/RATS here either — mirrors Step 7's independence.** Runs `agents/exemplars/development_plan_template.md` §15 directly as an audit checklist: every Core requirement traced, no orphan citations, every phase has Entry/Exit Criteria, every task has a Verification Method and DoD, Phase Dependency Graph acyclic, Checklist/Plan lockstep, every filename conforms to §4, Build Order fidelity, Frontend Targeted Interleaving where a UI exists, and **every Open Items Register entry has a terminal RATS outcome.** **Zero findings closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only** — reopen Step 8 alone — **or (B) Spec-originating** — reopen the relevant Spec step, re-clear Step 7, then return to Step 8. Repeats until clean. See `agents/DESIGN.md` §5.9. |
+| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No RCD/RATS here either — mirrors Step 7's independence.** Runs `agents/exemplars/development_plan_template.md` §15 directly as an audit checklist: every Core requirement traced, no orphan citations, every phase has Entry/Exit Criteria, every task has a Verification Method and DoD, Phase Dependency Graph acyclic, Checklist/Plan lockstep, every filename conforms to §4, Build Order fidelity, Frontend Targeted Interleaving where a UI exists, and **the Open Items Register contains only valid, not-yet-reached Deferred items — same check as Step 7 (§3.12), re-verified here in case anything slipped through since.** **Zero findings closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only** — reopen Step 8 alone — **or (B) Spec-originating** — reopen the relevant Spec step, re-clear Step 7, then return to Step 8. Repeats until clean. See `agents/DESIGN.md` §5.9. |
 
 Every step ends with **STOP, present output, await explicit `APPROVED`** — never combined,
 never skipped. Per §1, every step (and
@@ -551,8 +558,13 @@ Instead:
    sessions/gates), still mandatorily ending in a fresh Step 7 session. Default path is the
    full multi-session workflow below unless the user explicitly invokes the override.
 3. **Open one new "backtrack" session** (per §1; Step 7's handoff note for this session makes
-   clear what kind of session it is and what it must accomplish). Working forward from the
-   earliest originating step through to Step 7 again:
+   clear what kind of session it is and what it must accomplish). **Proceeding directly into
+   fixing is the default the moment this session opens — no separate "go ahead"/"proceed with
+   fixes" instruction is needed beyond the findings themselves having been presented at the
+   Step 7 gate.** The user starting this new session (unavoidable, no cross-session memory) is
+   itself the go-ahead; Claude does not re-confirm findings or wait for an additional nod
+   before beginning to fix them. Working forward from the earliest originating step through to
+   Step 7 again:
    - Fix every finding tracing to the current step, editing that step's own owned file
      directly.
    - **Re-check already-approved later-step content for cascading effects of the fix**, per
@@ -581,6 +593,21 @@ Instead:
    independence as any Step 7 run (§3.4) — it does not take the backtrack session's own
    account as given; it re-derives findings independently. Clean → proceed to Step 8
    normally. Any finding (even something new) → this workflow (1–6) repeats.
+7. **Circuit breaker: two consecutive non-clean Step 7 passes on the same Spec.** If the
+   re-audit in step 6 is itself the *second* consecutive Step 7 run to produce any finding
+   (i.e. a backtrack-then-reaudit cycle has now failed to converge once already), this
+   workflow does **not** silently repeat a third time unchanged. Instead:
+   - Claude produces a short **Convergence Diagnostic**: the findings from the prior
+     non-clean pass alongside the findings from this pass, side by side, each flagged as
+     either (a) recurring / same underlying category as before, or (b) genuinely new and
+     unrelated to anything the prior fix touched.
+   - Claude presents the user an explicit choice rather than looping again automatically:
+     invoke the **Surgical Fix Override** (§3.6.1) to force resolution in one compressed
+     session; **accept a specific finding as a documented, deferred known-issue** (normal
+     RATS outcome — Deferred-to-a-step or Future Feature — never silently dropped, and
+     subject to §3.12's Register rules); or **direct a manually-scoped fix** themselves.
+   - **A third identical pass with no change in approach is not permitted.** Something —
+     scope, method, or an explicit deferral — must change before a third Step 7 run.
 
 **Major Change Notification still applies** (§3.6 point 4): a backtrack fix that materially
 changes scope/requirements/architecture is flagged the same as any other backtracking.
@@ -595,34 +622,48 @@ and additional to, RATS's own per-item resolution (§3.1), which settles *that s
 residual items before its gate; this reviews the **running total across every step so far**,
 in an explicit attempt to shrink the open list before it compounds.
 
-**Register entries and their states.** Per §3.1's terminal-outcome rule, every item that
-ever entered RATS carries exactly one of four outcomes:
-- **Resolved** — closed, stays on the Register only as a historical record, not reviewed again.
-- **Deferred to Step N** — **dormant**, not "open," until Step N is actually reached. Not
-  re-presented at any gate before Step N; at Step N's own gate it re-enters RATS as a normal
-  residual item for that step.
-- **Future Feature** — recorded in Spec §2.6, not reviewed again at subsequent gates unless
-  the user reopens it.
-- **Rejected** — recorded, ID retired per the stable-ID rule, not reviewed again.
+**The Register tracks open items only — a resolved item is deleted from it, not archived.**
+Per §3.1's terminal-outcome rule, every item that ever entered RATS resolves to exactly one
+of four outcomes, but only one of the four leaves anything on the Register:
+- **Resolved** — the resolution is folded into the actual content of the relevant Spec
+  section (that's where the decision now lives, in context); the Register entry is deleted
+  immediately, not kept as a historical record. Nothing about a closed item needs to keep
+  taking up space in a list whose only job is tracking what's still outstanding.
+- **Deferred to Step N** — the **only outcome that remains on the Register**, tagged with its
+  target step, and **dormant**, not "open," until Step N is actually reached. Not re-presented
+  at any gate before Step N; at Step N's own gate it re-enters RATS as a normal residual item
+  for that step — at which point it resolves to one of the other three outcomes and is
+  deleted per this rule.
+- **Future Feature** — recorded in Spec §2.6 (its permanent home); Register entry deleted
+  immediately. Reopening it later is a fresh decision referencing Spec §2.6 directly, not a
+  Register lookup.
+- **Rejected** — the ID is retired per the stable-ID rule (recorded as superseded, per
+  `AGENTS.md` §2.1's Stable Identifier Assignment); Register entry deleted immediately.
 
-**An item with no terminal outcome yet is the only kind actively re-surfaced at every gate**
-— this should not exist in practice past the step that raised it, since RATS resolves every
-residual item to one of the four outcomes before that step's gate closes; if one persists
-anyway (e.g. a Deferred target step turned out invalid), it's re-run through RATS at the very
-next gate rather than left indefinitely open.
+**An item with no terminal outcome yet is the only other kind actively re-surfaced at every
+gate** — this should not exist in practice past the step that raised it, since RATS resolves
+every residual item to one of the four outcomes before that step's gate closes; if one
+persists anyway (e.g. a Deferred target step turned out invalid), it's re-run through RATS at
+the very next gate rather than left indefinitely open.
 
 **Mechanism, every gate:**
-1. Claude maintains the running **Open Items Register** — every item and its outcome/state,
-   tagged with originating step.
+1. Claude maintains the running **Open Items Register** — genuinely open items only (in
+   practice: Deferred-and-not-yet-reached, plus any stray non-terminal item), each tagged
+   with its originating step and, if Deferred, its target step. A Resolved, Future Feature, or
+   Rejected item is never a Register row — it's deleted the moment RATS reaches that outcome.
 2. At every gate, before the step's own headline output, Claude presents: (a) any item whose
-   Deferred target step is *this* step — these re-enter RATS now; (b) any item still without
-   a terminal outcome — these are re-run through RATS immediately, since this state
-   shouldn't persist.
+   Deferred target step is *this* step — these re-enter RATS now, and are deleted from the
+   Register on resolution per point 1; (b) any item still without a terminal outcome — these
+   are re-run through RATS immediately, since this state shouldn't persist.
 3. **The Register lives inside `01_introduction`** (§4.1) as a dedicated subsection
    (§1.7 of the Architecture Spec template) — not a separate file. Every step's gate touches
-   `01_introduction` to append/update it, even when that step's own owned file is a
+   `01_introduction` to append/update/prune it, even when that step's own owned file is a
    different one; this is an explicit, standing case of §4.3's "touched file" bump rule, not
-   an exception to it.
+   an exception to it. Pruning a resolved entry is a normal edit here, not a violation of the
+   additive-only mandate (`AGENTS.md` §2.1) — the additive-only mandate governs technical
+   content and prior decisions, not the bookkeeping list of what's still outstanding; the
+   decision itself is preserved (in Spec content, Spec §2.6, or the retired-ID record), only
+   the now-redundant Register row is removed.
 
 **This does not relax §3.1's own per-step RATS resolution** — a step's own residual items
 still resolve to a terminal outcome before its gate. §3.12 is the additional cumulative
@@ -792,6 +833,20 @@ file's own internal links if their targets also changed version, and (2) check e
 file in the current set for links to this file's *old* version name, updating them. This
 recurs every bump; skipping it silently reintroduces broken cross-links the same way skipping
 filename versioning reintroduced download collisions.
+
+**Order of operations, mandatory: bump, then fix, never fix-then-bump.** This is the specific
+sequencing failure observed causing repeated Step 7 findings on the same class of issue — a
+session fixes cross-links against the *current* (pre-bump) filenames, then bumps the version
+at the very end, silently re-staling every reference it just corrected. The correct order,
+every session, is:
+1. First, increment the version of every touched file (once each, per the rule above).
+2. Only *after* every touched file carries its new name, compute and rewrite every cross-link
+   project-wide against the **post-bump** filenames — never the pre-bump names.
+3. **A final reference-consistency pass runs last, immediately before packaging (§3.10), as
+   the literal final step before delivery**: grep every file in the current set for any
+   remaining reference to any old version name. If this final pass finds a stale reference,
+   fix it in place — this does **not** trigger a further version bump (the file was already
+   bumped once this session, per the once-per-session rule above).
 
 **Version history lives in `Appendix R — Version History`, at the end of the file — never as
 commentary at the front.** Every Architecture Spec and Dev Plan file ends with this appendix

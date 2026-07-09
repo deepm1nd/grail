@@ -151,7 +151,22 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
 
 ### 5.7. Step 7: Spec Audit & Phase-End Quality Assurance
 - **No RCD/RATS here — by design.** An audit's value depends on adversarial independence from the rest of the process, including the agent's own prior work; this is the last systematic check before anything is built on the Spec. The agent audits on its own analysis, not by asking the user to confirm assumptions, and presents findings as findings.
-- **Process:** "Blind spot" review and comprehensive Assurance Review. Ensure all User Stories map to requirements and all requirements are atomic. Verify every deliverable file's name conforms to the naming convention in `CLAUDE.md` §4. **Verify every entry in the Open Items Register has a terminal RATS outcome** (Resolved / Deferred-to-a-valid-specific-step / Future Feature / Rejected) — an item still genuinely open, with no outcome, is itself a finding.
+- **Process — two explicit tiers, run every pass:**
+  - **Tier A — Fixed Checklist (deterministic, identical every pass, the audit's actual
+    anchor):** every User Story maps to a requirement; every requirement is atomic; every
+    deliverable file's name conforms to the naming convention in `CLAUDE.md` §4; **the Open
+    Items Register contains only valid, not-yet-reached Deferred items** — any
+    Resolved/Future Feature/Rejected entry still sitting on the Register, or any item with no
+    terminal outcome at all, is itself a finding (`CLAUDE.md` §3.12); the Content Continuity
+    Check and Anti-Stub Mandate below.
+  - **Tier B — Bounded Exploratory Pass (run once per audit, capped):** a single freeform
+    "blind spot" review beyond Tier A's fixed items. Any Tier B finding is logged and folded
+    into a running, project-specific addendum to this project's own Tier A checklist (carried
+    forward via the handoff note) — it is not rediscovered blind on every future pass. A Tier
+    B finding does not require different handling from a Tier A one once found — both go
+    through the same Step 7 Backtrack Workflow below — but Tier B's role is to shrink over
+    successive passes as its findings accumulate into Tier A, not to remain an open-ended
+    search each time.
 - **Content Continuity Check:** Verify no previously approved technical detail, diagrams, or requirements were elided or summarized; the process MUST be strictly additive unless deletion was explicitly requested; no section replaced with a "previous versions" reference.
 - **Anti-Stub Mandate:** Verify no logical gap could force a stubbed or partial implementation.
 - **Notification:** Notify the user of any "Major Changes" from iterations.
@@ -165,13 +180,20 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
     traced to its originating step (1–6); the agent reopens the *earliest* originating step
     and works forward, fixing each step's findings and any cascading effects on later
     already-approved content, ending with a fresh package of all touched files and a handoff
-    note for a brand-new Step 7 session. That new session re-audits the Spec independently
-    from scratch — it does not take the backtrack session's own account on faith. This
-    repeats until a Step 7 run produces zero findings. **The user may instead invoke the
-    Surgical Fix Override** (`CLAUDE.md` §3.6.1, exact phrase `SURGICAL FIX OVERRIDE`) — a
-    compressed single-session version of the same forward-through-Step-6 work, still
-    mandatorily ending in a fresh Step 7 session; the default remains the full workflow
-    unless the user explicitly invokes the override.
+    note for a brand-new Step 7 session. **Opening that backtrack session and proceeding
+    directly into fixing is the default** — the user starting the new session is itself the
+    go-ahead; no separate "proceed with fixes" instruction is needed. That new session
+    re-audits the Spec independently from scratch — it does not take the backtrack session's
+    own account on faith. This repeats until a Step 7 run produces zero findings. **The user
+    may instead invoke the Surgical Fix Override** (`CLAUDE.md` §3.6.1, exact phrase
+    `SURGICAL FIX OVERRIDE`) — a compressed single-session version of the same
+    forward-through-Step-6 work, still mandatorily ending in a fresh Step 7 session; the
+    default remains the full workflow unless the user explicitly invokes the override.
+  - **Circuit breaker:** if a re-audit is itself the *second* consecutive non-clean Step 7
+    pass, the workflow does not silently repeat a third time unchanged — `CLAUDE.md` §3.11
+    step 7 governs: a Convergence Diagnostic comparing the two passes' findings, then an
+    explicit user choice (Surgical Fix Override / accept as a documented deferred item /
+    manually-scoped fix). A third identical pass with no change in approach is not permitted.
 
 ### 5.8. Step 8: Development Plan & Checklist Generation
 - **Plan:** Create the dev plan files using `agents/exemplars/development_plan_template.md`.
@@ -194,7 +216,7 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
 
 ### 5.9. Step 9: Plan & Checklist Audit
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
-- **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that every Open Items Register entry carries a terminal RATS outcome** — same check as Step 7, re-verified here in case anything slipped through since.
+- **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
   standalone required file. On any finding, its content is embedded directly in the
   backtrack handoff note that reopens Step 8 (or the relevant Spec step), same convention
@@ -204,11 +226,20 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
   - **Any finding at all (even one):** the normal approval gate does not apply. Every finding is classified as it's found:
     - **(A) Plan/Checklist-only defect** (bad phase sizing, a task missing a Verification Method, an orphan citation the Plan itself introduced, a Checklist/Plan drift) — reopen Step 8 alone in a new backtrack session, fix, re-package, and proceed to a fresh Step 9 session (`pass2`, `pass3`, ... per `CLAUDE.md` §3.10's naming convention) that re-audits independently from scratch.
     - **(B) Spec-originating defect** (the Plan surfaces a genuinely missing or inconsistent requirement that Step 7 should have caught, or that was only discoverable once Plan-level task decomposition exposed it) — this is equivalent in severity to a re-architecting escalation (`agents/exemplars/development_plan_template.md` §13.1(B)). Reopen the relevant Architecture Specification step (1–6), then **re-run Step 7 to a clean result** before returning to Step 8, rather than patching the Plan around a still-defective Spec.
+  - **Opening the backtrack session (A or B) and proceeding directly into fixing is the
+    default**, same as Step 7 — the user starting the new session is itself the go-ahead; no
+    separate "proceed with fixes" instruction is needed.
   - This repeats until a Step 9 run produces zero findings. **For either (A) or (B), the user
     may instead invoke the Surgical Fix Override** (`CLAUDE.md` §3.6.1, exact phrase
     `SURGICAL FIX OVERRIDE`) — for (B), the compressed single-session equivalent still works
     forward through Step 6 and still mandatorily ends in a fresh Step 7 session before
     returning to Step 8/9.
+  - **Circuit breaker, mirroring Step 7 (`CLAUDE.md` §3.11 step 7):** if a re-audit is itself
+    the *second* consecutive non-clean Step 9 pass, the workflow does not silently repeat a
+    third time unchanged. Claude produces a Convergence Diagnostic comparing the two passes'
+    findings (recurring vs. genuinely new), then presents an explicit choice: Surgical Fix
+    Override, accept a specific finding as a documented deferred item, or a manually-scoped
+    fix. A third identical pass with no change in approach is not permitted.
 
 ## 6. Phase Completion Criteria
 Phase is complete ONLY when all approved artifacts (Spec, Plan, Checklist, Dev Prompt, and

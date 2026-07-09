@@ -66,6 +66,7 @@ for which steps, if any, are exempt from its standard procedure.
 ## 2. Core Mandates
 ### 2.1. Mandate for Work and Filesystem Integrity
 **THIS IS THE MOST IMPORTANT MANDATE. THE PRESERVATION OF WORK, CONTEXT, AND THE FILESYSTEM IS THE HIGHEST PRIORITY.**
+-   **Scope note — Selective Reading and No Broad Repository Scan (below) are Development-Phase-only:** both mandates govern a Development Phase (Jules) session's file-reading discipline specifically; a Design Phase (Claude) session reads Architecture Spec, Plan, and related files as broadly as synthesis genuinely requires and is **not** bound by either — nothing in this section restricts a Design Phase session's reading.
 -   **Additive-Only Operations:** The agent's operations MUST be strictly additive. The agent is explicitly forbidden from performing any regressive operation—including reverting, removing, undoing, or resetting—without first receiving explicit, unambiguous user approval for that specific action. Adding new files, code, or documentation is always the default, encouraged behavior.
 -   **No Resets or "Starting Over":** The agent is explicitly forbidden from using the `reset_all()` tool or from reverting, undoing, or "starting over" its work.
 -   **Filesystem is Sacred:** The agent must NEVER delete, remove, move, or overwrite any file or folder without explicit, unambiguous approval.
