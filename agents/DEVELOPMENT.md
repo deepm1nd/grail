@@ -42,6 +42,27 @@ of either.
 - **Agent Tool Tiers and Submit Mechanics:** All platform tool usage (submit, file
   deletion/reset/restore, PR-comment tools) follows `agents/AGENT_TOOL_POLICY.md`. Code
   review invocation follows `AGENTS.md` §2.2's Code Review Policy (bypassed by default).
+- **Ask-on-Uncertainty, Scoped Below Escalation Severity:** `AGENTS.md` §2.3/§2.4.1's
+  standing mandate — ask well-formed questions rather than assume, surface confusion rather
+  than silently guess — applies here too, but is explicitly two-tiered for a Development
+  Phase session:
+  - **Task-level implementation detail** (a minor unspecified choice the current task's own
+    DoD/Design Refs don't resolve — e.g. which of two equivalent helper-function names,
+    formatting a log line, an ordering choice with no behavioral consequence): ask directly,
+    in-session, via `message_user`/`request_user_input` (`agents/AGENT_TOOL_POLICY.md`
+    Allowed tier — no approval needed to ask); the user's answer resolves it and the same
+    session continues the task. This is the ordinary, low-stakes case the generic mandate is
+    for.
+  - **Anything rising to Plan/Spec-level ambiguity** — a genuinely unclear requirement, an
+    unverifiable DoR/Entry Criteria, a task whose DoD can't be satisfied as written, or any
+    other item matching `agents/exemplars/development_plan_template.md` §13's Escalation
+    Triggers — is **never** resolved by asking a question and continuing. Asking here would
+    substitute the agent's own framing of the ambiguity for a proper Plan/Spec fix; §13
+    governs instead: stop the entire session, write the Phase Summary, and let a Design
+    Phase session resolve and restructure. **When genuinely unsure which tier an uncertainty
+    falls into, treat it as the Escalation Trigger tier** — the safer default, since a wrongly
+    continued session risks building on an unresolved ambiguity, while a wrongly stopped one
+    only costs a session restart.
 - **No Reproducing Shared Working Documents (`AGENTS.md` §2.7):** The Development Checklist
   (`[projectname]_dev_checklist.md`) and the Dev Prompt (`[projectname]_dev_prompt.md`)
   are edited or read in place, directly in the repository, by every session. The agent is

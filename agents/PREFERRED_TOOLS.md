@@ -15,7 +15,9 @@ See `CHANGELOG.md` for version history.
 - **Rust 2024 edition mandatory**, `edition = "2024"` in every `Cargo.toml`.
 - **Workspace MSRV set at Design Step 5** — check the actual build-MSRV of every
   committed tool/dependency, take the maximum, set `rust-version` in workspace
-  `Cargo.toml` and `channel` in `rust-toolchain.toml`.
+  `Cargo.toml` and `channel` in `rust-toolchain.toml`. **Preferred floor: 1.94.0** (the dev
+  agent environment's pre-installed default, `RUST_PREFERENCES.md` §0) — use it whenever
+  the computed value would otherwise be lower; a higher computed value still wins.
 - **Dual-MSRV pattern** (publishable library crate): workspace toolchain pinned to dev
   MSRV; the publishable crate declares its own lower `rust-version`, enforced by a
   dedicated CI stage compiling only that crate.

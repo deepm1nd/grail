@@ -96,7 +96,12 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
 
 ### 5.1. Step 1: Concept Intake & Context Mapping
 - **Input:** User provides a concept statement or references repository documents.
-- **Process:** Map the "Problem Space" and identify system boundaries per the standard RCD/RATS procedure (§5's shared mechanism) — actual scope and real boundaries are the highest-cost content in the workflow for an unflagged wrong assumption, since every later step inherits it. Always attempts deep web research and competitive analysis (how comparable systems solve the same problem), aiming at best-in-class/competitive-advantage/novel-capability framing — an honest "no meaningful competitive landscape" is an acceptable reported outcome, not a fabricated comparison. Actively solicits screen mockups, reference HTML, brand/image assets, and (if relevant) audio/video assets, as early as possible — not just passively accepting them if offered, and not deferred to when UI work becomes imminent. See `CLAUDE.md` §3.7 for the full asset-tracking mechanism (Asset Manifest, filename-stable handoff into the development repository's `assets/` directories, HTML treated as presumptively authoritative for structure/behavior) — note that per `CLAUDE.md` §3.7/§3.10, assets themselves are never packaged into a Design-Phase session handoff note, only referenced by filename; a later step needing the asset requests the current version from the user directly.
+- **Process:** Map the "Problem Space" and identify system boundaries per the standard RCD/RATS procedure (§5's shared mechanism) — actual scope and real boundaries are the highest-cost content in the workflow for an unflagged wrong assumption, since every later step inherits it. Always attempts deep web research and competitive analysis (how comparable systems solve the same problem), aiming at best-in-class/competitive-advantage/novel-capability framing — an honest "no meaningful competitive landscape" is an acceptable reported outcome, not a fabricated comparison. Actively solicits screen mockups, reference HTML, brand/image assets, and (if relevant)
+audio/video assets, and — if auth/authorization exists — a sign-in/sign-up mockup, per
+`CLAUDE.md` §3.7's persistent per-step ask (repeats every step until satisfied, never a
+gate). §3.7 also owns: Asset Manifest tracking, Authority Levels, proactive UI-impact
+flagging as later steps introduce features, HTML's presumptive structural authority, and the
+handoff exclusion (assets referenced by filename only, never repackaged as files).
 - **Output:** Architecture Specification file `_01_introduction` (Draft) — see `CLAUDE.md`
   §4.1 for the full 8-file Architecture Specification structure this and every later step
   contributes to.
@@ -157,7 +162,9 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
     deliverable file's name conforms to the naming convention in `CLAUDE.md` §4; **the Open
     Items Register contains only valid, not-yet-reached Deferred items** — any
     Resolved/Future Feature/Rejected entry still sitting on the Register, or any item with no
-    terminal outcome at all, is itself a finding (`CLAUDE.md` §3.12); the Content Continuity
+    terminal outcome at all, is itself a finding (`CLAUDE.md` §3.12); **no inline prose
+    citation to another file includes a version number** — `File N vM` form is itself a
+    finding, correct to `File N §section` (`CLAUDE.md` §4.3); the Content Continuity
     Check and Anti-Stub Mandate below.
   - **Tier B — Bounded Exploratory Pass (run once per audit, capped):** a single freeform
     "blind spot" review beyond Tier A's fixed items. Any Tier B finding is logged and folded
@@ -173,32 +180,46 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
 - **Output:** Final Deficiency Audit Report — presented in chat at the gate; not a
   standalone required file. On any finding, its content is embedded directly in the
   backtrack handoff note (`CLAUDE.md` §3.10/§3.11) rather than delivered separately.
-- **GATE behavior depends on the report's findings:**
+- **GATE behavior depends on the report's findings and each finding's Severity
+  (`CLAUDE.md` §3.11 — Trivial: mechanically unambiguous, no judgment call, no risk of
+  masking a deeper issue; Substantive: anything else):**
   - **Zero findings:** the gate behaves normally — STOP, present the clean Audit Report, await User Approval to proceed to Step 8.
-  - **Any finding at all (even one):** the normal approval gate does NOT apply. Instead, the
-    mandatory **Step 7 Backtrack Workflow** (`CLAUDE.md` §3.11) governs: every finding is
+  - **All findings Trivial, none Substantive:** no backtrack, no new session. Claude fixes
+    every Trivial finding directly, in this same session, and presents the corrected content
+    plus a short fix log at the gate; the gate then proceeds normally — STOP, await approval
+    to Step 8. This exists so small mechanical defects (a duplicate section, a stale
+    cross-reference, a naming-convention slip) don't trigger the full cycle below.
+  - **Any Substantive finding (regardless of accompanying Trivial ones):** the normal
+    approval gate does NOT apply. Instead, the
+    mandatory **Step 7 Backtrack Workflow** (`CLAUDE.md` §3.11) governs: every finding
+    (Trivial and Substantive alike) is
     traced to its originating step (1–6); the agent reopens the *earliest* originating step
-    and works forward, fixing each step's findings and any cascading effects on later
-    already-approved content, ending with a fresh package of all touched files and a handoff
-    note for a brand-new Step 7 session. **Opening that backtrack session and proceeding
-    directly into fixing is the default** — the user starting the new session is itself the
-    go-ahead; no separate "proceed with fixes" instruction is needed. That new session
-    re-audits the Spec independently from scratch — it does not take the backtrack session's
-    own account on faith. This repeats until a Step 7 run produces zero findings. **The user
-    may instead invoke the Surgical Fix Override** (`CLAUDE.md` §3.6.1, exact phrase
-    `SURGICAL FIX OVERRIDE`) — a compressed single-session version of the same
+    and works forward, fixing each step's findings, any incidentally-discovered defect found
+    along the way (regardless of whether it predates the session), and any cascading effects
+    on later already-approved content, ending with a fresh package of all touched files and a
+    handoff note for a brand-new Step 7 session. **Opening that backtrack session and
+    proceeding directly into fixing is the default** — the user starting the new session is
+    itself the go-ahead; no separate "proceed with fixes" instruction is needed. That new
+    session re-audits the Spec independently from scratch — it does not take the backtrack
+    session's own account on faith. This repeats until a Step 7 run produces zero findings or
+    all-Trivial findings. **The user
+    may instead invoke the Post-Audit Fix Pass** (`CLAUDE.md` §3.6.1, exact phrase
+    `POST AUDIT FIX`) — a compressed single-session version of the same
     forward-through-Step-6 work, still mandatorily ending in a fresh Step 7 session; the
-    default remains the full workflow unless the user explicitly invokes the override.
-  - **Circuit breaker:** if a re-audit is itself the *second* consecutive non-clean Step 7
-    pass, the workflow does not silently repeat a third time unchanged — `CLAUDE.md` §3.11
+    default remains the full workflow unless the user explicitly invokes the pass. **Neither
+    path leaves a discovered defect flagged-but-unfixed for a future auditor to verify** —
+    everything found, from the report or incidentally, gets fixed in the same pass.
+  - **Circuit breaker:** if a re-audit produces a Substantive finding for the *second*
+    consecutive non-clean Step 7 pass (repeated all-Trivial passes don't count, since those
+    resolve immediately above), the workflow does not silently repeat a third time unchanged — `CLAUDE.md` §3.11
     step 7 governs: a Convergence Diagnostic comparing the two passes' findings, then an
-    explicit user choice (Surgical Fix Override / accept as a documented deferred item /
+    explicit user choice (Post-Audit Fix Pass / accept as a documented deferred item /
     manually-scoped fix). A third identical pass with no change in approach is not permitted.
 
 ### 5.8. Step 8: Development Plan & Checklist Generation
 - **Plan:** Create the dev plan files using `agents/exemplars/development_plan_template.md`.
 - **Environment/Configuration Elicitation:** Before drafting environment/config content (toolchain, local setup, CI — not addressed by Steps 1-7, which are about *what*, not *where/how built*): elicit concrete facts directly; for anything unspecified with a reasonable default, propose the default as a flagged assumption. Once per Plan, not once per phase.
-- **Phase Sizing Mandate:** Each phase must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `CLAUDE.md` §3.4 (Step 8) for the complexity-scoring formula and current ceiling. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one phase regardless of phase size** — sizing governs how much fits comfortably in a session, not whether multiple phases may be attempted in one.
+- **Phase Sizing Mandate:** Each phase must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `CLAUDE.md` §3.4 (Step 8) for the complexity-scoring formula and current ceiling. **The computed score is a mandatory column in the Phase Index (§6.1) of `agents/exemplars/development_plan_template.md`, shown for every phase, never left blank or only implied by Task Count** — over-ceiling requires a recorded override note in the same cell, not a silent judgment call. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one phase regardless of phase size** — sizing governs how much fits comfortably in a session, not whether multiple phases may be attempted in one.
 - **Frontend Targeted Interleaving:** Where the project has a human-facing UI component, phase sequencing does not build the entire backend before any frontend work, nor push all frontend work into a single trailing phase. Instead, each screen/component's frontend implementation task is placed in the same phase as the real (non-mock) backend/data dependency it needs — never earlier (which would force a throwaway stub, contradicting the Anti-Stub Mandate) and never artificially deferred once its real dependency is available. See `agents/exemplars/development_plan_template.md` §6/§9.1 for the concrete sequencing mechanics this principle drives.
 - **Per-Task Design Refs, Submit Points, and Per-Phase Session Unit:** Populated at drafting
   time, not left as stubs (`CLAUDE.md` §3.4 Step 8) — each task's Design Refs cite the
@@ -216,29 +237,35 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
 
 ### 5.9. Step 9: Plan & Checklist Audit
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
-- **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
+- **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every phase's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling phase with no recorded override is a finding**. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
   standalone required file. On any finding, its content is embedded directly in the
   backtrack handoff note that reopens Step 8 (or the relevant Spec step), same convention
   as Step 7 (`CLAUDE.md` §3.10/§3.11).
-- **GATE behavior depends on the report's findings, mirroring Step 7 (`CLAUDE.md` §3.11's mechanics, applied here):**
+- **GATE behavior depends on the report's findings, mirroring Step 7 (`CLAUDE.md` §3.11's mechanics, applied here) — each finding tagged Trivial or Substantive same as Step 7:**
   - **Zero findings:** the gate behaves normally — STOP, present the clean report, await User Approval. This closes the Design Phase (§6).
-  - **Any finding at all (even one):** the normal approval gate does not apply. Every finding is classified as it's found:
-    - **(A) Plan/Checklist-only defect** (bad phase sizing, a task missing a Verification Method, an orphan citation the Plan itself introduced, a Checklist/Plan drift) — reopen Step 8 alone in a new backtrack session, fix, re-package, and proceed to a fresh Step 9 session (`pass2`, `pass3`, ... per `CLAUDE.md` §3.10's naming convention) that re-audits independently from scratch.
-    - **(B) Spec-originating defect** (the Plan surfaces a genuinely missing or inconsistent requirement that Step 7 should have caught, or that was only discoverable once Plan-level task decomposition exposed it) — this is equivalent in severity to a re-architecting escalation (`agents/exemplars/development_plan_template.md` §13.1(B)). Reopen the relevant Architecture Specification step (1–6), then **re-run Step 7 to a clean result** before returning to Step 8, rather than patching the Plan around a still-defective Spec.
+  - **All findings Trivial, none Substantive:** no backtrack. Claude fixes every Trivial
+    finding directly, in this same session, presents the corrected Plan/Checklist plus a
+    short fix log at the gate, and the gate proceeds normally.
+  - **Any Substantive finding:** the normal approval gate does not apply. Every Substantive finding is classified as it's found:
+    - **(A) Plan/Checklist-only defect** (bad phase sizing, a task missing a Verification Method, an orphan citation the Plan itself introduced, a Checklist/Plan drift) — reopen Step 8 alone in a new backtrack session, fix every Substantive and Trivial finding plus anything discovered incidentally along the way, re-package, and proceed to a fresh Step 9 session (`pass2`, `pass3`, ... per `CLAUDE.md` §3.10's naming convention) that re-audits independently from scratch.
+    - **(B) Spec-originating defect** (the Plan surfaces a genuinely missing or inconsistent requirement that Step 7 should have caught, or that was only discoverable once Plan-level task decomposition exposed it) — this is equivalent in severity to a re-architecting escalation (`agents/exemplars/development_plan_template.md` §13.1(B)). Reopen the relevant Architecture Specification step (1–6), then **re-run Step 7 to a clean or all-Trivial result** before returning to Step 8, rather than patching the Plan around a still-defective Spec.
   - **Opening the backtrack session (A or B) and proceeding directly into fixing is the
     default**, same as Step 7 — the user starting the new session is itself the go-ahead; no
-    separate "proceed with fixes" instruction is needed.
-  - This repeats until a Step 9 run produces zero findings. **For either (A) or (B), the user
-    may instead invoke the Surgical Fix Override** (`CLAUDE.md` §3.6.1, exact phrase
-    `SURGICAL FIX OVERRIDE`) — for (B), the compressed single-session equivalent still works
+    separate "proceed with fixes" instruction is needed. **No discovered defect is left
+    flagged-but-unfixed for a future auditor** — everything found, from the report or
+    incidentally, gets fixed in the same pass (`CLAUDE.md` §3.6.1 point 5).
+  - This repeats until a Step 9 run produces zero findings or all-Trivial findings. **For
+    either (A) or (B), the user
+    may instead invoke the Post-Audit Fix Pass** (`CLAUDE.md` §3.6.1, exact phrase
+    `POST AUDIT FIX`) — for (B), the compressed single-session equivalent still works
     forward through Step 6 and still mandatorily ends in a fresh Step 7 session before
     returning to Step 8/9.
-  - **Circuit breaker, mirroring Step 7 (`CLAUDE.md` §3.11 step 7):** if a re-audit is itself
-    the *second* consecutive non-clean Step 9 pass, the workflow does not silently repeat a
-    third time unchanged. Claude produces a Convergence Diagnostic comparing the two passes'
-    findings (recurring vs. genuinely new), then presents an explicit choice: Surgical Fix
-    Override, accept a specific finding as a documented deferred item, or a manually-scoped
+  - **Circuit breaker, mirroring Step 7 (`CLAUDE.md` §3.11 step 7):** if a re-audit produces
+    a Substantive finding for the *second*
+    consecutive non-clean Step 9 pass, the workflow does not silently repeat a third time unchanged. Claude produces a Convergence Diagnostic comparing the two passes'
+    findings (recurring vs. genuinely new), then presents an explicit choice: Post-Audit Fix
+    Pass, accept a specific finding as a documented deferred item, or a manually-scoped
     fix. A third identical pass with no change in approach is not permitted.
 
 ## 6. Phase Completion Criteria

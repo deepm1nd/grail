@@ -127,12 +127,19 @@ requirement is itself an Escalation Trigger (§13).
 **Each phase must fit one agent session** (assume an agent less capable than the one
 drafting this Plan). Complexity score: `(task_count × 1) + (new_public_interfaces × 2) +
 (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)`; default ceiling **15**,
-project-tunable. Score above ceiling → split further. **Independent of sizing: a session
-completes at most one phase**, regardless of remaining capacity (`AGENTS.md` §2.8).
+project-tunable. Score above ceiling → split further, unless the user explicitly approves
+a recorded override (§6.1's Complexity Score column carries the override note inline —
+never a silent exception). **Independent of sizing: a session completes at most one phase**,
+regardless of remaining capacity (`AGENTS.md` §2.8).
 
 **Frontend Targeted Interleaving:** where a UI exists, each screen/component's frontend
 task is placed in the **same phase** as the real (non-mock) backend/data source it depends
 on — never earlier (forces a stub) and never batched into a trailing frontend-only phase.
+Each such task's Design Refs (§8) cite the mockup's prose description (Spec §4.13) and its
+logged Authority Level (`CLAUDE.md` §3.7) — a Conceptual-level mockup leaves more to the
+task's own judgment than an Authoritative one, stated explicitly rather than left implicit.
+A task introducing a page/view/setting not in the mockup traces back to the Design-Phase
+Proactive UI-Impact flag that justified it.
 
 ### 6.1. Phase Index
 
@@ -148,8 +155,13 @@ mechanically underscored. Name it for what a human skimming `git branch -a` woul
 see, based on the phase's real Title and task list. Assigned once here; changed later only
 via §14 Plan-Change Escalation like any other Phase Index field.
 
-| Phase | Build-Order Step(s) | Component(s) | Title | Branch Name | Session Unit | Entry Criteria | Exit Criteria | Req Domains | Task Count |
-|---|---|---|---|---|---|---|---|---|---|
+| Phase | Build-Order Step(s) | Component(s) | Title | Branch Name | Session Unit | Entry Criteria | Exit Criteria | Req Domains | Task Count | Complexity Score |
+|---|---|---|---|---|---|---|---|---|---|---|
+
+**Complexity Score column — mandatory, computed, never left blank.** The §6 formula's value
+for this phase, shown as computed (e.g. `11`), not just implied by Task Count. Over-ceiling
+without a recorded override note in the same cell (e.g. `17 — override approved [date]`) is
+a drafting defect, not a judgment call left to the executing session.
 
 **Final phase includes a README review/finalization task** — the README itself is drafted
 at Design Step 8, not scaffolded here; Development's Phase 0 task is to review, confirm, and
@@ -392,6 +404,8 @@ happens to be compatible.
   sub-tasks per §8's mandatory Code/Verify split rule; no such task remains unsplit.
 - [ ] Every phase (§6.1) has a stated Session Unit, consistent with its task composition
   (e.g. `Code+Verify` only where the phase is dominated by split tasks).
+- [ ] Every phase (§6.1) shows a computed Complexity Score, recomputable from its own listed
+  tasks; none over the §6 ceiling without a recorded override note in the same cell.
 
 ## Appendix G — Glossary
 
@@ -407,7 +421,10 @@ per session that bumped *this specific* numbered file (e.g. `_01_overview`), nev
 Plan's combined history — each of the 4 Dev Plan files carries its own independent Appendix
 R, matching its own independent `_v[N]` counter. Appended to, one new row per bump, in the
 same pass as the bump itself; prior rows are never rewritten or removed. This is the file's
-*only* changelog surface — no version/revision commentary anywhere else in the file.
+*only* changelog/metadata surface — **no frontmatter or header box of any kind at the top of
+the file** (no `Status:`, `Owner:`, `Last Updated:`, or similar field, in any format) **and
+no version/revision commentary anywhere else in the file** — everything of that nature lives
+in this appendix alone.
 
 | Version | Date | Session / Step | Changes |
 |---|---|---|---|

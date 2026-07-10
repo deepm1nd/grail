@@ -31,6 +31,14 @@ See `CHANGELOG.md` for version history.
     mode that motivated this policy — see `agents/PREFERRED_TOOLS.md`) and every library
     dependency's MSRV, then taking the maximum. This value is recorded in the workspace
     `Cargo.toml`'s `rust-version` field and in `rust-toolchain.toml`'s `channel`.
+  - **Preferred floor: 1.94.0** — the version pre-installed in the dev agent environment.
+    This is a **preference, not a mandate**: it changes nothing about *how* the MSRV is
+    computed above. If the computed max-of-dependencies value is **at or below 1.94.0**,
+    record **1.94.0** rather than the lower computed figure — there's no cost to it (already
+    present, no install step) and it absorbs future minor dependency creep without a
+    toolchain bump. If the computed value **exceeds 1.94.0**, record the higher computed
+    figure as usual — this floor never suppresses a genuinely higher requirement, and a
+    project is never held to 1.94.0 against what its actual dependency set needs.
   - **Dual-MSRV pattern, for any project with a publishable library crate** (an SDK or
     plugin-facing crate consumed by external projects with their own, possibly older,
     toolchains): the workspace toolchain is pinned to the development MSRV described

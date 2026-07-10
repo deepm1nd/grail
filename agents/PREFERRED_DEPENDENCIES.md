@@ -21,6 +21,32 @@ See `CHANGELOG.md` for version history.
 - **Unlisted:** requires explicit user approval (`AGENTS.md` §2.2) before use.
 - **Forbidden:** never used, no exceptions.
 
+## No Local Patching, Forking, or Vendoring
+**Forbidden by default, same tier as an unlisted dependency's approval gate — not a silent
+option.** A Cargo `[patch]` section, a vendored/forked copy of a crate's source, or a local
+`path =` override standing in for a published version are all the same failure mode: the
+project's actual dependency drifts silently from what `PREFERRED_DEPENDENCIES.md`/
+`Cargo.toml` nominally declares, invisible to a later session or a fresh audit reading the
+manifest at face value.
+
+- **Never used to work around a bug, missing feature, or MSRV/edition mismatch** by
+  patching around it locally. The correct response to a dependency problem is: upgrade the
+  dependency, switch to an alternative already on this list or approved as Unlisted, or
+  escalate per `agents/DEVELOPMENT.md`'s Missing Tool Protocol / `agents/exemplars/
+  development_plan_template.md` §13 Escalation Triggers — never a silent `[patch]` entry.
+- **Rare exception, approval-gated:** an unreleased upstream fix genuinely blocking the
+  project, with no published version or viable alternative — same explicit-approval
+  requirement as an Unlisted dependency (`AGENTS.md` §2.2), not a unilateral judgment call.
+  If approved: pin to an exact commit hash (never a branch or tag that can move), record the
+  `[patch]` entry's justification and the upstream issue/PR tracking eventual release in the
+  Architecture Specification's Risk Management section (`agents/exemplars/
+  architecture_specification_template.md` §8) and in `CHANGELOG.md`, and treat it as a
+  standing risk to revisit — remove the patch and return to the published crate the moment
+  a release resolves it, not left indefinitely once the immediate blocker is gone.
+- **A local patch/fork/vendor never substitutes for a real upstream contribution path**
+  where one exists — the exception above is for unblocking the project now, not a permanent
+  fork strategy.
+
 ## Web & Networking
 - tokio  # Native only. Incompatible with WASM.
 - axum

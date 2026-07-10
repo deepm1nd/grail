@@ -91,9 +91,12 @@ grail/
   Feature / Rejected. No autonomy toggle, no Tailored Mode — Step 2 (User Stories) always
   runs in full regardless of project size.
 - **Independent audits.** Step 7 and Step 9 are pure finders, never fixers — no RCD/RATS.
-  Any finding requires reopening the originating step (full multi-session workflow, or a
-  user-invoked **Surgical Fix Override** — a compressed single-session equivalent that still
-  mandatorily ends in a fresh audit session).
+  Every finding is tagged Trivial or Substantive; an all-Trivial result is fixed in place,
+  same session, no backtrack. Any Substantive finding requires reopening the originating
+  step (full multi-session workflow, or a user-invoked **Post-Audit Fix Pass** — a
+  compressed single-session equivalent that fixes every finding plus anything discovered
+  incidentally, never leaving a defect flagged-but-unfixed, and still mandatorily ends in a
+  fresh audit session).
 - **Additive-only operations.** No deletion/overwrite without explicit approval.
 - **Maximal implementation.** No stubs or partial implementations.
 - **No cross-session memory.** Every session starts from what's actually on disk/provided.

@@ -211,6 +211,9 @@ how top §2.4 quality goals are achieved structurally, key §6 decisions at rati
 - **Data Governance:** what's checked pre-persistence (secret detection, PII
   classification) vs. read-time; failure mode for a rejected write.
 - **Secrets & Key Management:** sourcing, rotation, scoping; cross-ref §6 and §4.9.
+- **Role Assignment/Permission/Revocation, if authorization exists:** the mechanism itself
+  (data model, who can grant/revoke, default role) — cross-ref §4.13 for the UI surface
+  (page/setting) where this happens.
 
 ### 4.9. Rust-Specific Architectural Conventions
 - **Edition and MSRV:** workspace edition/MSRV (`agents/RUST_PREFERENCES.md` §0), dual-MSRV
@@ -253,17 +256,29 @@ For any human-facing interface: information architecture, key flows (cross-ref �
 accessibility, framework/crate + architectural implication for Rust/WASM UI. State
 explicitly if no human-facing interface exists.
 
-**Asset Manifest.** Per `CLAUDE.md` §2.2/§3.7. Columns: `Filename | Type (html/image/audio/
-video) | Repository Target Path | Authoritative/Informative For | Provided At (Step)`.
-Filenames immutable once logged; target paths fixed (`assets/html/`, `assets/images/`,
-`assets/audio/`, `assets/video/`). HTML is presumptively authoritative for structure/
-behavior; images source Design System content. Every logged asset referenced substantively
-somewhere in this section, not manifest-only. **Assets themselves are never carried in
-Design-Phase handoff notes** (`CLAUDE.md` §3.7/§3.10) — referenced by filename only; actual
-files are a Development-Phase input.
+**Every logged mockup gets a prose description here** (`CLAUDE.md` §3.7) — information
+architecture, key flows, structural detail — not just a Manifest row. Where a later step
+introduces a feature implying a UI change (new page/view/setting/structural change) not yet
+in the mockup, that gap is flagged (§3.1) and noted here pending an updated mockup.
 
-| Filename | Type | Repository Target Path | Authoritative/Informative For | Provided At (Step) |
-|---|---|---|---|---|
+**Auth/Authorization UI, if applicable:** sign-in/sign-up mockup description per the above.
+If authorization (roles/permissions): the actual page/setting/admin surface where roles are
+**assigned, permissioned, and revoked** — cross-ref §4.8's Security Architecture, which owns
+the underlying threat/permission model.
+
+**Asset Manifest.** Per `CLAUDE.md` §2.2/§3.7. Columns: `Filename | Type (html/image/audio/
+video) | Repository Target Path | Authoritative/Informative For | Authority Level (mockups:
+Authoritative / Authoritative-with-changes / Conceptual / Firm-layout-content-forthcoming /
+other user-stated label) | Provided At (Step)`. Filenames immutable once logged; target
+paths fixed (`assets/html/`, `assets/images/`, `assets/audio/`, `assets/video/`). HTML is
+presumptively authoritative for structure/behavior absent a stated Authority Level; images
+source Design System content. Every logged asset referenced substantively somewhere in this
+section, not manifest-only. **Assets themselves are never carried in Design-Phase handoff
+notes** (`CLAUDE.md` §3.7/§3.10) — referenced by filename only; actual files are a
+Development-Phase input.
+
+| Filename | Type | Repository Target Path | Authoritative/Informative For | Authority Level | Provided At (Step) |
+|---|---|---|---|---|---|
 
 ### 4.14. Logging and Monitoring
 - **Logging:** 5-level system (Error/Warn/Info/Debug/Trace), default `INFO`,
@@ -426,8 +441,11 @@ per session that bumped *this specific* numbered file (e.g. `_01_introduction`),
 whole Spec's combined history — each of the 8 Architecture Spec files carries its own
 independent Appendix R, matching its own independent `_v[N]` counter. Appended to, one new
 row per bump, in the same pass as the bump itself; prior rows are never rewritten or removed.
-This is the file's *only* changelog surface — no version/revision commentary anywhere else
-in the file (not under the title, not in §1 Introduction, not inline near changed content).
+This is the file's *only* changelog/metadata surface — **no frontmatter or header box of any
+kind at the top of the file** (no `Status:`, `Owner:`, `Last Updated:`, or similar field, in
+any format) **and no version/revision commentary anywhere else in the file** (not under the
+title, not in §1 Introduction, not inline near changed content) — everything of that nature
+lives in this appendix alone.
 
 | Version | Date | Session / Step | Changes |
 |---|---|---|---|

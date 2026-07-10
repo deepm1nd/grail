@@ -207,9 +207,11 @@ preset — this is fixed. The table states only what's specific to each step.
 | 4 | Test Identification | Architecture file `_04_test_strategy` | Test cases derived per requirement; the 9-criteria table and Rust Requirement Smell catalog checked as part of core-batch generation. |
 | 5 | Verification Feasibility | Architecture file `_05_verified_traceability` | Rust dependencies checked against `agents/PREFERRED_DEPENDENCIES.md` (preferred used directly; Forbidden never proposed; Requires-Approval/unlisted is a RATS item); dev tools/`agents/PREFERRED_TOOLS.md`, infra services/`agents/PREFERRED_SERVICES.md`; ESP32/ESP-IDF components cross-checked against `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md`; **sets the workspace MSRV** (`agents/RUST_PREFERENCES.md` §0) — flagged placeholder here, relocated to `_07_interfaces_and_stack` §6 at Step 6. Claude never certifies "technical sufficiency" unilaterally. |
 | 6 | Final Architecture Synthesis (ISO 42010) | Architecture files `_06_viewpoints`, `_07_interfaces_and_stack`, `_08_constraints_and_roadmap` (new); `_05_verified_traceability` (finalized) | Mostly recombination of already-approved content — less new drafting. One live judgment call: formal notation vs. prose per element, stated briefly so the user can override without re-litigating. Covers all 4 mandatory viewpoints. Asset Manifest migrates to permanent home in `_06`'s §4.13. |
-| 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | **No RCD/RATS here — by design.** Adversarial independence from the rest of the process, including Claude's own prior work. Checks, on Claude's own analysis: every User Story maps to a requirement; every requirement atomic; no elided/summarized content; no gap forcing a stub downstream; every Asset Manifest entry referenced; every filename conforms to §4; **the Open Items Register contains only valid, not-yet-reached Deferred items — any Resolved/Future Feature/Rejected entry still sitting on the Register, or any item with no terminal outcome at all, is itself a finding** (§3.12). **Zero findings → proceed to Step 8. Any finding → Step 7 Backtrack Workflow (§3.11).** |
-| 8 | Development Plan & Checklist | Development Plan + Checklist + Dev Prompt + draft README | Environment/config facts (toolchain, CI, local setup) elicited directly; unspecified items with a reasonable default proposed once per Plan via RATS, not once per phase. **Phase Sizing:** `Score = (task_count × 1) + (new_public_interfaces × 2) + (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)`, default ceiling **≤15** (a Code/Verify-split task counts as 2 tasks). **Frontend targeted interleaving** where a UI exists: each screen/component's frontend task sits in the same phase as its real backend/data dependency. **Per-task Design Refs, Submit Points, and per-phase Session Unit are populated at drafting time** (`agents/exemplars/development_plan_template.md` §6.1/§8), not left as stubs — Design Refs cite the specific Spec file/section/item each task derives from; the mandatory Code/Verify split is derived mechanically from each task's Verification Method. **Drafts the project README** (overview/stack/roadmap) — Development Phase's Phase 0 task reviews/confirms/enhances it. **Deliverable:** `agents/exemplars/dev_prompt_template.md` → `[projectname]_dev_prompt.md`, produced once, reused every Development-Phase session. |
-| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No RCD/RATS here either — mirrors Step 7's independence.** Runs `agents/exemplars/development_plan_template.md` §15 directly as an audit checklist: every Core requirement traced, no orphan citations, every phase has Entry/Exit Criteria, every task has a Verification Method and DoD, Phase Dependency Graph acyclic, Checklist/Plan lockstep, every filename conforms to §4, Build Order fidelity, Frontend Targeted Interleaving where a UI exists, and **the Open Items Register contains only valid, not-yet-reached Deferred items — same check as Step 7 (§3.12), re-verified here in case anything slipped through since.** **Zero findings closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only** — reopen Step 8 alone — **or (B) Spec-originating** — reopen the relevant Spec step, re-clear Step 7, then return to Step 8. Repeats until clean. See `agents/DESIGN.md` §5.9. |
+| 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | **No RCD/RATS here — by design.** Adversarial independence from the rest of the process, including Claude's own prior work. Checks, on Claude's own analysis: every User Story maps to a requirement; every requirement atomic; no elided/summarized content; no gap forcing a stub downstream; every Asset Manifest entry referenced with a prose description and, for mockups, a
+logged Authority Level; every filename conforms to §4; **no file carries a front-of-file metadata box (§4.3) — a
+finding here is Trivial per §3.11's tiering**; **the Open Items Register contains only valid, not-yet-reached Deferred items — any Resolved/Future Feature/Rejected entry still sitting on the Register, or any item with no terminal outcome at all, is itself a finding** (§3.12). **Every finding tagged Trivial or Substantive (§3.11) — all-Trivial fixes in place, same session, no backtrack; any Substantive finding → Step 7 Backtrack Workflow (§3.11).** Zero findings → proceed to Step 8. |
+| 8 | Development Plan & Checklist | Development Plan + Checklist + Dev Prompt + draft README | Environment/config facts (toolchain, CI, local setup) elicited directly; unspecified items with a reasonable default proposed once per Plan via RATS, not once per phase. ****Phase Sizing:** `Score = (task_count × 1) + (new_public_interfaces × 2) + (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)`, default ceiling **≤15** (a Code/Verify-split task counts as 2 tasks). **Shown as its own computed Complexity Score column in the Phase Index (§6.1), never left blank or only implied by Task Count**; over-ceiling requires a recorded override note in the same cell. **Frontend targeted interleaving** where a UI exists: each screen/component's frontend task sits in the same phase as its real backend/data dependency. **Per-task Design Refs, Submit Points, and per-phase Session Unit are populated at drafting time** (`agents/exemplars/development_plan_template.md` §6.1/§8), not left as stubs — Design Refs cite the specific Spec file/section/item each task derives from; the mandatory Code/Verify split is derived mechanically from each task's Verification Method. **Drafts the project README** (overview/stack/roadmap) — Development Phase's Phase 0 task reviews/confirms/enhances it. **Deliverable:** `agents/exemplars/dev_prompt_template.md` → `[projectname]_dev_prompt.md`, produced once, reused every Development-Phase session. |
+| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No RCD/RATS here either — mirrors Step 7's independence.** Runs `agents/exemplars/development_plan_template.md` §15 directly as an audit checklist: every Core requirement traced, no orphan citations, every phase has Entry/Exit Criteria, every task has a Verification Method and DoD, Phase Dependency Graph acyclic, Checklist/Plan lockstep, every filename conforms to §4, Build Order fidelity, Frontend Targeted Interleaving where a UI exists, **every phase's Complexity Score recomputed from its own listed tasks and checked against the §6 ceiling (any mismatch, or any over-ceiling phase with no recorded override, is a finding)**, and **the Open Items Register contains only valid, not-yet-reached Deferred items — same check as Step 7 (§3.12), re-verified here in case anything slipped through since.** **Zero findings closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only** — reopen Step 8 alone — **or (B) Spec-originating** — reopen the relevant Spec step, re-clear Step 7, then return to Step 8. Repeats until clean. See `agents/DESIGN.md` §5.9. |
 
 Every step ends with **STOP, present output, await explicit `APPROVED`** — never combined,
 never skipped. Per §1, every step (and
@@ -261,16 +263,18 @@ materially changes scope/requirements/architecture — not just when convenient.
 Changes generally** are flagged explicitly, by name, the moment Claude recognizes one — never
 buried in a diff or folded silently into the next deliverable.
 
-#### 3.6.1. Surgical Fix Override
+#### 3.6.1. Post-Audit Fix Pass
 
 An explicit, per-instance opt-out from the normal multi-session backtrack — available for
 **both** an ordinary backtrack above **and** a Step 7/Step 9 finding (§3.11,
-`agents/DESIGN.md` §5.9), which otherwise always requires the full workflow.
+`agents/DESIGN.md` §5.9), which otherwise always requires the full workflow. (Formerly
+"Surgical Fix Override" — renamed because "surgical" invited exactly the wrong instinct:
+treating the fix as narrowly scoped to the one finding that triggered it. It is not. See
+point 5 below.)
 
 1. Claude flags the Major Change/backtrack requirement as normal, naming the originating
    step and content.
-2. The user may request a surgical fix in plain language (e.g. "I would like to perform a
-   surgical fix").
+2. The user may request a fix pass in plain language (e.g. "let's do a post-audit fix").
 3. **Claude gives a real recommendation, not a formality** — either agreeing with reasoning,
    or recommending against with a thorough explanation of what the full multi-session
    backtrack catches that this shortcut doesn't (separate sessions and individual gate
@@ -278,24 +282,36 @@ An explicit, per-instance opt-out from the normal multi-session backtrack — av
    immediate blast radius (not the guaranteed full sweep a real backtrack performs).
 4. The user decides with one of two **exact** phrases:
    - **`BACKTRACK APPROVED`** — normal full multi-session backtrack workflow, no override.
-   - **`SURGICAL FIX OVERRIDE`** — proceeds as below.
-5. **What the override actually compresses is session count and gate friction, not
-   thoroughness.** Claude still fixes the originating content and works forward through
-   every step between it and Step 6 (or, for a mid-step trigger, through whatever cascading
-   effects exist) — same real work as a normal backtrack, just in one session instead of
-   several, without an intermediate approval per step.
+   - **`POST AUDIT FIX`** — proceeds as below.
+5. **What the pass actually compresses is session count and gate friction, not
+   thoroughness or scope.** Claude still fixes the originating content and works forward
+   through every step between it and Step 6 (or, for a mid-step trigger, through whatever
+   cascading effects exist) — same real work as a normal backtrack, just in one session
+   instead of several, without an intermediate approval per step. **Every finding in the
+   triggering audit report is fixed — all of them, not just the one named when the pass was
+   requested.** If, while fixing an authorized finding, Claude discovers an additional defect
+   in the same document(s) — regardless of whether it predates this session, and regardless
+   of whether it relates to the finding that triggered the pass — that defect is fixed in the
+   same pass too, not flagged for a future auditor to verify independently. "I found X but
+   left it alone because it wasn't the finding I was authorized to fix" is never a valid
+   outcome of a Post-Audit Fix Pass — everything discovered is in scope for the same reason
+   the original findings are: the document is being brought into conformance, not
+   incrementally patched. The only two valid outcomes for any discovered issue are: fixed in
+   this pass, or raised to the user *before* the pass concludes because it genuinely requires
+   a judgment call Claude cannot make alone (see §3.11's Trivial/Substantive split for what
+   does and doesn't rise to that bar).
 6. **Mid-step trigger:** documented as a brief section in this session's own handoff note,
    carried forward unmodified through every subsequent handoff note until the next Step
    7/9 audit actually runs — no new file created for this.
 7. **Audit-originated trigger (a Step 7 or Step 9 finding):** the fix starts at the earliest
    originating step and works forward through every intervening step's own file, through
-   Step 6, resolving cascading effects and — where applicable — other findings from the
-   same audit report, all in one session. At session end, package every touched file
-   exactly as at a normal post-Step-6 handoff, plus a handoff note describing the backtrack
-   work performed under the override, as though Step 6 had just completed normally. This
-   hands off into a **new Step 7 (or Step 9) session** using the existing `pass2`/`pass3`
-   naming convention (no new variant) — **mandatory, never waivable**, re-auditing from
-   scratch independent of the surgical session's own account.
+   Step 6, resolving cascading effects, every finding from the same audit report, and any
+   incidentally discovered defect per point 5 — all in one session. At session end, package
+   every touched file exactly as at a normal post-Step-6 handoff, plus a handoff note
+   describing the fix work performed under this pass, as though Step 6 had just completed
+   normally. This hands off into a **new Step 7 (or Step 9) session** using the existing
+   `pass2`/`pass3` naming convention (no new variant) — **mandatory, never waivable**,
+   re-auditing from scratch independent of the fix session's own account.
 8. **Major Change Notification still fires regardless of which path is chosen.**
 
 ---
@@ -332,26 +348,62 @@ development agent to consume directly.
   directly the way it reads HTML/images — tracked for the development agent, not analyzed by
   Claude for discovery.
 
-**Solicited as early as possible, not just at Step 1.** Step 1 intake actively asks whether
-mockups, reference HTML, brand/image assets, or audio/video exist (§3.4's Step 1 row), but
-the user is encouraged to provide assets whenever they become available — later steps benefit
-from having them sooner. **Delivery channel:** same as any other Advisory Mode input (§1) —
-attached to a message or made available via the project space — distinct from, and preceding,
-the fixed repository paths below, which govern where the *same* files land for the
-development agent once Development Phase begins.
+**Persistent ask, from Step 1 until satisfied — UI mockup.** The moment a UI/frontend
+component is identified (Step 1 at the latest, but possibly a later step), a standing
+obligation activates: **every step thereafter explicitly asks for at least one mockup**
+(any form — hand sketch, wireframe, reference HTML, competitor screenshot) until the user
+has supplied one, not just once at Step 1. **Never a gate** — no step's approval waits on
+this; the ask repeats but never blocks. Satisfied the moment ≥1 mockup exists; from then on
+the agent may still request *updates* as new features/capabilities emerge (Proactive
+UI-Impact Flagging below), but the mandatory per-step ask stops.
+
+**Authority Level — recorded, never inferred.** Whatever the user supplies, they state one
+of: **Authoritative** (build to this) · **Authoritative-with-changes** (build to this, noted
+deltas) · **Conceptual** (mood/direction only) · **Firm-layout-content-forthcoming**
+(structure locked, copy/data pending) · or another label the user states. Logged as its own
+Asset Manifest column (below) — the type-based Authoritativeness rule above (HTML
+presumptively authoritative, images informative) is the *default absent a stated label*; a
+user-stated label always wins over that default.
+
+**Proactive UI-Impact Flagging.** Independent of the ask above: whenever a later step's own
+work (new requirement, capability, or architectural decision) implies a UI change — a new
+page, view, setting, or structural change not visible in the current mockup — the agent
+flags it explicitly at that step, same as any other gap (§3.1), rather than silently
+absorbing it into the mockup's existing shape. Mirror case of the completeness check below
+(mockup → spec gap); this direction is spec/feature → mockup gap.
+
+**Auth/Authorization addendum.** Where an authentication or authorization component exists,
+the same persistent per-step ask applies to a **sign-in/sign-up mockup** specifically. Where
+the component is *authorization* (roles/permissions, not just identity), the Spec must
+additionally define **where and how roles are assigned, permissioned, and revoked** — the
+actual page/setting/admin surface, not merely that roles exist (§4.8 Security Architecture
+and §4.13 UX are the two homes for this).
+
+**Delivery channel:** same as any other Advisory Mode input (§1) — attached to a message or
+made available via the project space — distinct from, and preceding, the fixed repository
+paths below, which govern where the *same* files land for the development agent once
+Development Phase begins.
 
 **The Asset Manifest — mandatory tracking record.** The moment any asset is provided, at any
 step, Claude logs it: a table with columns `Filename | Type (html / image / audio / video) |
-Repository Target Path | What It's Authoritative/Informative For | Provided At (Step)`.
-Filenames are **immutable once logged** — Claude never proposes a rename; a collision or
-ambiguity is a flagged item for user resolution, never silently disambiguated by Claude
-picking a new name. Repository target paths are fixed: `assets/html/`, `assets/images/`,
-`assets/audio/`, `assets/video/` — the same paths/filenames the user will populate in the
-repo for the development agent, so any asset referenced anywhere in the Spec or Plan resolves
-unambiguously with zero translation between Design and Development. Until Step 6 relocates it
-to its permanent home in `_06_viewpoints` §4.13, the Manifest accumulates inside whichever
-file is current at the step the asset was provided (§4's Step-aligned mapping) — the same
-flagged-placeholder-then-relocate pattern used for the Step 5 MSRV decision.
+Repository Target Path | What It's Authoritative/Informative For | Authority Level (mockups
+only, per above) | Provided At (Step)`. Filenames are **immutable once logged** — Claude
+never proposes a rename; a collision or ambiguity is a flagged item for user resolution,
+never silently disambiguated by Claude picking a new name. Repository target paths are
+fixed: `assets/html/`, `assets/images/`, `assets/audio/`, `assets/video/` — the same
+paths/filenames the user will populate in the repo for the development agent, so any asset
+referenced anywhere in the Spec or Plan resolves unambiguously with zero translation between
+Design and Development. Until Step 6 relocates it to its permanent home in `_06_viewpoints`
+§4.13, the Manifest accumulates inside whichever file is current at the step the asset was
+provided (§4's Step-aligned mapping) — the same flagged-placeholder-then-relocate pattern
+used for the Step 5 MSRV decision.
+
+**The Manifest row is never the only place a mockup lives.** Distinct from the file-handoff
+exclusion below: every logged mockup gets a **prose description** in the Spec (§4.13) and,
+where it drives task decomposition, the Plan — information architecture, key flows, and
+notable structural details a filename alone can't convey — not merely a manifest row and a
+"see attached." A one-line placeholder ("per mockup X") without that description is itself a
+flagged gap.
 
 **Triggers a completeness check whenever provided, at any point** — not only at Step 1.
 Claude checks already-approved Data Dictionary/requirements content against what the visual
@@ -537,26 +589,43 @@ never patches content itself. This is what makes its independence meaningful. Co
 resolved via the ordinary local-patch-vs-reopen choice in §3.6/`AGENTS.md` §2.1** — every
 finding requires reopening the step that should have produced or caught it, working forward
 through Step 6, whether via the full multi-session workflow below or the compressed
-single-session **Surgical Fix Override** (§3.6.1) — there is no "local patch at Step 7" to
-choose between, since Step 7 itself never touches content, and a Surgical Fix Override still
-mandatorily ends in a fresh Step 7 session.
+single-session **Post-Audit Fix Pass** (§3.6.1) — there is no "local patch at Step 7" to
+choose between, since Step 7 itself never touches content, and a Post-Audit Fix Pass still
+mandatorily ends in a fresh Step 7 session (except the all-Trivial fast path immediately
+below, which needs no backtrack at all).
 
-**Zero findings:** the gate behaves normally — present the clean report, await approval,
-proceed to Step 8.
+**Every finding is tagged a Severity at the moment it's found — Trivial or Substantive —
+never left untagged:**
+- **Trivial:** mechanically unambiguous, no judgment call, no risk of masking a deeper issue
+  — a duplicate/orphaned section, a broken internal cross-reference, a filename/naming-
+  convention violation, a stale version number or inline `File N vM` citation. If fixing it
+  could plausibly be wrong two different ways, it is not Trivial.
+- **Substantive:** anything else — a genuine ambiguity, a missing/incorrect requirement or
+  traceability link, a Content Continuity or Anti-Stub gap, a phase-sizing problem, or
+  anything requiring judgment about correctness, scope, or intent.
 
-**Any finding at all (even one):** the normal Step 7 gate does not close as an approval gate.
-Instead:
+**All findings Trivial, none Substantive:** no backtrack, no new session, no reopening an
+earlier step's approval. Claude fixes every Trivial finding directly, in place, in this same
+Step 7 session — editing each finding's owned file — then presents the corrected content
+alongside a short fix log (finding → file → what changed) at the gate. The gate proceeds
+normally from there: STOP, present, await approval to Step 8. This exists precisely so a
+handful of small mechanical defects don't trigger the full re-litigation cycle below.
 
-1. **Map every finding to its originating step.** For each finding, identify which step
+**Any Substantive finding present (regardless of how many Trivial findings accompany it):**
+the normal Step 7 gate does not close as an approval gate. Instead:
+
+1. **Map every finding to its originating step** — Trivial and Substantive alike; Trivial
+   findings are not fixed separately from this workflow once a Substantive one is present,
+   they're folded into the same pass. For each finding, identify which step
    (1–6) should have produced/caught the content — and, per §4, which numbered Architecture
    file that step owns.
 2. **Determine the single earliest originating step across all findings.** If findings trace
    to multiple steps, do **not** reopen each separately or reopen the same step multiple
    times — start at the earliest.
-2.5. **Offer the Surgical Fix Override (§3.6.1) at this point, if the user requests it** —
+2.5. **Offer the Post-Audit Fix Pass (§3.6.1) at this point, if the user requests it** —
    a compressed single-session version of steps 3–6 below (same work, no intermediate
    sessions/gates), still mandatorily ending in a fresh Step 7 session. Default path is the
-   full multi-session workflow below unless the user explicitly invokes the override.
+   full multi-session workflow below unless the user explicitly invokes the pass.
 3. **Open one new "backtrack" session** (per §1; Step 7's handoff note for this session makes
    clear what kind of session it is and what it must accomplish). **Proceeding directly into
    fixing is the default the moment this session opens — no separate "go ahead"/"proceed with
@@ -565,8 +634,13 @@ Instead:
    itself the go-ahead; Claude does not re-confirm findings or wait for an additional nod
    before beginning to fix them. Working forward from the earliest originating step through to
    Step 7 again:
-   - Fix every finding tracing to the current step, editing that step's own owned file
-     directly.
+   - Fix every finding tracing to the current step, Trivial and Substantive alike, editing
+     that step's own owned file directly.
+   - **Fix anything else discovered incidentally while fixing** — a defect not in the
+     original report, found only because the fix required looking closely at the file —
+     regardless of whether it predates this session or relates to the finding being fixed.
+     Never deferred to "flag for the next auditor"; that is scope-creep in the wrong
+     direction (under-fixing, not over-fixing) and is not permitted (§3.6.1 point 5).
    - **Re-check already-approved later-step content for cascading effects of the fix**, per
      §3.6's "revisit only as needed" — discovered by re-checking as each fix is made, not
      pre-identified by Step 7 (which only reports what it found, not downstream consequences
@@ -584,25 +658,29 @@ Instead:
    handoff note's own text** (§3.10) — not shipped as a separate file — since this backtrack
    session is the only consumer that needs them.
 5. **That handoff note MUST state plainly the next session is a new Step 7 audit** (pass2,
-   pass3, ... per §3.10), not a continuation, and MUST summarize: which findings were fixed,
-   which steps/files were reopened and in what order, and **explicitly that cascading effects
-   were discovered and resolved by re-checking later-step files during the backtrack session
-   itself** (not pre-identified by the original report) — so the new Step 7 session
+   pass3, ... per §3.10), not a continuation, and MUST summarize: which findings were fixed
+   (Trivial and Substantive alike), which incidental defects were found and fixed along the
+   way, which steps/files were reopened and in what order, and **explicitly that cascading
+   effects were discovered and resolved by re-checking later-step files during the backtrack
+   session itself** (not pre-identified by the original report) — so the new Step 7 session
    understands the full scope of what changed and why.
 6. **The new Step 7 session re-audits the entire Spec from scratch**, same adversarial
    independence as any Step 7 run (§3.4) — it does not take the backtrack session's own
    account as given; it re-derives findings independently. Clean → proceed to Step 8
-   normally. Any finding (even something new) → this workflow (1–6) repeats.
+   normally. Any finding (even something new) → this workflow (1–6) repeats, or the
+   all-Trivial fast path above if every new finding qualifies.
 7. **Circuit breaker: two consecutive non-clean Step 7 passes on the same Spec.** If the
-   re-audit in step 6 is itself the *second* consecutive Step 7 run to produce any finding
-   (i.e. a backtrack-then-reaudit cycle has now failed to converge once already), this
-   workflow does **not** silently repeat a third time unchanged. Instead:
+   re-audit in step 6 is itself the *second* consecutive Step 7 run to produce any
+   Substantive finding (i.e. a backtrack-then-reaudit cycle has now failed to converge once
+   already on a genuine judgment-call item — repeated all-Trivial passes don't count toward
+   this, since the fast path already resolves them without a full cycle), this workflow does
+   **not** silently repeat a third time unchanged. Instead:
    - Claude produces a short **Convergence Diagnostic**: the findings from the prior
      non-clean pass alongside the findings from this pass, side by side, each flagged as
      either (a) recurring / same underlying category as before, or (b) genuinely new and
      unrelated to anything the prior fix touched.
    - Claude presents the user an explicit choice rather than looping again automatically:
-     invoke the **Surgical Fix Override** (§3.6.1) to force resolution in one compressed
+     invoke the **Post-Audit Fix Pass** (§3.6.1) to force resolution in one compressed
      session; **accept a specific finding as a documented, deferred known-issue** (normal
      RATS outcome — Deferred-to-a-step or Future Feature — never silently dropped, and
      subject to §3.12's Register rules); or **direct a manually-scoped fix** themselves.
@@ -834,6 +912,22 @@ file in the current set for links to this file's *old* version name, updating th
 recurs every bump; skipping it silently reintroduces broken cross-links the same way skipping
 filename versioning reintroduced download collisions.
 
+**Inline prose citations to another file's *content* never include a version number — cite
+`File N §section` only, never `File N vM`.** This is distinct from (and simpler than) the
+filename cross-link rule above, which governs actual download-link targets and has no way
+around carrying the version suffix. An inline citation in running prose — "see File 6 §4.2,"
+"as defined in File 3 §2.4" — is only ever pointing at *where* to look, not asserting which
+version it was when written; a version number there is pure downside with no payoff, since
+nothing downstream needs it and it goes stale the moment the target file bumps again. This
+was the actual mechanism behind a repeated, multi-session defect: `File N vM`-style prose
+citations drifting out of sync across bumps that happened in sessions never touching the
+citing file, with each backtrack session only catching whatever drift existed *at that
+moment* and falsely asserting an exhaustive re-sweep. Dropping the version number from prose
+citations entirely removes the defect at its source — there is no version number left in
+prose to go stale, and no sweep is needed to keep one current. If Claude finds an existing
+`File N vM` prose citation while touching a file, correct it to `File N §section` form as a
+normal edit; this is not a version bump trigger by itself.
+
 **Order of operations, mandatory: bump, then fix, never fix-then-bump.** This is the specific
 sequencing failure observed causing repeated Step 7 findings on the same class of issue — a
 session fixes cross-links against the *current* (pre-bump) filenames, then bumps the version
@@ -848,10 +942,17 @@ every session, is:
    fix it in place — this does **not** trigger a further version bump (the file was already
    bumped once this session, per the once-per-session rule above).
 
-**Version history lives in `Appendix R — Version History`, at the end of the file — never as
-commentary at the front.** Every Architecture Spec and Dev Plan file ends with this appendix
-(after its last content section — e.g. after §11 Appendices for the Spec, after Appendix G
-for the Plan): one row per session that bumped *this file*, in order, each row stating the
+**No frontmatter or header box, anywhere, for anything — all file metadata lives in
+`Appendix R — Version History`, at the end of the file, never at the front.** This
+generalizes past version history specifically: no metadata table or block at the top of
+any Architecture Spec or Dev Plan file — no `Status:`, `Owner:`, `Last Updated:`,
+`Reviewed By:`, `Approved:`, or any other such field, in any format (table, definition
+list, bolded key-value lines). The only content permitted before the first numbered
+section is the title line and, where the template calls for one, a brief italicized/
+blockquoted usage note (e.g. this doc's own "When to use" guidance) — never file metadata
+of any kind. Every Architecture Spec and Dev Plan file ends with this appendix (after its
+last content section — e.g. after §11 Appendices for the Spec, after Appendix G for the
+Plan): one row per session that bumped *this file*, in order, each row stating the
 version reached, the date, and a brief description of what changed in that file this session.
 This is deliberately **not** a separate carried-along file — unlike grail's own meta-repo
 `CHANGELOG.md` (which tracks grail's own instruction/template files, a different system
@@ -859,6 +960,11 @@ entirely), a per-project deliverable's version history travels with the file
 itself, so it's automatically present whenever the file is, with nothing extra to request or
 enumerate in a handoff note. On a version bump, Claude appends exactly one new row to this
 appendix, in the same pass as the bump itself — never rewriting or removing a prior row.
+**Any status/ownership fact that would otherwise have lived in a front-of-file header box
+has a real home elsewhere, not a new column here:** approval state is the Gate history
+itself (a file's latest version was approved at whatever gate produced it — nothing further
+to record); document purpose/audience is §1.1; anything else genuinely informational about
+the file's own content belongs in the relevant numbered section, never a standalone field.
 **Nothing resembling a changelog, revision note, or "what changed" commentary belongs
 anywhere else in the file** — not under the title, not in the Introduction, not inline near
 whatever content changed. If Claude finds itself about to write a version-related note
