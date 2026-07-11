@@ -30,6 +30,11 @@
   delivered Checklist expands the entire Plan.
 - **Continuous updates, in place** — each DoD sub-item checked the moment it's satisfied,
   not batched to end of task/phase.
+- **Tasks are worked in the order they appear in this Checklist, phase by phase, task by
+  task.** A Development Phase session never reorders, skips ahead, or leaves a DoD sub-item
+  unchecked-but-passed-over to move on — without the user's explicit permission given that
+  session. An apparently unnecessary or already-satisfied task/item is a question or
+  Escalation Trigger, never a silent skip.
 - **Submitted** checkbox — every task/sub-task carries its own, checked only when its
   declared Submit Point (Plan §8) has actually fired via `submit`, not when DoD items are
   merely satisfied locally. A task with all DoD items checked but `Submitted` unchecked is

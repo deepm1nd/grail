@@ -67,16 +67,18 @@ possibly updated relative to what was shown during Design.
 `assets/` directory; see `agents/PREFERRED_TOOLS.md` for the required `Trunk.toml` pin
 preventing collision.
 
-**`.gitignore` — required file, Phase 0 responsibility.** Every project MUST have a
-`.gitignore` at the repository root. The following entries are mandatory for any Rust
-project under this methodology; additional project-specific entries are added as needed:
+**`.gitignore` — drafted at Design Step 8, reviewed/confirmed/extended at Development
+Phase 0**, mirroring the `README.md` convention (`agents/DEVELOPMENT.md` §5.2.1). The
+mandatory entries below use **depth-agnostic patterns** — they must match regardless of
+whether a Rust crate/component or Trunk build lives at the repository root or in any
+nested subfolder (workspace member, `libs/`, `services/`, etc.):
 
 ```gitignore
-# Cargo build outputs — all profiles (debug, release, test, bench, doc)
-/target
+# Cargo build outputs — all profiles (debug, release, test, bench, doc) — any depth
+**/target
 
-# Trunk WASM build output (remove if no WASM/Trunk component)
-/dist
+# Trunk WASM build output — any depth (remove if no WASM/Trunk component)
+**/dist
 
 # Local environment — real credentials never committed; commit .env.example instead
 .env
@@ -86,6 +88,9 @@ project under this methodology; additional project-specific entries are added as
 .idea/
 .vscode/
 ```
+
+Additional project-specific entries (generated artifacts, local scratch dirs, etc.) are
+appended at Development Phase 0 review, not invented speculatively at Design time.
 
 Per `AGENTS.md` §2.1, non-reproducible evidence artifacts under `test/` (the concise
 per-phase Verification file plus each phase's detailed screenshots/logs subfolder — see
@@ -192,6 +197,17 @@ cross-component contract a later phase depends on.
 - **Verification Method:** Build+Test (exact `cargo` commands) | Visual/Behavioral (exact
   rendering + check: headless-browser assertion, screenshot diff, zero console errors,
   a11y assertion) | Hybrid
+
+  **UI-touch rule:** any task that adds, modifies, or visibly changes a UI component,
+  feature, or appearance MUST use **Visual/Behavioral** or **Hybrid** — never Build+Test
+  alone — and MUST specify at least one screen capture in its DoD/Commands.
+  **Consolidation:** if a phase has multiple UI-touching tasks whose changes are all
+  visible together in one screen/state, one shared capture may satisfy all of them — cite
+  it from each task's DoD rather than duplicating. If the changes are **not** all visible
+  in the same screen/state (different pages, different interaction states, or a change not
+  visible until a separate action), each requires its own capture. A task drafted as
+  UI-touching with no capture specified is a Plan drafting defect (§15 DoD), not something
+  left to the executing agent's judgment.
 - **Commands**
 - **DoD:** code builds (`command`) · verification passes (`command(s)`) · Test Case ID
   verified · Required Artifacts captured
@@ -301,10 +317,14 @@ documentation-only task) has nothing to log and is exempt.
 **Format — evidence lines, not prose. Target 20–30 lines for the whole file.** One entry
 per task, appended immediately when that task's DoD is satisfied (same continuous-update
 timing as the Checklist), each entry no more than a few lines:
-- **Build/test tasks:** the final build status line (e.g. `cargo build --workspace:
-  Finished` or the equivalent failure line) and/or the test-runner summary line only —
-  e.g. `cargo nextest run --workspace: Summary [0.021s] 14 tests run: 14 passed, 177
-  skipped`. Never the full raw log — that's discarded, not committed.
+- **Build/test tasks:** **the actual final line of terminal output, copied verbatim** — the
+  real `Finished`/`error` line `cargo build`/`cargo check` prints, or the real `cargo
+  nextest` summary line (e.g. `Summary [0.021s] 14 tests run: 14 passed, 0 skipped`).
+  **Never a paraphrase, description, or restated claim in the agent's own words** — a line
+  like "Result: Successfully compiled using `cargo check -p [crate]`" is a violation of this
+  format, not an acceptable summary, because it isn't evidence the command was actually run
+  or what it actually printed. If the true output line is long, truncate trailing
+  whitespace/noise only — never rewrite its content. Never the full raw log.
 - **UI/visual tasks (static views** — landing, sign-in, sign-out, settings, a UI element
   added to an existing page, or similar): one final-state screenshot is sufficient.
 - **UI/visual tasks (dynamic scenes** — animation, multi-step interaction, anything that

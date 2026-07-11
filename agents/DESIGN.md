@@ -232,10 +232,20 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   structure) derived from the finalized Architecture Specification — Development Phase's
   Phase 0 task then reviews/confirms/enhances this draft rather than authoring from scratch
   (`agents/DEVELOPMENT.md` §5.2.1).
-- **Output:** Development Plan, Checklist, Dev Prompt, and draft README.
-- **GATE: STOP and Present Plan, Checklist, Dev Prompt, and README for User Approval.**
+- **.gitignore:** Draft the root `.gitignore` per `agents/exemplars/development_plan_template.md`
+  §3's mandatory skeleton — standard Rust and Trunk entries, matched at any depth, not just
+  repo root. Development Phase's Phase 0 then reviews/confirms/extends it with
+  project-specific entries, mirroring the README convention (`agents/DEVELOPMENT.md`
+  §5.2.1).
+- **Output:** Development Plan, Checklist, Dev Prompt, draft README, and draft `.gitignore`.
+- **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, and `.gitignore` for User
+  Approval.**
 
 ### 5.9. Step 9: Plan & Checklist Audit
+- **Note: `.gitignore` is not a Step 9 audit input.** Step 9 audits only the Development
+  Plan and Checklist against the finalized Architecture Specification and their own
+  Definition of Done (§15) — `.gitignore`'s correctness is confirmed separately at
+  Development Phase 0's review, not here.
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
 - **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every phase's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling phase with no recorded override is a finding**. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
@@ -269,8 +279,8 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
     fix. A third identical pass with no change in approach is not permitted.
 
 ## 6. Phase Completion Criteria
-Phase is complete ONLY when all approved artifacts (Spec, Plan, Checklist, Dev Prompt, and
-README)
+Phase is complete ONLY when all approved artifacts (Spec, Plan, Checklist, Dev Prompt,
+README, and `.gitignore`)
 are committed to the repository **and both Step 7 (Spec Audit) and Step 9 (Plan & Checklist
 Audit) have each produced a clean, zero-finding report.**
 

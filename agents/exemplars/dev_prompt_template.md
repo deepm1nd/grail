@@ -87,11 +87,18 @@ only the named section using the method shown, resolve it, then continue.
 | Verification file format/scope, Branch Name convention | `agents/exemplars/development_plan_template.md` | §11.4, §6.1 | `grep -n "Verification File\|Branch Name" FILE -A 15` |
 | Dev plan: technology stack | `[projectname]_dev_plan_01_overview_v[N].md` | §2 | `awk '/^## 2\./,/^## 3\./' FILE` |
 
-### 3. Check out the phase branch
+### 3. Check out the phase branch — and verify it before every task
 Before anything else touches the repo: check out the current phase's **Branch Name**
 (Plan §6.1) — create it from the default branch if it doesn't exist yet, or resume it if a
-prior session already started the phase. Never work a phase's tasks directly on the default
-branch.
+prior session already started the phase. **Never work a phase's tasks directly on the
+default branch, and never work one phase's tasks on another phase's branch.**
+
+**Re-verify the current branch (`git branch --show-current` or equivalent) before starting
+every task, not just once at session start.** If the working branch does not exactly match
+the phase's declared Branch Name, stop and correct it before writing any code — do not
+assume a prior check still holds. A mismatch discovered mid-task is an inconsistency: stop,
+confirm the correct branch, and re-verify no work was accidentally committed to the wrong
+one before proceeding.
 
 ### 4. Environment check and version sanity check
 ```bash
@@ -136,19 +143,42 @@ Work only within the phase's declared **Session Unit** (`Phase` / `Task` / `Code
 never begin work outside that scope even with capacity remaining.
 
 ### 8. Work the unit, one task (or sub-task) at a time
-Confirm each task's DoR before starting. Code in `src\`, never `docs\`. **Check off DoD
-sub-items the moment each is satisfied** — continuously, not batched. Mark the task line
-itself `[x]` only when every DoD sub-item is `[x]` and Required Artifacts exist.
+**Work tasks in the exact order the Checklist lists them, one at a time, with no
+reordering, no skipping ahead, and no omitting a DoD sub-item — ever, without explicit user
+permission first.** If a task looks unnecessary, already satisfied, inapplicable, or
+blocked, that is an uncertainty (step 2) or an Escalation Trigger (step 9) — not a judgment
+call to skip past it silently. Do not jump to a later task because it seems easier, more
+urgent, or already done; do not leave a DoD sub-item unchecked-but-skipped and move on.
+**The only way a checkbox item is left undone and progress continues past it is if the user
+explicitly says so in this session** — a prior session's summary or your own inference is
+not sufficient permission.
+
+Confirm the branch (per step 3) before confirming DoR — both are pre-task gates, run every
+task, not just once. Code in `src\`, never `docs\`. **Check off DoD sub-items the moment
+each is satisfied** — continuously, not batched. Mark the task line itself `[x]` only when
+every DoD sub-item is `[x]` and Required Artifacts exist.
 
 **The instant a task's (or sub-task's) DoD is satisfied, before moving to the next task:**
 if it has a real Verification Method (Build+Test, Hybrid, or Visual/Behavioral — not a pure
 documentation/review task), append its entry to
-`test/[projectname]_phase_[N]_verification.md` (Plan §11.4) — the build/test summary line
-only, never the raw log, plus any screenshots (static views: one final-state shot) or clips
-(dynamic scenes: three ~5s clips — start/middle/finish) saved under `test/phase_[N]/` named
-`[TASK_ID]_[short_description].[ext]`. Then flip the Checklist boxes, then submit. This is
-Checklist-adjacent bookkeeping, not a Checklist edit — the Checklist itself stays
-bracket-content-only (`AGENTS.md` §2.7).
+`test/[projectname]_phase_[N]_verification.md` (Plan §11.4) — **paste the actual terminal
+output line verbatim, never a summary, paraphrase, or description in your own words** (e.g.
+never write something like "Result: Successfully compiled using `cargo check -p [crate]`" —
+that is not evidence the command ran or what it printed; copy the real `Finished`/`error`
+line or the real `cargo nextest` summary line instead), plus any screenshots (static views:
+one final-state shot) or clips (dynamic scenes: three ~5s clips — start/middle/finish) saved
+under `test/phase_[N]/` named `[TASK_ID]_[short_description].[ext]`.
+
+**Then update the Checklist for this task now — every satisfied DoD sub-item and the task
+line itself — before calling `submit`. Do not defer this update, and do not batch it with
+any other task's update.** This is Checklist-adjacent bookkeeping, not a Checklist edit —
+the Checklist itself stays bracket-content-only (`AGENTS.md` §2.7).
+
+**Do not check the task's `Submitted` box yet.** Call `submit` for this task's declared
+Submit Point now. **Only after `submit` completes AND the user responds with "Continue,"
+"Proceed," or equivalent, go back and check the `Submitted` box** — then, and only then,
+move to the next task. A `Submitted` box checked before the user's resume message is a rule
+violation, not a shortcut.
 
 **If the task's Verification Method is Build+Test or Hybrid, it is already split into `a`
 (Code) and `b` (Verify) sub-tasks in the Plan/Checklist** — work `a` to its own DoD (clean
@@ -201,7 +231,11 @@ session.
   every task completed this session that has a real Verification Method, with any
   screenshots/clips saved under `test/phase_[N]/` — nothing beyond the summary line/artifact
   reference (no raw logs).
-- [ ] You worked on the phase's checked-out Branch Name (Plan §6.1), not the default branch.
+- [ ] You verified, per task (not just once at session start), that you were on the phase's
+  exact declared Branch Name — never the default branch, never another phase's branch — and
+  this was actually checked with a command, not assumed.
+- [ ] Every task was worked in Checklist order; no task was skipped, reordered, or left with
+  an unchecked DoD item without the user's explicit permission given this session.
 - [ ] No half-applied change left uncommitted.
 - [ ] `scripts/setup_env.sh`/`.bat` reflect any prerequisites self-installed this session.
 - [ ] You have not begun any task belonging to the next phase.
@@ -213,7 +247,9 @@ session.
   file in full (except the protocols file). Every doc reference was a targeted extraction
   triggered by a specific uncertainty, using the method in the step 2 table.
 - [ ] Every task/sub-task you completed this session has a matching `submit` and its
-  Checklist `Submitted` box checked — no DoD-satisfied task left unsubmitted.
+  Checklist `Submitted` box checked — no DoD-satisfied task left unsubmitted. Every
+  `Submitted` box checked this session was checked only after that task's submit completed
+  and the user's resume message ("Continue"/"Proceed") — never before.
 - [ ] Any WIP Checkpoint you issued this session has a description sufficient for a future
   session to resume from without redoing your work.
 - [ ] You did not call `request_code_review` (per `AGENTS.md` §2.2's current setting).
