@@ -28,7 +28,8 @@ these instruction files change.
    becomes load-bearing for everything after it.
 3. **Step 8's output is the handoff package:** the Development Plan (with a Branch Name and
    Session Unit declared per phase), the Development Checklist, the reusable Dev Prompt
-   (`[projectname]_dev_prompt.md`), and a draft `README.md`. Step 9 independently audits
+   (`[projectname]_dev_prompt.md`), a draft `README.md`, draft `.gitignore`, draft
+   `ci.yml`, and draft `THIRD_PARTY_LICENSES.md`. Step 9 independently audits
    this package before you move on — any finding sends you back to Step 8, never patched in
    place at Step 9.
 4. **Hand the project to Jules for the Development Phase.** Give Jules the Dev Prompt at the
@@ -59,6 +60,7 @@ grail/
 └── agents/
     ├── DESIGN.md                    # Design & Planning Phase guide
     ├── DEVELOPMENT.md                # Development Phase guide
+    ├── CI.md                        # GitHub Actions CI stage skeleton
     ├── PREFERRED_DEPENDENCIES.md     # Mandated/forbidden Rust library dependencies
     ├── PREFERRED_TOOLS.md            # Approved development tools
     ├── PREFERRED_SERVICES.md         # Approved infrastructure services
@@ -68,8 +70,14 @@ grail/
         ├── architecture_specification_template.md
         ├── development_plan_template.md
         ├── development_checklist_template.md
+        ├── README_template.md       # Generated project README skeleton
         └── dev_prompt_template.md
 ```
+
+**Note:** this tree describes the `grail` instruction repository itself. A *generated
+project* (one that follows this workflow) has its own, different structure — `src/`/`crates/`,
+`assets/`, `deploy/`, `metrics/`, `scripts/`, `test/`, `.github/workflows/` — per
+`agents/exemplars/development_plan_template.md` §3 and `agents/exemplars/README_template.md`.
 
 ## Development Phases
 1. **Design Phase (`agents/DESIGN.md`, Claude):** Concept → Architecture Specification,
@@ -122,6 +130,11 @@ grail/
   touching another phase's marks. Every other doc file is read-only to it.
 - **Project README drafted at Design Step 8**, reviewed/confirmed/enhanced during
   Development Phase's Phase 0, not scaffolded from scratch there.
+- **CI as an async, human-reviewed backstop.** `ci.yml` and `THIRD_PARTY_LICENSES.md` are
+  drafted at Design Step 8 (same pattern as README/`.gitignore`) and reviewed at
+  Development Phase 0. CI itself (`agents/CI.md`) never blocks a session — no session
+  waits on a push's CI result, and no Development Plan rule requires it. A red check is
+  reviewed the same way other between-session evidence is: by the human, as it accumulates.
 - **Preferred tooling.** Dependencies/tools/services drawn from
   `agents/PREFERRED_DEPENDENCIES.md`, `agents/PREFERRED_TOOLS.md`,
   `agents/PREFERRED_SERVICES.md`. Unlisted items require explicit approval.

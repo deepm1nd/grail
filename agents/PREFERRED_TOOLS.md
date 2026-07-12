@@ -130,13 +130,50 @@ a failing CI run.
   skeleton matching the pinned version:
   ```toml
   # deny.toml
+  [licenses]
+  # Permissive, notice-only licenses — see PREFERRED_DEPENDENCIES.md's License
+  # Compatibility Criterion for the actual test this list satisfies. Without this
+  # section, cargo-deny defaults to an empty allow-list and rejects virtually every
+  # real dependency tree, including plain MIT/Apache-2.0 — do not omit it.
+  allow = [
+      "MIT",
+      "Apache-2.0",
+      "Apache-2.0 WITH LLVM-exception",
+      "BSD-2-Clause",
+      "BSD-3-Clause",
+      "ISC",
+      "Unicode-3.0",
+  ]
+
   [advisories]
   unmaintained = "all"       # dependency-scope filter, not a lint level, as of 0.16
   unsound = "all"
   yanked = "deny"
   ```
+  Project-specific license needs beyond this set (a dependency whose license isn't in
+  the list above) are flagged and resolved at Design Step 5, same tier as an Unlisted
+  dependency (`PREFERRED_DEPENDENCIES.md`) — never silently added to `allow` without
+  that approval.
 - **cargo-audit** — RustSec vulnerability scan. `cargo install cargo-audit --locked`.
 - **cargo-watch** — rebuild/retest on change. `cargo install cargo-watch --locked`.
+
+## Canonical Commands (CI Invocations)
+> Maps each tool to the exact command CI runs it with, and the `metrics/*.toml` file
+> (`agents/CI.md`) it feeds. Design Step 5 confirms which of these apply per project
+> (e.g. Playwright only if the project has an E2E suite); Step 8 bakes the confirmed
+> set into the generated `ci.yml`.
+
+| Tool | Canonical CI command | Feeds |
+|---|---|---|
+| cargo-nextest | `cargo nextest run --workspace --message-format libtest-json` | `metrics/tests.toml` |
+| cargo-llvm-cov | `cargo llvm-cov --workspace --json --output-path target/llvm-cov.json` | `metrics/coverage.toml` |
+| cargo-deny | `cargo deny check --format json` | `metrics/deny.toml`, and feeds the `THIRD_PARTY_LICENSES.md` regeneration/drift-check (`agents/CI.md` Stage 5) |
+| cargo-audit | `cargo audit --json` | `metrics/audit.toml` |
+| Playwright | `npx playwright test --reporter=json` | `metrics/playwright.toml` (conditional — only if the project has an E2E suite) |
+
+Each row's JSON output is parsed into its target TOML by a small script in
+`scripts/metrics/` (one script per domain) — see `agents/CI.md` for where in the
+pipeline this runs.
 
 ## GitHub Actions
 Pin actions to the current Node major at minimum (Node 24 as of this writing, e.g.
@@ -174,6 +211,33 @@ Flashing/serial-monitor for ESP32/ESP-IDF. `cargo install espflash --locked`. Fl
 **Non-fatal tools:** tools documented in Development Plan §4 as non-fatal (e.g.
 Playwright browser drivers in headless CI) may fail without triggering the above —
 `setup_env.sh` logs the failure and continues via error-accumulation, never `set -e`.
+
+**CI has no equivalent of a Jules session's Environment Snapshot.** A Development Phase
+session may start from an already-provisioned environment (a prior Snapshot); a CI run
+never does — every GitHub Actions job starts from zero state. This means `scripts/setup_env.sh`
+MUST be its own explicit step in `ci.yml` (`agents/CI.md`'s Stage 0), run before any
+step — including a version/environment check like `check_env.sh` — that assumes tools
+are already present. A `ci.yml` that runs `check_env.sh` without a preceding
+`setup_env.sh` step is not an environment quirk; it is a missing pipeline step, and
+Design Step 9's audit checks for it explicitly (`agents/DESIGN.md` §5.9).
+
+**Apt-based installs in `setup_env.sh` must be defensive, in every environment, not
+just in CI.** Do not assume the environment's default apt sources already include
+everything needed (observed failure: `libusb-1.0-dev`, a `universe`-component package,
+unavailable on a GitHub Actions run despite `universe` nominally being enabled by
+default — likely a stale/incomplete package index or mirror substitution at that
+moment, not a fundamentally missing component). Every apt-based install step should
+read:
+
+```bash
+sudo apt-get update
+sudo add-apt-repository -y universe   # idempotent — no-ops if already enabled
+sudo apt-get update                    # re-run so the index reflects universe's packages
+sudo apt-get install -y <package>
+```
+
+This costs three extra lines and guards against package-index/mirror drift generally —
+it is not a workaround specific to any one cloud provider or runner image.
 
 ---
 

@@ -202,7 +202,7 @@ advances into a second phase even if time/capacity remains.
     immediately, not deferred to end-of-phase, and before starting the next task.
 4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome.
 5.  **Pre-Commit Verification & Quality Assurance:**
-    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below); for the final phase, this includes a final README review.
+    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review.
     -   **Assurance Review:** Perform a final, active review of all code and changes in the current phase. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists.
 6.  **Write the Phase Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_phaseN_summary.md`.
 7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the phase-level wrap-up only: docs, README updates, and the Phase Summary itself, submitted together after the **Phase-End Quality Assurance** is complete. This is not the sole checkpoint for the phase's work (per-task submits already provide that); it closes out anything not itself task-scoped.
@@ -219,6 +219,38 @@ initial scaffolding. It is revisited for a final accuracy/completeness review du
 last phase, once the built system may have diverged in minor ways from the Design-time
 draft. Any phase that materially changes how the project is built, run, or used should
 update it as part of that phase's documentation-integrity check (§5.2 step 5).
+
+#### 5.2.2. CI Workflow
+
+**`.github/workflows/ci.yml` is drafted during Design Phase, at Step 8**, from
+`agents/CI.md`'s stage skeleton, using Step 5's CI Stage Applicability findings
+(`agents/DESIGN.md` §5.5/§5.8) — not authored from scratch here. Phase 0's task is
+**review, confirmation, and extension** of that draft against the repository as it starts
+to take shape, mirroring the README pattern above — most commonly confirming that the
+conditional stages Step 5 identified (WASM, Playwright/E2E, ESP32, infra services) are
+correctly present or correctly absent once the actual codebase makes that visible, and that
+Stage 0's `scripts/setup_env.sh` step matches whatever `setup_env.sh` content Phase 0
+itself produces or extends.
+
+#### 5.2.3. Third-Party License Disclosure
+
+**`THIRD_PARTY_LICENSES.md` is drafted during Design Phase, at Step 8**, from the
+dependency set finalized in the Architecture Specification (`agents/DESIGN.md` §5.8) — but
+unlike README/`ci.yml`, that draft is necessarily provisional: no `Cargo.lock` exists until
+the workspace is actually scaffolded, so Design Step 5's own license check
+(`agents/PREFERRED_DEPENDENCIES.md`'s License Compatibility Criterion) is limited to
+**direct** dependencies only.
+
+**Phase 0 runs the first real `cargo deny check licenses`** against the actual resolved
+`Cargo.lock` — the earliest point a transitive-dependency license violation (a dependency's
+own dependency carrying an incompatible license, invisible at Design time) is genuinely
+catchable — and reconciles `THIRD_PARTY_LICENSES.md` against that result. Any violation
+found here is an Escalation Trigger (`agents/exemplars/development_plan_template.md` §13),
+not a silent fix: the agent cannot itself decide to swap a dependency or add a `[patch]`
+exception, per `PREFERRED_DEPENDENCIES.md`'s No Local Patching mandate. From Phase 0
+onward, `agents/CI.md` Stage 5 re-runs this check on every push and fails (does not
+auto-commit) on any drift between the committed `THIRD_PARTY_LICENSES.md` and what the
+current dependency tree would actually produce.
 
 ### 5.3. Completion of Development
 After all phases in the `Development Plan` are complete, the agent must notify the user and await instruction on next steps, which may include a post-development remediation cycle.

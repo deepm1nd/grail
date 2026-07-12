@@ -21,6 +21,47 @@ See `CHANGELOG.md` for version history.
 - **Unlisted:** requires explicit user approval (`AGENTS.md` §2.2) before use.
 - **Forbidden:** never used, no exceptions.
 
+## License Compatibility Criterion
+**MANDATE:** Every dependency in this file — Preferred, Unlisted-approved, or
+Requires-Approval — must satisfy this criterion: **permissive and notice/attribution-only.**
+The dependency's license must impose no obligation beyond preserving its own copyright/license
+notice in distributed copies — no share-alike, no copyleft, no requirement to disclose or
+relicense this project's own source. This is the actual test; the license set below is one
+consequence of applying it, not the test itself. A future addition to any tier — including an
+Unlisted or Requires-Approval one-off — is evaluated against this criterion directly, never
+copy-pasted onto the allow-list by analogy to what's already there.
+
+This criterion exists because the project's own default output license
+(`README_template.md`'s License section) is **PolyForm Noncommercial** — source-available,
+free for personal/noncommercial use, commercial use requires a separate license from the
+author. A dependency carrying its own copyleft or share-alike obligation would conflict with
+that model (it would force disclosure/relicensing terms the project itself doesn't want to
+carry); a plain permissive/notice-only dependency never does, since permissive licenses are
+explicitly designed to allow sublicensing under different, more restrictive terms.
+
+- **Satisfies this criterion:** MIT, Apache-2.0 (with its NOTICE/changes-stated obligation —
+  still disclosure-only, not code-sharing), BSD-2-Clause, BSD-3-Clause, ISC, Unicode-3.0 /
+  Unicode-DFS-2016 — the current `agents/PREFERRED_TOOLS.md` `deny.toml` `[licenses]`
+  allow-list.
+- **Does not satisfy this criterion, and must never be added without a documented exception**
+  at the same approval tier as an unreleased-fix `[patch]` exception above: GPL/AGPL (full
+  copyleft), LGPL (Rust's typical static linking triggers its relink/object-file obligation —
+  a real additional obligation, not just notice), MPL-2.0 (weak-copyleft, file-level
+  share-alike — a common trap, since it can look permissive-ish at a glance but isn't).
+- **Transitive dependencies are the actual risk, not direct ones.** A direct dependency is
+  easy to eyeball against this criterion; an incompatible license four levels down a
+  dependency's own tree is not (observed case: `yansi` MIT/Apache-2.0-dual — itself fine —
+  pulled in transitively via `leptos_macro`, where the actual risk is whatever any transitive
+  dependency's license turns out to be, not `yansi` in this instance, but the general pattern
+  of an unreviewed transitive tree is the same). This is why the license check has two
+  distinct passes, at two different points, neither of which alone is sufficient:
+  - **Design Step 5** checks only the project's proposed **direct** dependencies against this
+    criterion, as an extension of the existing Preferred/Forbidden/Requires-Approval match —
+    no `Cargo.lock` exists yet, so transitive dependencies are not yet knowable at all.
+  - **Development Phase 0** runs the first real `cargo deny check licenses` against the
+    actual resolved `Cargo.lock` — the earliest point a transitive violation is genuinely
+    catchable — and CI's Stage 5 (`agents/CI.md`) re-runs it on every subsequent push.
+
 ## No Local Patching, Forking, or Vendoring
 **Forbidden by default, same tier as an unlisted dependency's approval gate — not a silent
 option.** A Cargo `[patch]` section, a vendored/forked copy of a crate's source, or a local
@@ -172,6 +213,13 @@ Specification §6.1/§6.2.
 - oauth2, oauth10a  (SSO / broker-specific OAuth clients)
 - async-stripe, autogen-squareup  (payment processors)
 - feed-rs  (RSS/Atom parsing)
+
+**License-compatibility check is part of this approval, not a separate step.** A
+Requires-Approval dependency's own transitive tree is exactly where an incompatible license
+is most likely to slip in unnoticed — the dependency itself may be fine (all four listed
+above are permissively licensed) while something several levels beneath it is not. Approving
+one of these without also running (or having already run) `cargo deny check licenses`
+against its actual resolved tree is an incomplete approval, not a conservative one.
 
 ## Forbidden Dependencies
 (None currently listed)

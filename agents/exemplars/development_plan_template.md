@@ -50,8 +50,23 @@ Audit) clears — independent, adversarial, distinct from the drafting that prod
 **The project root is the repository root — unnamed, never a project-name subfolder** (a
 clone lands in whatever directory name the clone tool assigns, not the project's name).
 
-Workspace root tree: `Cargo.toml`, `libs/`/`crates/`/`services/`, frontend/mobile dirs,
-`deploy/` (compose files), `assets/` (below), `scripts/` (`setup_env.sh`/`.bat`).
+**`src/` vs `crates/` — mutually exclusive, decided once at Design Step 5.** A single-crate
+project uses a root `Cargo.toml` (with `[package]`) plus `src/` — no `crates/` directory at
+all. A multi-crate workspace uses a root `Cargo.toml` declaring `[workspace]` only (no
+`[package]`, no root `src/`); every member crate lives under `crates/<crate_name>/`, each
+with its own `Cargo.toml` and `src/`. A project never has both `src/` and `crates/` at the
+root level — which one applies is recorded in the Architecture Specification's
+Deployment/structure viewpoint, not left for a later session to infer from what happens to
+exist. Member-crate folder names follow the existing no-dashes/underscores rule
+(`agents/PREFERRED_DEPENDENCIES.md`) — not a new rule, just applying the existing one.
+
+Workspace root tree: `Cargo.toml`, `src/` **or** `crates/` (never both, above), `services/`,
+frontend/mobile dirs, `deploy/` (compose files), `assets/` (below), `scripts/`
+(`setup_env.sh`/`.bat`, plus `scripts/metrics/` — parser scripts feeding `metrics/*.toml`,
+`agents/PREFERRED_TOOLS.md`'s Canonical Commands table), `metrics/` (`coverage.toml`,
+`tests.toml`, `deny.toml`, `audit.toml`, `playwright.toml` — CI-maintained, committed, not
+gitignored, `agents/CI.md`), `.github/workflows/` (`ci.yml`), `deny.toml`,
+`THIRD_PARTY_LICENSES.md` (CI-maintained, drift-checked, `agents/CI.md` Stage 5).
 
 **`assets/` — user-populated, filename-stable across Design and Development.** Where the
 Architecture Spec's Asset Manifest (§4.13) lists user-supplied HTML/image/audio/video

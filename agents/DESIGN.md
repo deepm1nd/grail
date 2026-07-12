@@ -145,6 +145,21 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   (`agents/RUST_PREFERENCES.md` §0). For an ESP32/ESP-IDF component, cross-check against
   `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md`. Real environment feasibility (infra, budget,
   licensing, team familiarity) not list-checkable is a flagged item through RATS.
+- **CI Stage Applicability:** Identify which of `agents/CI.md`'s conditional stages apply
+  to this project — WASM/Trunk build, Playwright/E2E suite, ESP32/ESP-IDF, infra services
+  via `deploy/docker-compose.dev.yml`. No file is produced here; this feeds Step 8's
+  `ci.yml` generation.
+- **Direct-Dependency License Check:** Each proposed **direct** dependency is checked
+  against `agents/PREFERRED_DEPENDENCIES.md`'s License Compatibility Criterion
+  (permissive, notice-only — no share-alike, no copyleft), as an extension of the
+  Preferred/Forbidden/Requires-Approval match above. **This check is explicitly limited to
+  direct dependencies** — no `Cargo.lock` exists yet at Design time, so a transitive
+  dependency's actual license is not knowable here; the first real transitive check
+  happens at Development Phase 0 (`agents/DEVELOPMENT.md` §5.2.3), re-run on
+  every CI push thereafter (`agents/CI.md` Stage 5).
+- **License Disclosure Artifact:** Identify that a `THIRD_PARTY_LICENSES.md` disclosure
+  file is required, fed by `cargo-deny`'s license enumeration. No file is produced here;
+  this feeds Step 8's initial-content generation.
 - **Mandate:** The agent determines technical sufficiency for development — presented as a proposal pending confirmation, never certified unilaterally where unverifiable real-environment facts are involved.
 - **Output:** Verified Requirements & V&V Protocol.
 - **GATE: STOP and Present Verified V&V Protocol for User Approval.**
@@ -237,15 +252,37 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   repo root. Development Phase's Phase 0 then reviews/confirms/extends it with
   project-specific entries, mirroring the README convention (`agents/DEVELOPMENT.md`
   §5.2.1).
-- **Output:** Development Plan, Checklist, Dev Prompt, draft README, and draft `.gitignore`.
-- **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, and `.gitignore` for User
-  Approval.**
+- **CI Workflow:** Generate `.github/workflows/ci.yml` from `agents/CI.md`'s stage
+  skeleton, using Step 5's CI Stage Applicability findings to determine which conditional
+  stages (WASM, Playwright/E2E, ESP32, infra services) are included. Development Phase 0
+  then reviews/confirms/extends it, mirroring the README/`.gitignore` convention.
+- **Third-Party License Disclosure:** Generate initial `THIRD_PARTY_LICENSES.md` content
+  from the dependency set finalized in the Architecture Specification, using Step 5's
+  License Disclosure Artifact finding. This is a first draft only — Development Phase 0
+  runs the first real `cargo deny check licenses` against the actual resolved `Cargo.lock`
+  and reconciles this file against it (`agents/DEVELOPMENT.md` §5.2.3); CI's
+  Stage 5 (`agents/CI.md`) keeps it current thereafter via a fail-on-drift check.
+- **Output:** Development Plan, Checklist, Dev Prompt, draft README, draft `.gitignore`,
+  draft `ci.yml`, and draft `THIRD_PARTY_LICENSES.md`.
+- **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, `.gitignore`, `ci.yml`, and
+  `THIRD_PARTY_LICENSES.md` for User Approval.**
 
 ### 5.9. Step 9: Plan & Checklist Audit
-- **Note: `.gitignore` is not a Step 9 audit input.** Step 9 audits only the Development
-  Plan and Checklist against the finalized Architecture Specification and their own
-  Definition of Done (§15) — `.gitignore`'s correctness is confirmed separately at
-  Development Phase 0's review, not here.
+- **Note: `.gitignore` and `THIRD_PARTY_LICENSES.md` are not Step 9 audit inputs.** Step 9
+  audits only the Development Plan and Checklist against the finalized Architecture
+  Specification and their own Definition of Done (§15) — `.gitignore`'s correctness is
+  confirmed separately at Development Phase 0's review; `THIRD_PARTY_LICENSES.md`'s
+  correctness is confirmed at Development Phase 0's first `cargo deny check licenses` run
+  and kept current by CI's Stage 5 drift check thereafter (`agents/CI.md`) — neither is
+  something Step 9 can meaningfully verify itself.
+- **`ci.yml` gets one narrow, mechanical check, not a full audit pass.** Unlike
+  `.gitignore`/`THIRD_PARTY_LICENSES.md` above, `ci.yml` gains a single Tier-A-equivalent
+  check as part of Step 9's pass: **a generated `ci.yml` that references
+  `scripts/check_env.sh` without a preceding `scripts/setup_env.sh` step is a Substantive
+  finding** (`agents/CI.md` §3, Stage 0 — CI has no Environment Snapshot equivalent, so a
+  missing `setup_env.sh` step is a real defect, not a style choice). This is a mechanical,
+  deterministic check — no judgment call — and does not extend to auditing `ci.yml`'s
+  content more broadly.
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
 - **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every phase's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling phase with no recorded override is a finding**. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
@@ -280,7 +317,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 
 ## 6. Phase Completion Criteria
 Phase is complete ONLY when all approved artifacts (Spec, Plan, Checklist, Dev Prompt,
-README, and `.gitignore`)
+README, `.gitignore`, `ci.yml`, and `THIRD_PARTY_LICENSES.md`)
 are committed to the repository **and both Step 7 (Spec Audit) and Step 9 (Plan & Checklist
 Audit) have each produced a clean, zero-finding report.**
 

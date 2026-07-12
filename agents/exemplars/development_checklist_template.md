@@ -57,6 +57,27 @@
   instructions, and project structure confirmed accurate or corrected
 - [ ] Content reviewed and approved by user
 
+### Task: DOC-002 — Review, confirm, and extend CI workflow
+> `ci.yml` itself is drafted at Design Step 8 from `agents/CI.md`'s skeleton, using Step 5's
+> CI Stage Applicability findings — this task reviews/extends it against the repository as
+> it starts to take shape (`agents/DEVELOPMENT.md` §5.2.2).
+- [ ] `.github/workflows/ci.yml` (already drafted) reviewed against current repo state;
+  conditional stages (WASM, Playwright/E2E, ESP32, infra services) confirmed correctly
+  present or correctly absent
+- [ ] Stage 0's `scripts/setup_env.sh` step confirmed to match the actual `setup_env.sh`
+  content this phase produces or extends
+- [ ] Content reviewed and approved by user
+
+### Task: DOC-003 — Reconcile third-party license disclosure
+> `THIRD_PARTY_LICENSES.md`'s Design Step 8 draft is necessarily provisional — no
+> `Cargo.lock` existed yet to check transitive dependencies against
+> (`agents/DEVELOPMENT.md` §5.2.3). This task runs the first real check.
+- [ ] `cargo deny check licenses` run against the actual resolved `Cargo.lock`
+- [ ] Any violation found is an Escalation Trigger (Plan §13) — not a silent fix or
+  `[patch]` workaround (`PREFERRED_DEPENDENCIES.md`'s No Local Patching mandate)
+- [ ] `THIRD_PARTY_LICENSES.md` reconciled against the check's actual output
+- [ ] Content reviewed and approved by user
+
 ### Task: [DOMAIN-002a] (Code)
 - [ ] Code implemented and hermetically builds (`[command]`)
 - [ ] **Submitted** (task-complete Submit Point per Plan §8)
@@ -123,6 +144,11 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 - [ ] Full workspace build is hermetic and green: `[command(s)]`.
 - [ ] Full test suite is green: `[command(s)]`.
 - [ ] Every filename conforms to `CLAUDE.md` §4.
+
+> **Note:** the checks above are local, session-run confirmations — not the same as a
+> green CI run. CI (`agents/CI.md`) is an async, human-reviewed backstop; it is not a
+> gate this Final Verification list waits on, and its own pass/fail status is reviewed
+> separately, between sessions.
 
 ---
 
