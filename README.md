@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/images/logo_primary.png" alt="grail logo" width="200"/>
+</p>
+
 # grail: Agent Instruction Repository
 
 ***A Systems-Engineering-disciplined workflow for building Rust software with AI agents.***
