@@ -72,10 +72,19 @@
 > `THIRD_PARTY_LICENSES.md`'s Design Step 8 draft is necessarily provisional — no
 > `Cargo.lock` existed yet to check transitive dependencies against
 > (`agents/DEVELOPMENT.md` §5.2.3). This task runs the first real check.
+- [ ] `deny.toml` created (with `[licenses]` allow-list, `agents/PREFERRED_TOOLS.md`) —
+  has no prerequisite of its own, created alongside the workspace scaffold
 - [ ] `cargo deny check licenses` run against the actual resolved `Cargo.lock`
 - [ ] Any violation found is an Escalation Trigger (Plan §13) — not a silent fix or
   `[patch]` workaround (`PREFERRED_DEPENDENCIES.md`'s No Local Patching mandate)
 - [ ] `THIRD_PARTY_LICENSES.md` reconciled against the check's actual output
+- [ ] Content reviewed and approved by user
+
+### Task: DOC-004 — Confirm project LICENSE.md
+> `LICENSE.md` is static text drafted at Design Step 8 — this is a simple accuracy check,
+> not a reconciliation, since it has no dependency-tree prerequisite.
+- [ ] `LICENSE.md` content confirmed correct (license text matches the project's chosen
+  license, copyright holder/year correct)
 - [ ] Content reviewed and approved by user
 
 ### Task: [DOMAIN-002a] (Code)

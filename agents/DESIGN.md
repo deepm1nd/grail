@@ -256,6 +256,17 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   skeleton, using Step 5's CI Stage Applicability findings to determine which conditional
   stages (WASM, Playwright/E2E, ESP32, infra services) are included. Development Phase 0
   then reviews/confirms/extends it, mirroring the README/`.gitignore` convention.
+- **Metrics Parser Scripts:** Generate `scripts/metrics/` (one parser script per domain —
+  coverage, tests, deny, audit, and playwright if applicable) alongside `ci.yml`, since
+  `ci.yml`'s Stage 2/3/5/6 steps invoke them directly (`agents/PREFERRED_TOOLS.md`'s
+  Canonical Commands table). These have no dependency-resolution prerequisite, so they can
+  be drafted at the same time as `ci.yml` rather than waiting for Phase 0's workspace
+  scaffold.
+- **Project License:** Generate `LICENSE.md` from the project's chosen output license text
+  (default: PolyForm Noncommercial 1.0.0, `https://polyformproject.org/licenses/noncommercial/1.0.0/`)
+  with the copyright holder and year filled in. Unlike `THIRD_PARTY_LICENSES.md`, this file
+  has no dependency-tree prerequisite — it's static text, so it is fully final at Step 8, not
+  a provisional draft reconciled later.
 - **Third-Party License Disclosure:** Generate initial `THIRD_PARTY_LICENSES.md` content
   from the dependency set finalized in the Architecture Specification, using Step 5's
   License Disclosure Artifact finding. This is a first draft only — Development Phase 0
@@ -263,18 +274,21 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   and reconciles this file against it (`agents/DEVELOPMENT.md` §5.2.3); CI's
   Stage 5 (`agents/CI.md`) keeps it current thereafter via a fail-on-drift check.
 - **Output:** Development Plan, Checklist, Dev Prompt, draft README, draft `.gitignore`,
-  draft `ci.yml`, and draft `THIRD_PARTY_LICENSES.md`.
-- **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, `.gitignore`, `ci.yml`, and
-  `THIRD_PARTY_LICENSES.md` for User Approval.**
+  draft `ci.yml`, `scripts/metrics/`, `LICENSE.md`, and draft `THIRD_PARTY_LICENSES.md`.
+- **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, `.gitignore`, `ci.yml`,
+  `scripts/metrics/`, `LICENSE.md`, and `THIRD_PARTY_LICENSES.md` for User Approval.**
 
 ### 5.9. Step 9: Plan & Checklist Audit
-- **Note: `.gitignore` and `THIRD_PARTY_LICENSES.md` are not Step 9 audit inputs.** Step 9
-  audits only the Development Plan and Checklist against the finalized Architecture
-  Specification and their own Definition of Done (§15) — `.gitignore`'s correctness is
-  confirmed separately at Development Phase 0's review; `THIRD_PARTY_LICENSES.md`'s
-  correctness is confirmed at Development Phase 0's first `cargo deny check licenses` run
-  and kept current by CI's Stage 5 drift check thereafter (`agents/CI.md`) — neither is
-  something Step 9 can meaningfully verify itself.
+- **Note: `.gitignore`, `LICENSE.md`, `scripts/metrics/`, and `THIRD_PARTY_LICENSES.md` are
+  not Step 9 audit inputs.** Step 9 audits only the Development
+  Plan and Checklist against the finalized Architecture Specification and their own
+  Definition of Done (§15) — `.gitignore`'s and `LICENSE.md`'s correctness are confirmed
+  separately at Development Phase 0's review (`LICENSE.md` being static text, this is a
+  simple accuracy check, not a substantive one); `scripts/metrics/`'s correctness is
+  confirmed the first time CI actually runs it; `THIRD_PARTY_LICENSES.md`'s correctness is
+  confirmed at Development Phase 0's first `cargo deny check licenses` run and kept current
+  by CI's Stage 5 drift check thereafter (`agents/CI.md`) — none of these are things Step 9
+  can meaningfully verify itself.
 - **`ci.yml` gets one narrow, mechanical check, not a full audit pass.** Unlike
   `.gitignore`/`THIRD_PARTY_LICENSES.md` above, `ci.yml` gains a single Tier-A-equivalent
   check as part of Step 9's pass: **a generated `ci.yml` that references
@@ -317,7 +331,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 
 ## 6. Phase Completion Criteria
 Phase is complete ONLY when all approved artifacts (Spec, Plan, Checklist, Dev Prompt,
-README, `.gitignore`, `ci.yml`, and `THIRD_PARTY_LICENSES.md`)
+README, `.gitignore`, `ci.yml`, `scripts/metrics/`, `LICENSE.md`, and `THIRD_PARTY_LICENSES.md`)
 are committed to the repository **and both Step 7 (Spec Audit) and Step 9 (Plan & Checklist
 Audit) have each produced a clean, zero-finding report.**
 

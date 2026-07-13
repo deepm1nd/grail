@@ -202,7 +202,7 @@ advances into a second phase even if time/capacity remains.
     immediately, not deferred to end-of-phase, and before starting the next task.
 4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome.
 5.  **Pre-Commit Verification & Quality Assurance:**
-    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review.
+    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review.
     -   **Assurance Review:** Perform a final, active review of all code and changes in the current phase. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists.
 6.  **Write the Phase Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_phaseN_summary.md`.
 7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the phase-level wrap-up only: docs, README updates, and the Phase Summary itself, submitted together after the **Phase-End Quality Assurance** is complete. This is not the sole checkpoint for the phase's work (per-task submits already provide that); it closes out anything not itself task-scoped.
@@ -234,6 +234,12 @@ itself produces or extends.
 
 #### 5.2.3. Third-Party License Disclosure
 
+**`deny.toml` (with its `[licenses]` allow-list, `agents/PREFERRED_TOOLS.md`) is created
+during Phase 0**, not before — it has no content prerequisite of its own, but naturally
+belongs alongside the workspace's `Cargo.toml`/`Cargo.lock`, which are themselves products
+of Phase 0's scaffolding, not something Design Phase produces. Create it as part of
+scaffolding, before running the check below.
+
 **`THIRD_PARTY_LICENSES.md` is drafted during Design Phase, at Step 8**, from the
 dependency set finalized in the Architecture Specification (`agents/DESIGN.md` §5.8) — but
 unlike README/`ci.yml`, that draft is necessarily provisional: no `Cargo.lock` exists until
@@ -251,6 +257,10 @@ exception, per `PREFERRED_DEPENDENCIES.md`'s No Local Patching mandate. From Pha
 onward, `agents/CI.md` Stage 5 re-runs this check on every push and fails (does not
 auto-commit) on any drift between the committed `THIRD_PARTY_LICENSES.md` and what the
 current dependency tree would actually produce.
+
+**`LICENSE.md`** (drafted at Step 8, static text) needs no reconciliation the way
+`THIRD_PARTY_LICENSES.md` does — Phase 0's review is a simple accuracy check (correct
+license text, correct copyright holder/year), same tier as `.gitignore`'s review.
 
 ### 5.3. Completion of Development
 After all phases in the `Development Plan` are complete, the agent must notify the user and await instruction on next steps, which may include a post-development remediation cycle.

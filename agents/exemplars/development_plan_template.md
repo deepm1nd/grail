@@ -66,6 +66,7 @@ frontend/mobile dirs, `deploy/` (compose files), `assets/` (below), `scripts/`
 `agents/PREFERRED_TOOLS.md`'s Canonical Commands table), `metrics/` (`coverage.toml`,
 `tests.toml`, `deny.toml`, `audit.toml`, `playwright.toml` — CI-maintained, committed, not
 gitignored, `agents/CI.md`), `.github/workflows/` (`ci.yml`), `deny.toml`,
+`LICENSE.md` (static license text, final at Design Step 8, no reconciliation needed),
 `THIRD_PARTY_LICENSES.md` (CI-maintained, drift-checked, `agents/CI.md` Stage 5).
 
 **`assets/` — user-populated, filename-stable across Design and Development.** Where the
