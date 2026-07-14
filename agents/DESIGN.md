@@ -289,14 +289,19 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   confirmed at Development Phase 0's first `cargo deny check licenses` run and kept current
   by CI's Stage 5 drift check thereafter (`agents/CI.md`) — none of these are things Step 9
   can meaningfully verify itself.
-- **`ci.yml` gets one narrow, mechanical check, not a full audit pass.** Unlike
-  `.gitignore`/`THIRD_PARTY_LICENSES.md` above, `ci.yml` gains a single Tier-A-equivalent
-  check as part of Step 9's pass: **a generated `ci.yml` that references
-  `scripts/check_env.sh` without a preceding `scripts/setup_env.sh` step is a Substantive
-  finding** (`agents/CI.md` §3, Stage 0 — CI has no Environment Snapshot equivalent, so a
-  missing `setup_env.sh` step is a real defect, not a style choice). This is a mechanical,
-  deterministic check — no judgment call — and does not extend to auditing `ci.yml`'s
-  content more broadly.
+- **`ci.yml` gets two narrow, mechanical checks, not a full audit pass.** Unlike
+  `.gitignore`/`THIRD_PARTY_LICENSES.md` above, `ci.yml` gains two Tier-A-equivalent
+  checks as part of Step 9's pass, both mechanical/deterministic — no judgment call, and
+  neither extends to auditing `ci.yml`'s content more broadly:
+  1. A generated `ci.yml` that references `scripts/check_env.sh` without a preceding
+     `scripts/setup_env.sh` step is a Substantive finding (`agents/CI.md` §3, Stage 0 — CI
+     has no Environment Snapshot equivalent, so a missing `setup_env.sh` step is a real
+     defect, not a style choice).
+  2. A generated `ci.yml` that pins any GitHub Action below the current Node-major
+     requirement (e.g. `actions/checkout@v4` when `v5`+ is current, `PREFERRED_TOOLS.md`'s
+     GitHub Actions pinning rule) is a Trivial finding, fixed in place — observed in
+     practice to recur across generated projects when left to a one-time generation-time
+     reminder alone, so it is now audited mechanically rather than assumed followed.
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
 - **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every phase's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling phase with no recorded override is a finding**. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
