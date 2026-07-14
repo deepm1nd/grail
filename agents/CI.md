@@ -116,6 +116,18 @@ of this stage:
                                      # runners as of late 2025 and forced onto Node 24
                                      # with a recurring warning on every job that uses it.
 
+      - name: Cache cargo bin/registry
+        uses: actions/cache@v5   # v4 has the same Node-20 warning as checkout@v4 above —
+                                   # this recurs per-action, not just for checkout; check
+                                   # PREFERRED_TOOLS.md's GitHub Actions table for any
+                                   # action not yet listed there before assuming v-latest.
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: "Stage 0: Environment Setup"
         run: bash scripts/setup_env.sh
 

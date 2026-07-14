@@ -176,8 +176,18 @@ Each row's JSON output is parsed into its target TOML by a small script in
 pipeline this runs.
 
 ## GitHub Actions
-Pin actions to the current Node major at minimum (Node 24 as of this writing, e.g.
-`actions/checkout@v5`) — check for a newer default if the warning recurs.
+**Pin every action referenced in `ci.yml` to a version targeting the current Node major**
+(Node 24 as of this writing) — not just `actions/checkout`. This has recurred more than
+once across different actions as GitHub deprecates Node 20 runners; treat it as a property
+every action pin needs checked, not a one-off fixed for a single action:
+
+| Action | Minimum pin (Node 24) |
+|---|---|
+| `actions/checkout` | `@v5` |
+| `actions/cache` | `@v5` (requires Actions Runner ≥2.327.1 — already satisfied on every GitHub-hosted runner; only matters for self-hosted) |
+
+Check for a newer default whenever the warning recurs on an action not yet in this table —
+add it here rather than treating each recurrence as a one-off.
 
 ## Database
 - **sqlx-cli** — `cargo install sqlx-cli --no-default-features --features native-tls,postgres --locked`.
