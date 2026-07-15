@@ -202,8 +202,20 @@ advances into a second phase even if time/capacity remains.
     immediately, not deferred to end-of-phase, and before starting the next task.
 4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome.
 5.  **Pre-Commit Verification & Quality Assurance:**
+    -   **Mandatory Pre-Submit Local Verification** (`agents/DESIGN.md` §5.8): before any
+        task-complete Submit Point, run the full local CI-equivalent sequence — Lint &
+        Format, Build, Test, Coverage, Security Scan (`agents/CI.md`'s stage skeleton) —
+        and confirm all stages clean. **The Security Scan's `cargo deny check`/
+        `cargo audit` run in this context is read-only.** A license or advisory finding is
+        reported to the user immediately as a stop-and-alert, the same as any other
+        Escalation Trigger — it is not resolved by this session regenerating,
+        reconciling, or otherwise touching `THIRD_PARTY_LICENSES.md`. That file has
+        exactly one legitimate writer: CI's own Stage 5 regeneration step (`agents/CI.md`),
+        reviewed and committed by a human. A Development Phase session's role on a license
+        finding is to report it and, per the project's own stated default, propose
+        swapping the offending dependency — never to edit the disclosure file itself.
     -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review.
-    -   **Assurance Review:** Perform a final, active review of all code and changes in the current phase. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists.
+    -   **Assurance Review:** Perform a final, active review of all code and changes in the current phase. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists — checked continuously during the phase, not only here (`AGENTS.md` §2.3's Maximal Implementation mandate); this review is a final backstop, not the primary enforcement point.
 6.  **Write the Phase Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_phaseN_summary.md`.
 7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the phase-level wrap-up only: docs, README updates, and the Phase Summary itself, submitted together after the **Phase-End Quality Assurance** is complete. This is not the sole checkpoint for the phase's work (per-task submits already provide that); it closes out anything not itself task-scoped.
 8.  **Stop. Do Not Proceed to the Next Session Unit.** Per `AGENTS.md` §2.8, the session ends here regardless of remaining capacity, whether the declared Session Unit was a full Phase, a single Task, or one Code/Verify sub-task. Notify the user the unit is complete and await a new session to begin the next one.
@@ -245,7 +257,11 @@ dependency set finalized in the Architecture Specification (`agents/DESIGN.md` �
 unlike README/`ci.yml`, that draft is necessarily provisional: no `Cargo.lock` exists until
 the workspace is actually scaffolded, so Design Step 5's own license check
 (`agents/PREFERRED_DEPENDENCIES.md`'s License Compatibility Criterion) is limited to
-**direct** dependencies only.
+**direct** dependencies only. **Format, both at this draft stage and at every later
+regeneration: a one-line description followed by a dependency/license table (crate name,
+version, license identifier) — no header/footer prose, no full license text bodies**
+(`agents/CI.md` Stage 5). Phase 0's reconciliation below is a table expansion to the full
+resolved tree, not a restructuring.
 
 **Phase 0 runs the first real `cargo deny check licenses`** against the actual resolved
 `Cargo.lock` — the earliest point a transitive-dependency license violation (a dependency's

@@ -46,7 +46,12 @@ explicitly designed to allow sublicensing under different, more restrictive term
   Software License — permissive, notice-only; NOTE: distinct from Business Source License,
   which is *not* permissive and does not satisfy this criterion — always confirm "BSL-1.0"
   resolves to Boost, not Business Source, before treating a license string as satisfying
-  this list) — the current `agents/PREFERRED_TOOLS.md` `deny.toml` `[licenses]` allow-list.
+  this list), CDLA-Permissive-2.0 (Community Data License Agreement — a data-oriented
+  license, most likely to appear on a dependency that bundles a dataset, e.g. tokenizer
+  vocabularies or model weights; its only obligation is including the license text
+  alongside the shared data, lighter than even the notice/attribution requirement most
+  of this list carries) — the current `agents/PREFERRED_TOOLS.md` `deny.toml` `[licenses]`
+  allow-list.
 - **Does not satisfy this criterion, and must never be added without a documented exception**
   at the same approval tier as an unreleased-fix `[patch]` exception above: GPL/AGPL (full
   copyleft), LGPL (Rust's typical static linking triggers its relink/object-file obligation —
@@ -128,7 +133,10 @@ manifest at face value.
 ## Data & Serialization
 - serde
 - serde_json
-- bincode
+- postcard  # Replaces bincode (RUSTSEC-2025-0141 — unmaintained following a
+  # doxxing/harassment-driven abandonment; final bincode release deliberately ships a
+  # broken lib.rs to block future upgrades). postcard is the most commonly cited
+  # drop-in replacement: serde-compatible, actively maintained, wide adoption.
 - prost
 
 ## Database & Clients

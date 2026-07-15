@@ -135,7 +135,18 @@ for which steps, if any, are exempt from its standard procedure.
 ### 2.3. Mandate for Quality and Completeness
 **MANDATE: All work must be implemented to the fullest, most robust, and most complete potential.**
 -   **Sole Responsibility:** The agent is solely responsible for the technical quality and completeness of its work. If information is insufficient, the agent MUST ask the user well-formed questions to elicit the required detail. **For a Development Phase session, this is scoped by `agents/DEVELOPMENT.md` §4's Ask-on-Uncertainty split** — task-level detail is asked directly in-session; anything rising to Plan/Spec-level ambiguity goes through the Escalation Trigger stop instead of a question.
--   **Maximal Implementation:** Stub implementations, partial solutions, or "good enough" functionality are explicitly forbidden.
+-   **Maximal Implementation:** Stub implementations, partial solutions, or "good enough"
+    functionality are explicitly forbidden. **This applies at every point during a task, not
+    only as a retroactive phase-end check:** the agent MUST NOT write a `todo!()`,
+    `unimplemented!()`, a function body that returns a hardcoded/placeholder value, a
+    partial branch that handles only the easy case, or any other incomplete construct as an
+    intermediate step to "come back to later" — even within a single work session, even if
+    the plan is to finish it before that task's own Submit Point. If a task cannot be fully,
+    robustly implemented in the current session for a genuine reason (missing tool,
+    ambiguous spec, blocked dependency), that is an Escalation Trigger or a clarifying
+    question (`agents/DEVELOPMENT.md` §4) at the moment the gap is discovered — not a stub
+    left in place to be caught later by the Phase-End Quality Assurance mandate (§2.2 above),
+    which exists as a final backstop, not the primary enforcement mechanism.
 -   **No Compressed Formats in Delivered Content:** Every phase, task, section, list item, or repeated structure in a delivered file (Architecture Spec, Development Plan, Development Checklist, or any other deliverable) MUST be written out in full, individually — never collapsed into a placeholder like `(repeat one block per phase)`, `... (similar for remaining tasks)`, an ellipsis run standing in for omitted items, or any other compressed/templated shorthand. This applies everywhere such content appears, not only in the Checklist. A template file's own illustrative placeholder (e.g. `agents/exemplars/development_checklist_template.md`'s single example `## Phase N` block) is the sole exception — it exists to be filled in, not delivered as-is; the actual generated deliverable for a real project always expands every phase and task explicitly, with no "repeat" instruction left in the delivered content.
 -   **Pre-Commit Documentation Integrity:** No commit shall be made until all relevant documentation, including checklists and handoff files, is verifiably up-to-date.
 

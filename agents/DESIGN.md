@@ -255,9 +255,19 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   Submit Point drafted without this item is a Step 9 audit finding (§5.9).
 - **Checklist:** Generate a task-level checklist using `agents/exemplars/development_checklist_template.md` — every phase and every task written out in full, individually, in order; never a "repeat this block" placeholder or an ellipsis standing in for omitted phases/tasks (`AGENTS.md` §2.3 No Compressed Formats).
 - **Kickoff Prompt:** Generate the reusable development-agent kickoff prompt using `agents/exemplars/dev_prompt_template.md`, output as `[projectname]_dev_prompt.md`.
-- **Project README:** Draft the root `README.md` (overview, build/run instructions, project
-  structure) derived from the finalized Architecture Specification — Development Phase's
-  Phase 0 task then reviews/confirms/enhances this draft rather than authoring from scratch
+- **Project README:** Generate the root `README.md` **using `agents/exemplars/README_template.md`
+  as the mandatory structural basis — every section of that template (badges, License note,
+  Table of Contents, About, Key Features, Quick Start incl. Repository Layout/Prerequisites/
+  Installation/Configuration, Tech Stack, Architecture, Metrics & Badges, Development
+  Workflow, Contributing, Security, License, Acknowledgements) MUST be present in the
+  generated file, populated with this project's real content — never omitted, never
+  produced as a differently-structured document that merely covers similar ground.** Content
+  within each section is derived from the finalized Architecture Specification. This is the
+  same non-negotiable template-adherence standard already applied to the Checklist, Dev
+  Prompt, and every other `agents/exemplars/*_template.md` file at this step — an agent
+  instance skipping or restructuring the README template is a Step 9 audit finding (§5.9),
+  not an acceptable stylistic variation. Development Phase's Phase 0 task then
+  reviews/confirms/enhances this draft rather than authoring from scratch
   (`agents/DEVELOPMENT.md` §5.2.1).
 - **.gitignore:** Draft the root `.gitignore` per `agents/exemplars/development_plan_template.md`
   §3's mandatory skeleton — standard Rust and Trunk entries, matched at any depth, not just
@@ -268,8 +278,13 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   skeleton, using Step 5's CI Stage Applicability findings to determine which conditional
   stages (WASM, Playwright/E2E, ESP32, infra services) are included. Development Phase 0
   then reviews/confirms/extends it, mirroring the README/`.gitignore` convention.
-- **Metrics Parser Scripts:** Generate `scripts/metrics/` (one parser script per domain —
-  coverage, tests, deny, audit, and playwright if applicable) alongside `ci.yml`, since
+- **Metrics Parser Scripts:** Generate the complete `scripts/metrics/` set explicitly —
+  `parse_tests.js`, `parse_coverage.js`, `parse_deny.js`, `parse_audit.js`,
+  `parse_playwright.js` (conditional — only if this project has an E2E suite),
+  `check_license_drift.sh`, `write_source_marker.js` (unconditional on every project,
+  called by `agents/CI.md`'s final job step), and `parse_license_metrics.js` (feeds
+  `metrics/licenses.toml` and the two append-only JSONL license logs) — alongside
+  `ci.yml`, since
   `ci.yml`'s Stage 2/3/5/6 steps invoke them directly (`agents/PREFERRED_TOOLS.md`'s
   Canonical Commands table). These have no dependency-resolution prerequisite, so they can
   be drafted at the same time as `ci.yml` rather than waiting for Phase 0's workspace
@@ -325,6 +340,15 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   3. Any task-complete Submit Point in the Plan missing the Mandatory Pre-Submit Local
      Verification DoD item (§5.8) is a Trivial finding, fixed in place by inserting it —
      mechanical, no judgment call, since the item's required wording is fixed.
+  4. A generated `README.md` missing any section present in
+     `agents/exemplars/README_template.md` (badges, License note, Table of Contents,
+     About, Key Features, Quick Start and its four subsections, Tech Stack, Architecture,
+     Metrics & Badges, Development Workflow, Contributing, Security, License,
+     Acknowledgements) is a Trivial finding, fixed in place by adding the missing
+     section(s) populated from the Architecture Specification — this has recurred in
+     practice (a generated README covering similar ground in a different structure,
+     rather than the template's actual structure) and is now audited mechanically rather
+     than assumed followed from §5.8's instruction alone.
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
 - **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every phase's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling phase with no recorded override is a finding**. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a

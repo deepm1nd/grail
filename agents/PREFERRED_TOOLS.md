@@ -175,6 +175,7 @@ a failing CI run.
       "Zlib",
       "NCSA",
       "BSL-1.0",
+      "CDLA-Permissive-2.0",
   ]
 
   [advisories]
@@ -192,8 +193,27 @@ a failing CI run.
   Project-specific license needs beyond this set (a dependency whose license isn't in
   the list above) are flagged and resolved at Design Step 5, same tier as an Unlisted
   dependency (`PREFERRED_DEPENDENCIES.md`) — never silently added to `allow` without
-  that approval. Any `ignore` entry likewise requires the same approval tier and a
-  recorded reason, never a silent addition to unblock a red CI run.
+  that approval.
+
+  **`[advisories].ignore` policy — every entry MUST satisfy all of these:**
+  - **`reason` is mandatory, every entry, no exceptions** — not "known issue," but the
+    actual justification: why it's safe (e.g., compile-time-only, no runtime attack
+    surface, no viable maintained alternative as of a stated date) and, for a transitive
+    crate, which direct dependency pulls it in (`cargo tree -i <crate>`).
+  - **Same approval tier as an Unlisted dependency** (`AGENTS.md` §2.2) — proposed with
+    justification, explicit user approval, never a unilateral judgment call to unblock a
+    red CI run.
+  - **Never used for a `vulnerability`-class finding** — reserve `ignore` for
+    `unmaintained`/`notice`-tier advisories only. A genuine CVE is resolved (upgrade,
+    patch, or remove the dependency), never silently ignored, regardless of how deep it
+    sits in the tree.
+  - **Recorded as a standing risk to revisit**, same convention as the `[patch]` exception
+    in `PREFERRED_DEPENDENCIES.md` — logged in the Architecture Specification's Risk
+    Management section and `CHANGELOG.md`, with the RUSTSEC ID and date.
+  - **Re-checked at each dependency bump**, not set once and forgotten — remove the entry
+    the moment a maintained fork or replacement crate appears for that dependency.
+  - Note that an ignored advisory still prints a note in cargo-deny's output even when
+    suppressed from failing the check — the exception is visible in CI logs, not hidden.
 - **Clippy strictness — mandatory floor vs. per-project opt-in.** `-D warnings` (deny
   actual compiler/clippy warnings) is **mandatory on every project, no exceptions** — cheap
   and catches real defects. `-D clippy::unwrap_used` (deny every `.unwrap()` call,
@@ -216,7 +236,7 @@ a failing CI run.
 |---|---|---|
 | cargo-nextest | `cargo nextest run --workspace --message-format libtest-json` | `metrics/tests.toml` |
 | cargo-llvm-cov | `cargo llvm-cov --workspace --json --output-path target/llvm-cov.json` | `metrics/coverage.toml` |
-| cargo-deny | `cargo deny check --format json` | `metrics/deny.toml`, and feeds the `THIRD_PARTY_LICENSES.md` regeneration/drift-check (`agents/CI.md` Stage 5) |
+| cargo-deny | `cargo deny --format json check` | `metrics/deny.toml`, and feeds the `THIRD_PARTY_LICENSES.md` regeneration/drift-check (`agents/CI.md` Stage 5) |
 | cargo-audit | `cargo audit --json` | `metrics/audit.toml` |
 | Playwright | `npx playwright test --reporter=json` | `metrics/playwright.toml` (conditional — only if the project has an E2E suite) |
 

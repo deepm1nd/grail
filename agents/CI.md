@@ -195,8 +195,8 @@ colocated `#[test]`s and `tests/*.rs` integration tests in the same invocation r
 
 - **Stage 3a — Tests not requiring infra services:**
   `cargo nextest run --workspace --message-format libtest-json` (`PREFERRED_TOOLS.md`'s
-  Canonical Commands table) → `metrics/tests.toml`. Requires
-  `NEXTEST_EXPERIMENTAL_LIBTEST_JSON: "1"` in the step's `env:` wherever this exact
+  Canonical Commands table) → parsed by `scripts/metrics/parse_tests.js` → `metrics/tests.toml`.
+  Requires `NEXTEST_EXPERIMENTAL_LIBTEST_JSON: "1"` in the step's `env:` wherever this exact
   message format is used.
 - **Doc-tests, same step or immediately adjacent:** `cargo test --doc --workspace` — run
   generically for whichever crates in the workspace have doc-tests; never hardcode a
@@ -206,12 +206,17 @@ colocated `#[test]`s and `tests/*.rs` integration tests in the same invocation r
   `PREFERRED_SERVICES.md`'s Session Startup section), then run the test subset that needs
   it.
 - **Stage 3c(+) — E2E/Playwright** *(conditional — Playwright/E2E suite present)*:
-  `npx playwright test --reporter=json` → `metrics/playwright.toml`. Additional lettered
+  **install browsers before running tests** — `npx playwright install --deps` is a
+  mandatory step immediately before the test invocation; a fresh runner has no browsers
+  installed and the test run will fail before producing any JSON at all without this.
+  Then `npx playwright test --reporter=json` → parsed by
+  `scripts/metrics/parse_playwright.js` → `metrics/playwright.toml`. Additional lettered
   sub-stages (3d, 3e...) as a project needs further test-category subdivision — same
   conditional pattern, not a fixed ceiling.
 
 ### Stage 4: Coverage
-`cargo llvm-cov --workspace --json --output-path target/llvm-cov.json` → `metrics/coverage.toml`.
+`cargo llvm-cov --workspace --json --output-path target/llvm-cov.json` → parsed by
+`scripts/metrics/parse_coverage.js` → `metrics/coverage.toml`.
 
 ### Stage 5: Security & License Scan
 Two independent tools, one stage — see §4 below for how to tell their failures apart.
@@ -226,7 +231,7 @@ dedicated Actions no longer applies now that everything is one job:
 
 ```yaml
       - name: cargo-deny
-        run: cargo deny check --format json > /tmp/deny.json
+        run: cargo deny --format json check > /tmp/deny.json
 
       - name: Parse deny results
         run: node scripts/metrics/parse_deny.js /tmp/deny.json   # or bash+jq if trivial
@@ -237,6 +242,18 @@ dedicated Actions no longer applies now that everything is one job:
       - name: Parse audit results
         run: node scripts/metrics/parse_audit.js /tmp/audit.json
 
+      - name: Parse license violation/addition metrics
+        run: node scripts/metrics/parse_license_metrics.js /tmp/deny.json
+        # Writes metrics/licenses.toml (violations_count, crates_added_count — feeds
+        # the two README license badges) and appends one line per newly-seen crate to
+        # metrics/license_additions_log.jsonl or metrics/license_violations_log.jsonl
+        # (branch, commit, date, crate, license, direct_dep, chain — chain derived
+        # from cargo-deny's own inverse-dependency-graph output for the flagged crate).
+        # Both logs are committed to the working branch itself; because each phase
+        # branch descends from the prior phase's branch state, they accumulate
+        # cumulatively across the whole project's history via ordinary git ancestry —
+        # no cross-branch or main-specific commit logic needed.
+
       - name: THIRD_PARTY_LICENSES.md drift check
         run: bash scripts/metrics/check_license_drift.sh
 ```
@@ -244,10 +261,20 @@ dedicated Actions no longer applies now that everything is one job:
 - **cargo-deny** covers both `[licenses]` (the permissive/notice-only allow-list,
   `PREFERRED_DEPENDENCIES.md`'s License Compatibility Criterion — see that file and
   `PREFERRED_TOOLS.md`'s `deny.toml` skeleton for the current 0.19.x-compatible schema) and
-  `[advisories]` (`unmaintained`/`unsound`/`ignore`-based exceptions; there is no
-  lint-level severity field on this schema version).
+  `[advisories]` (`unmaintained = "all"` by standing default, with individual exceptions
+  via a documented `ignore` entry per `PREFERRED_TOOLS.md`'s ignore-list policy — never a
+  blanket scope relaxation to silence a specific finding).
 - **cargo-audit** — RustSec vulnerability scan, independent of cargo-deny.
-- **`THIRD_PARTY_LICENSES.md` drift check** — regenerate the file from the current
+- **`THIRD_PARTY_LICENSES.md` format — lightweight, no prose.** The file is a one-line
+  description followed by a dependency/license table (crate name, version, license
+  identifier) — no header/footer prose, no full license text bodies, no per-license
+  explanatory sections. This is the same format at every stage of the file's life: Design
+  Step 8's initial draft (direct dependencies only, no `Cargo.lock` yet) is a shorter
+  version of the identical table; CI's Stage 5 regeneration produces the complete
+  resolved-tree version in that same format. Phase 0's reconciliation (`DEVELOPMENT.md`
+  §5.2.3) is therefore a table expansion, not a restructuring.
+- **`THIRD_PARTY_LICENSES.md` drift check** — regenerate the file (in the format above)
+  from the current
   resolved dependency tree (fed by the same cargo-deny license enumeration) into a temp
   location, diff against the committed copy, **fail the stage on any difference — do not
   auto-commit.** A human reviews and commits the regenerated file deliberately; CI's job
