@@ -180,7 +180,12 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
     terminal outcome at all, is itself a finding (`CLAUDE.md` §3.12); **no inline prose
     citation to another file includes a version number** — `File N vM` form is itself a
     finding, correct to `File N §section` (`CLAUDE.md` §4.3); the Content Continuity
-    Check and Anti-Stub Mandate below.
+    Check and Anti-Stub Mandate below; **Data-Dictionary-vs-Requirement completeness pass**
+    — every data structure/entity named in the Information Viewpoint's Data Dictionary
+    (Step 6) traces to at least one requirement that references it, and every requirement
+    that names or implies a data structure has a corresponding Data Dictionary entry; any
+    Data Dictionary entry with no requirement, or any requirement's data reference with no
+    Data Dictionary entry, is a finding.
   - **Tier B — Bounded Exploratory Pass (run once per audit, capped):** a single freeform
     "blind spot" review beyond Tier A's fixed items. Any Tier B finding is logged and folded
     into a running, project-specific addendum to this project's own Tier A checklist (carried
@@ -241,6 +246,13 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   specific Architecture Spec file/section/item it derives from; the mandatory Code/Verify
   split (`agents/DEVELOPMENT.md` §5.1) is derived mechanically from each task's Verification
   Method; each phase's Session Unit (`AGENTS.md` §2.8) is declared explicitly.
+- **Mandatory Pre-Submit Local Verification:** Every task-complete Submit Point drafted into
+  the Plan MUST include, as its final DoD item before `Submitted` is checked, running the
+  full local CI-equivalent sequence — Lint & Format, Build, Test, Coverage, Security Scan,
+  in that order (`agents/CI.md`'s stage skeleton) — and confirming all stages clean. This is
+  not satisfied by the task's own narrower Verification Method check; it is a standing,
+  additional gate on every Submit Point regardless of what that task otherwise verifies. A
+  Submit Point drafted without this item is a Step 9 audit finding (§5.9).
 - **Checklist:** Generate a task-level checklist using `agents/exemplars/development_checklist_template.md` — every phase and every task written out in full, individually, in order; never a "repeat this block" placeholder or an ellipsis standing in for omitted phases/tasks (`AGENTS.md` §2.3 No Compressed Formats).
 - **Kickoff Prompt:** Generate the reusable development-agent kickoff prompt using `agents/exemplars/dev_prompt_template.md`, output as `[projectname]_dev_prompt.md`.
 - **Project README:** Draft the root `README.md` (overview, build/run instructions, project
@@ -273,10 +285,18 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   runs the first real `cargo deny check licenses` against the actual resolved `Cargo.lock`
   and reconciles this file against it (`agents/DEVELOPMENT.md` §5.2.3); CI's
   Stage 5 (`agents/CI.md`) keeps it current thereafter via a fail-on-drift check.
+- **Project Changelog:** Generate an initial `CHANGELOG.md` from
+  `agents/exemplars/CHANGELOG_template.md`, with a first `[0.1.0]` entry recording the
+  Design Phase scaffold (Spec, Plan, Checklist, Dev Prompt, README, CI workflow, `deny.toml`,
+  `LICENSE.md` drafted). Like `.gitignore`/README, Development Phase's Phase 0 then
+  reviews/confirms it against the repository as it starts to take shape rather than
+  authoring from scratch.
 - **Output:** Development Plan, Checklist, Dev Prompt, draft README, draft `.gitignore`,
-  draft `ci.yml`, `scripts/metrics/`, `LICENSE.md`, and draft `THIRD_PARTY_LICENSES.md`.
+  draft `ci.yml`, `scripts/metrics/`, `LICENSE.md`, draft `THIRD_PARTY_LICENSES.md`, and
+  initial `CHANGELOG.md`.
 - **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, `.gitignore`, `ci.yml`,
-  `scripts/metrics/`, `LICENSE.md`, and `THIRD_PARTY_LICENSES.md` for User Approval.**
+  `scripts/metrics/`, `LICENSE.md`, `THIRD_PARTY_LICENSES.md`, and `CHANGELOG.md` for User
+  Approval.**
 
 ### 5.9. Step 9: Plan & Checklist Audit
 - **Note: `.gitignore`, `LICENSE.md`, `scripts/metrics/`, and `THIRD_PARTY_LICENSES.md` are
@@ -302,6 +322,9 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
      GitHub Actions pinning rule) is a Trivial finding, fixed in place — observed in
      practice to recur across generated projects when left to a one-time generation-time
      reminder alone, so it is now audited mechanically rather than assumed followed.
+  3. Any task-complete Submit Point in the Plan missing the Mandatory Pre-Submit Local
+     Verification DoD item (§5.8) is a Trivial finding, fixed in place by inserting it —
+     mechanical, no judgment call, since the item's required wording is fixed.
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
 - **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every phase's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling phase with no recorded override is a finding**. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
@@ -336,7 +359,8 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 
 ## 6. Phase Completion Criteria
 Phase is complete ONLY when all approved artifacts (Spec, Plan, Checklist, Dev Prompt,
-README, `.gitignore`, `ci.yml`, `scripts/metrics/`, `LICENSE.md`, and `THIRD_PARTY_LICENSES.md`)
+README, `.gitignore`, `ci.yml`, `scripts/metrics/`, `LICENSE.md`, `THIRD_PARTY_LICENSES.md`,
+and `CHANGELOG.md`)
 are committed to the repository **and both Step 7 (Spec Audit) and Step 9 (Plan & Checklist
 Audit) have each produced a clean, zero-finding report.**
 

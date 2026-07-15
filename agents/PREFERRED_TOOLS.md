@@ -10,6 +10,30 @@ See `CHANGELOG.md` for version history.
 
 ---
 
+## Standing Mandate: Python Is Forbidden — Everywhere, Not Just Here
+
+**Python MUST NOT be used anywhere in this workflow** — Design, Development, CI, setup
+scripts, metrics parsers, one-off data munging, ad-hoc analysis, anywhere an agent might
+otherwise reach for "a quick script." This is a project-wide default-deny, not a
+domain-specific rule scoped to any one file or stage.
+
+**The sole exception:** explicit, one-off user approval for a specific task, granted only
+when no other option (Node.js, bash, or Rust itself) is viable for that particular task.
+This is the same approval tier as an Unlisted dependency (`AGENTS.md` §2.2) — proposed with
+justification, not a unilateral judgment call — and does not establish a standing exception
+for that project; each occurrence is its own approval.
+
+**Script-language preference where a choice exists** (e.g. `scripts/metrics/*` parsers,
+`setup_env.sh` helpers): **Node.js is preferred** — handles JSON parsing (the actual shape of
+nextest/coverage/deny/audit output) more naturally than bash, and Node is already a
+first-class dependency of this stack (Trunk/WASM projects require it; GitHub-hosted runners
+ship it by default). **Bash (with `jq` as needed) is acceptable for genuinely simple,
+low-branching cases** — straightforward field extraction, no real control flow. A bash
+script that starts accumulating conditionals, loops, or non-trivial JSON traversal should
+have been Node.js from the start, not grown further in bash.
+
+---
+
 ## Rust Toolchain
 
 - **Rust 2024 edition mandatory**, `edition = "2024"` in every `Cargo.toml`.
@@ -121,13 +145,17 @@ a failing CI run.
 
 ## Code Quality
 - **cargo-deny** — license/advisory checks. **Pin the version explicitly**:
-  `cargo install cargo-deny --version 0.16 --locked` (or whatever the current stable
+  `cargo install cargo-deny --version 0.19 --locked` (or whatever the current stable
   minor is at Step 5 — check and record it there); config `deny.toml`. An unpinned
   `cargo install cargo-deny --locked` risks a schema-breaking version landing between
-  Design and a later Development session (e.g. `unmaintained`/`unsound` changed meaning
-  from a lint-level string to a dependency-scope filter across a past major) —
-  invalidating an already-approved `deny.toml` with no warning until CI fails. Known-good
-  skeleton matching the pinned version:
+  Design and a later Development session — this has already happened once for real: the
+  `[advisories]` fields `vulnerability`/`unmaintained`/`unsound`/`yanked`/`notice` were
+  **lint-level strings** (`deny`/`warn`/`allow`) through 0.14.x, were deprecated, and were
+  then **removed entirely** as of a later 0.1x release — every advisory now denies by
+  default with no lint-level override at all. **Always verify the exact accepted schema
+  for the pinned version at Design Step 5 rather than copying the skeleton below
+  unchecked** — this field set has changed shape more than once and will likely change
+  again. Known-good skeleton for the current 0.19.x line:
   ```toml
   # deny.toml
   [licenses]
@@ -143,17 +171,38 @@ a failing CI run.
       "BSD-3-Clause",
       "ISC",
       "Unicode-3.0",
+      "CC0-1.0",
+      "Zlib",
+      "NCSA",
+      "BSL-1.0",
   ]
 
   [advisories]
-  unmaintained = "all"       # dependency-scope filter, not a lint level, as of 0.16
-  unsound = "all"
-  yanked = "deny"
+  # As of 0.19.x, vulnerability/unmaintained/unsound/yanked/notice all deny by default —
+  # there is NO lint-level field for them anymore (the old "deny"/"warn"/"allow" strings
+  # from pre-0.15 configs will fail to parse). The only remaining knobs are `unmaintained`
+  # and `unsound`'s dependency-SCOPE (not severity), and an explicit per-advisory `ignore`
+  # allowlist for documented one-off exceptions.
+  unmaintained = "all"        # "all" | "workspace" (direct workspace deps only) | "transitive"
+  unsound = "workspace"       # default; "all" | "transitive" also valid
+  ignore = [
+      # { id = "RUSTSEC-0000-0000", reason = "documented justification, required" },
+  ]
   ```
   Project-specific license needs beyond this set (a dependency whose license isn't in
   the list above) are flagged and resolved at Design Step 5, same tier as an Unlisted
   dependency (`PREFERRED_DEPENDENCIES.md`) — never silently added to `allow` without
-  that approval.
+  that approval. Any `ignore` entry likewise requires the same approval tier and a
+  recorded reason, never a silent addition to unblock a red CI run.
+- **Clippy strictness — mandatory floor vs. per-project opt-in.** `-D warnings` (deny
+  actual compiler/clippy warnings) is **mandatory on every project, no exceptions** — cheap
+  and catches real defects. `-D clippy::unwrap_used` (deny every `.unwrap()` call,
+  including in test code, forcing `?`/`match`/`.expect("reason")` instead) is **NOT** a
+  fleet-wide mandate — it is a **per-project opt-in**, proposed and confirmed at Design
+  Step 5 for projects where a production-path panic-on-unwrap is a real risk (long-running
+  services, embedded targets). Left out by default because it commonly fires on legitimate
+  test-code `.unwrap()`s too, adding friction disproportionate to the bug class it catches
+  in prototype-stage or test-heavy code.
 - **cargo-audit** — RustSec vulnerability scan. `cargo install cargo-audit --locked`.
 - **cargo-watch** — rebuild/retest on change. `cargo install cargo-watch --locked`.
 

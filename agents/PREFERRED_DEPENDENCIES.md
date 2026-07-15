@@ -41,8 +41,12 @@ explicitly designed to allow sublicensing under different, more restrictive term
 
 - **Satisfies this criterion:** MIT, Apache-2.0 (with its NOTICE/changes-stated obligation —
   still disclosure-only, not code-sharing), BSD-2-Clause, BSD-3-Clause, ISC, Unicode-3.0 /
-  Unicode-DFS-2016 — the current `agents/PREFERRED_TOOLS.md` `deny.toml` `[licenses]`
-  allow-list.
+  Unicode-DFS-2016, CC0-1.0 (public-domain dedication, no obligation at all), Zlib
+  (permissive, notice-only), NCSA (permissive, notice-only, MIT/BSD-family), BSL-1.0 (Boost
+  Software License — permissive, notice-only; NOTE: distinct from Business Source License,
+  which is *not* permissive and does not satisfy this criterion — always confirm "BSL-1.0"
+  resolves to Boost, not Business Source, before treating a license string as satisfying
+  this list) — the current `agents/PREFERRED_TOOLS.md` `deny.toml` `[licenses]` allow-list.
 - **Does not satisfy this criterion, and must never be added without a documented exception**
   at the same approval tier as an unreleased-fix `[patch]` exception above: GPL/AGPL (full
   copyleft), LGPL (Rust's typical static linking triggers its relink/object-file obligation —
