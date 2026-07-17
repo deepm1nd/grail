@@ -60,6 +60,19 @@ Deployment/structure viewpoint, not left for a later session to infer from what 
 exist. Member-crate folder names follow the existing no-dashes/underscores rule
 (`agents/PREFERRED_DEPENDENCIES.md`) — not a new rule, just applying the existing one.
 
+**`publish = false` is a mechanical scaffold default, set the moment a crate is scaffolded,
+not a documentation reminder to be added later.** Every member crate's generated
+`Cargo.toml` MUST include `publish = false` in its `[package]` table from the moment it's
+scaffolded (multi-crate workspace: every crate under `crates/<crate_name>/`; single-crate
+project: the root `Cargo.toml`'s `[package]` table). This is what allows cargo-deny's
+`[licenses.private]` (`agents/PREFERRED_TOOLS.md`'s `deny.toml` skeleton) to correctly
+recognize the crate as private and exclude it from the dependency-license check — a crate
+without `publish = false` is not reliably recognized as private by that mechanism. Stating
+this rule only once, in prose, in a different file than where the actual generation happens,
+is exactly the failure mode that produced a real README-template gap in an earlier version
+of this framework — the rule is enforced here, at the point of scaffolding, not merely
+cross-referenced from `PREFERRED_TOOLS.md`.
+
 Workspace root tree: `Cargo.toml`, `src/` **or** `crates/` (never both, above), `services/`,
 frontend/mobile dirs, `deploy/` (compose files), `assets/` (below), `scripts/`
 (`setup_env.sh`/`.bat`, plus `scripts/metrics/` — parser scripts feeding `metrics/*.toml`,
@@ -95,6 +108,9 @@ nested subfolder (workspace member, `libs/`, `services/`, etc.):
 
 # Trunk WASM build output — any depth (remove if no WASM/Trunk component)
 **/dist
+
+# Node modules (Playwright/frontend tooling) — any depth (remove if no Node-based tooling)
+**/node_modules
 
 # Local environment — real credentials never committed; commit .env.example instead
 .env

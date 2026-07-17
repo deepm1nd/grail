@@ -185,7 +185,8 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
     (Step 6) traces to at least one requirement that references it, and every requirement
     that names or implies a data structure has a corresponding Data Dictionary entry; any
     Data Dictionary entry with no requirement, or any requirement's data reference with no
-    Data Dictionary entry, is a finding.
+    Data Dictionary entry, is a finding; **every Core requirement ID (Spec §3) has ≥1 trace
+    to an exit criterion in §9.2 — any Core requirement with zero such traces is a finding.**
   - **Tier B — Bounded Exploratory Pass (run once per audit, capped):** a single freeform
     "blind spot" review beyond Tier A's fixed items. Any Tier B finding is logged and folded
     into a running, project-specific addendum to this project's own Tier A checklist (carried
@@ -306,16 +307,25 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   `LICENSE.md` drafted). Like `.gitignore`/README, Development Phase's Phase 0 then
   reviews/confirms it against the repository as it starts to take shape rather than
   authoring from scratch.
+- **Development-Phase Risk Log:** Generate an initial, empty/skeleton
+  `docs/[project_name]_dev_risks.md` from `agents/exemplars/dev_risks_template.md`,
+  alongside `CHANGELOG.md`. This file has no content to populate at Design time — it exists
+  to give Development Phase sessions a ready, append-as-you-go home for standing risks
+  discovered only once real dependency resolution exists (`deny.toml` `ignore`-list
+  exceptions, `[[licenses.exceptions]]` entries, advisory-driven dependency swaps, approved
+  `[patch]` exceptions) — distinct from the Architecture Specification's Risk Management
+  section, which covers risks identified during Design and is never used for these
+  (`agents/exemplars/dev_risks_template.md`'s Purpose and Scope section).
 - **Output:** Development Plan, Checklist, Dev Prompt, draft README, draft `.gitignore`,
-  draft `ci.yml`, `scripts/metrics/`, `LICENSE.md`, draft `THIRD_PARTY_LICENSES.md`, and
-  initial `CHANGELOG.md`.
+  draft `ci.yml`, `scripts/metrics/`, `LICENSE.md`, draft `THIRD_PARTY_LICENSES.md`, initial
+  `CHANGELOG.md`, and initial `docs/[project_name]_dev_risks.md`.
 - **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, `.gitignore`, `ci.yml`,
-  `scripts/metrics/`, `LICENSE.md`, `THIRD_PARTY_LICENSES.md`, and `CHANGELOG.md` for User
-  Approval.**
+  `scripts/metrics/`, `LICENSE.md`, `THIRD_PARTY_LICENSES.md`, `CHANGELOG.md`, and
+  `docs/[project_name]_dev_risks.md` for User Approval.**
 
 ### 5.9. Step 9: Plan & Checklist Audit
-- **Note: `.gitignore`, `LICENSE.md`, `scripts/metrics/`, and `THIRD_PARTY_LICENSES.md` are
-  not Step 9 audit inputs.** Step 9 audits only the Development
+- **Note: `.gitignore`, `LICENSE.md`, `scripts/metrics/`, `THIRD_PARTY_LICENSES.md`, and
+  `docs/[project_name]_dev_risks.md` are not Step 9 audit inputs.** Step 9 audits only the Development
   Plan and Checklist against the finalized Architecture Specification and their own
   Definition of Done (§15) — `.gitignore`'s and `LICENSE.md`'s correctness are confirmed
   separately at Development Phase 0's review (`LICENSE.md` being static text, this is a

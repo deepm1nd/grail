@@ -65,7 +65,7 @@ meantime, without turning them into a hard rule:
 
 ---
 
-## 3. Stage Skeleton (v0.9.1)
+## 3. Stage Skeleton (v0.9.2)
 
 **Structural change from prior versions: Stages 0–5 now run as steps within a single
 job, not as separate jobs.** GitHub Actions runs every job on its own fresh, isolated
@@ -77,8 +77,8 @@ setup runs exactly once per pipeline run, not once per stage. Per-**step** statu
 timing, expandable log) is still visible individually in the Actions UI even inside one job
 — what's lost is separate per-job badges/required-checks, which this framework's async,
 human-reviewed-backstop posture (§2) doesn't depend on. **Metrics Commit remains a separate
-job** (§3, Stage 6) since it runs under a different trigger condition (`main`-only) and
-needs its own checkout/artifact-download context.
+job** (§3, Stage 6) since it needs its own checkout/artifact-download context — it runs on
+every branch, same as `ci_pipeline`, not under a different (`main`-only) trigger condition.
 
 **Runner: `ubuntu-latest` for every job**, not a pinned Ubuntu version — consistent across
 the whole workflow.
@@ -166,15 +166,17 @@ version) eliminates this failure mode by construction** — there is only one ru
 of Stages 0–5, so a tool installed by Stage 0 is simply still present for every later step
 in the same job. This is the main structural reason for the merge, not merely a speed
 optimization. Metrics Commit (Stage 6, below) is still a genuinely separate job, since it
-runs under a different trigger condition — if it needs any of the same tools, it must
-install them itself.
+needs its own checkout/artifact-download context — if it needs any of the same tools, it
+must install them itself.
 
 ### Stage 1: Lint & Format
 ```yaml
       - name: Check formatting
+        id: check_formatting
         run: cargo fmt --all -- --check
 
       - name: Run Clippy
+        id: run_clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
         # -D warnings is mandatory on every project. -D clippy::unwrap_used is a
         # per-project opt-in (PREFERRED_TOOLS.md), added here only if that project
@@ -182,11 +184,20 @@ install them itself.
 ```
 
 ### Stage 2a: Native Build
-Full hermetic workspace build: `cargo build --release`.
+```yaml
+      - name: Native build
+        id: native_build
+        run: cargo build --release
+```
 
 ### Stage 2b: WASM Build *(conditional — Trunk/WASM component present)*
-`trunk build --release`, per `PREFERRED_TOOLS.md`'s Trunk conventions (output-directory
-separation from `assets/`, no separately-installed `wasm-bindgen-cli`).
+```yaml
+      - name: WASM build
+        id: wasm_build
+        run: trunk build --release
+```
+Per `PREFERRED_TOOLS.md`'s Trunk conventions (output-directory separation from `assets/`,
+no separately-installed `wasm-bindgen-cli`).
 
 ### Stage 3: Test
 Sub-staged by what each test group needs, not by a unit/integration distinction — Rust's
@@ -194,27 +205,69 @@ own tooling doesn't force that split at the runtime level, and nextest discovers
 colocated `#[test]`s and `tests/*.rs` integration tests in the same invocation regardless.
 
 - **Stage 3a — Tests not requiring infra services:**
+  ```yaml
+        - name: Run nextest
+          id: test_nextest
+          env:
+            NEXTEST_EXPERIMENTAL_LIBTEST_JSON: "1"
+          run: cargo nextest run --workspace --message-format libtest-json
+
+        - name: Run doc-tests
+          id: test_docs
+          run: cargo test --doc --workspace
+  ```
   `cargo nextest run --workspace --message-format libtest-json` (`PREFERRED_TOOLS.md`'s
   Canonical Commands table) → parsed by `scripts/metrics/parse_tests.js` → `metrics/tests.toml`.
-  Requires `NEXTEST_EXPERIMENTAL_LIBTEST_JSON: "1"` in the step's `env:` wherever this exact
-  message format is used.
-- **Doc-tests, same step or immediately adjacent:** `cargo test --doc --workspace` — run
-  generically for whichever crates in the workspace have doc-tests; never hardcode a
-  specific crate name into this step.
+  Doc-tests run generically for whichever crates in the workspace have doc-tests; never
+  hardcode a specific crate name into this step.
 - **Stage 3b — Infra-dependent tests** *(conditional — `deploy/docker-compose.dev.yml`
   present)*: start infra first (`docker compose -f deploy/docker-compose.dev.yml up -d`,
   `PREFERRED_SERVICES.md`'s Session Startup section), then run the test subset that needs
   it.
 - **Stage 3c(+) — E2E/Playwright** *(conditional — Playwright/E2E suite present)*:
-  **install browsers before running tests** — `npx playwright install --deps` is a
+  ```yaml
+        - name: Install Playwright browsers
+          id: playwright_install
+          run: |
+            cd test/playwright
+            npm install
+            npx playwright install --deps
+
+        - name: Run Playwright tests
+          id: playwright_test
+          run: |
+            cd test/playwright
+            npx playwright test --reporter=json > /tmp/playwright.json
+
+        - name: Parse Playwright results
+          id: playwright_metrics
+          run: node scripts/metrics/parse_playwright.js /tmp/playwright.json
+  ```
+  **Install browsers before running tests** — `npx playwright install --deps` is a
   mandatory step immediately before the test invocation; a fresh runner has no browsers
-  installed and the test run will fail before producing any JSON at all without this.
-  Then `npx playwright test --reporter=json` → parsed by
-  `scripts/metrics/parse_playwright.js` → `metrics/playwright.toml`. Additional lettered
-  sub-stages (3d, 3e...) as a project needs further test-category subdivision — same
-  conditional pattern, not a fixed ceiling.
+  installed and the test run will fail before producing any JSON at all without this. This
+  CI-side browser install is distinct from `setup_env.sh`'s one-time environment-install
+  guarded block (`PREFERRED_TOOLS.md`) — that block only fires when Playwright itself is
+  entirely missing, not necessarily on every fresh CI runner in exactly the way CI needs, so
+  both are required.
+  **`playwright_test` is a hard gate, consistent with every other CI stage (nextest,
+  coverage, deny, audit, drift-check) — no `continue-on-error: true` and no trailing
+  `|| true` on the test-execution step itself.** `parse_playwright.js` → `metrics/playwright.toml`.
+  This stage's outputs follow the same `test/phase_N/ci/` evidence-capture convention as
+  every other stage — no special-casing. Additional lettered sub-stages (3d, 3e...) as a
+  project needs further test-category subdivision — same conditional pattern, not a fixed
+  ceiling.
 
 ### Stage 4: Coverage
+```yaml
+      - name: Run coverage
+        id: coverage_run
+        run: cargo llvm-cov --workspace --json --output-path target/llvm-cov.json
+
+      - name: Parse coverage results
+        id: coverage_metrics
+        run: node scripts/metrics/parse_coverage.js target/llvm-cov.json
+```
 `cargo llvm-cov --workspace --json --output-path target/llvm-cov.json` → parsed by
 `scripts/metrics/parse_coverage.js` → `metrics/coverage.toml`.
 
@@ -231,18 +284,23 @@ dedicated Actions no longer applies now that everything is one job:
 
 ```yaml
       - name: cargo-deny
+        id: cargo_deny
         run: cargo deny --format json check > /tmp/deny.json
 
       - name: Parse deny results
+        id: parse_deny
         run: node scripts/metrics/parse_deny.js /tmp/deny.json   # or bash+jq if trivial
 
       - name: cargo-audit
+        id: cargo_audit
         run: cargo audit --json > /tmp/audit.json
 
       - name: Parse audit results
+        id: parse_audit
         run: node scripts/metrics/parse_audit.js /tmp/audit.json
 
       - name: Parse license violation/addition metrics
+        id: parse_license_metrics
         run: node scripts/metrics/parse_license_metrics.js /tmp/deny.json
         # Writes metrics/licenses.toml (violations_count, crates_added_count — feeds
         # the two README license badges) and appends one line per newly-seen crate to
@@ -252,9 +310,11 @@ dedicated Actions no longer applies now that everything is one job:
         # Both logs are committed to the working branch itself; because each phase
         # branch descends from the prior phase's branch state, they accumulate
         # cumulatively across the whole project's history via ordinary git ancestry —
-        # no cross-branch or main-specific commit logic needed.
+        # no cross-branch or branch-specific commit logic needed — every branch is
+        # self-contained.
 
       - name: THIRD_PARTY_LICENSES.md drift check
+        id: drift_check
         run: bash scripts/metrics/check_license_drift.sh
 ```
 
@@ -283,20 +343,48 @@ dedicated Actions no longer applies now that everything is one job:
   at Stage 6 below being the one deliberate exception, made explicit because unlike a
   license disclosure, metrics have no compliance weight).
 
-### Final step of the main job: Branch/Status Marker (`metrics/source.toml`)
-Written as the **last step of `ci_pipeline`**, with `if: always()` so it fires whether the
-preceding stages passed or failed — this is deliberate: the marker's entire purpose is to
-let a human refresh the `main`-branch README and immediately see the state of the most
-recent push on whatever branch is currently being worked, without opening Actions.
+### Branch/Status Marker (`metrics/source.toml`), then Artifact Upload, then Evaluate Required Gates
+Three steps close out `ci_pipeline`, in this exact order — **the order matters and is a
+corrected fix from an earlier draft that had it wrong (see the note below).**
 
 ```yaml
       - name: Write branch/status marker
+        id: write_source_marker
         if: always()
         run: |
           node scripts/metrics/write_source_marker.js \
             --branch "${{ github.ref_name }}" \
             --commit "${{ github.sha }}" \
             --status "${{ job.status }}"
+
+      - name: Upload metrics artifact
+        id: upload_metrics_artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics
+          path: metrics/*.toml
+
+      - name: Evaluate required gates
+        id: evaluate_required_gates
+        if: always()
+        run: |
+          success=true
+          if [ "${{ steps.test_nextest.outcome }}" != "success" ]; then echo "nextest failed"; success=false; fi
+          if [ "${{ steps.test_docs.outcome }}" != "success" ]; then echo "doc tests failed"; success=false; fi
+          if [ "${{ steps.playwright_test.outcome }}" != "success" ]; then echo "playwright test failed"; success=false; fi
+          if [ "${{ steps.playwright_metrics.outcome }}" != "success" ]; then echo "playwright metrics failed"; success=false; fi
+          if [ "${{ steps.coverage_run.outcome }}" != "success" ]; then echo "coverage run failed"; success=false; fi
+          if [ "${{ steps.coverage_metrics.outcome }}" != "success" ]; then echo "coverage metrics failed"; success=false; fi
+          if [ "${{ steps.cargo_deny.outcome }}" != "success" ]; then echo "cargo-deny failed"; success=false; fi
+          if [ "${{ steps.parse_deny.outcome }}" != "success" ]; then echo "parse-deny failed"; success=false; fi
+          if [ "${{ steps.cargo_audit.outcome }}" != "success" ]; then echo "cargo-audit failed"; success=false; fi
+          if [ "${{ steps.parse_audit.outcome }}" != "success" ]; then echo "parse-audit failed"; success=false; fi
+          if [ "${{ steps.drift_check.outcome }}" != "success" ]; then echo "drift-check failed"; success=false; fi
+
+          if [ "$success" = false ]; then
+            exit 1
+          fi
 ```
 
 `metrics/source.toml` output shape:
@@ -308,21 +396,93 @@ status = "pass"        # or "fail" — reflects this run's actual pipeline outco
 updated = "2026-07-14T18:03:00Z"
 ```
 
-The `main`-branch README's badge reads this file (same shields.io dynamic-TOML pattern as
-the other metrics badges) so it always reflects the latest push's branch, commit, and
-pass/fail state — regardless of which branch that push was on — updated on **every** push,
-not gated to a clean run. This is intentional: during active development the README is
-functioning as a personal status dashboard, and a stale "last known green" badge would hide
-exactly the information (a currently-red push) that badge exists to surface.
+**Ordering fix — why "Write branch/status marker" must come before "Upload metrics
+artifact":** an earlier draft of this skeleton ran these in the order Stage 5 steps →
+Upload metrics artifact → Evaluate required gates → Write branch/status marker. Because the
+marker write (which produces `metrics/source.toml`) ran *after* the artifact upload, the
+uploaded artifact never actually contained `source.toml` — it didn't exist yet at upload
+time. The corrected order above writes the marker first, so the upload captures the
+complete, current `metrics/*.toml` set, including `source.toml`.
 
-### Stage 6: Metrics Commit *(main-branch merges only, separate job)*
-Bot commit of regenerated `metrics/*.toml` (including `source.toml`) back to the branch.
-Unlike the `THIRD_PARTY_LICENSES.md` drift check above, metrics are auto-committed rather
-than fail-on-drift — they carry no compliance/legal weight, only informational/badge value,
-so routine auto-refresh is acceptable where a license disclosure's drift is not. This job
-remains genuinely separate from `ci_pipeline` (not folded into the merge above) because it
-runs under a different trigger condition (`if: github.ref == 'refs/heads/main'`) and needs
-its own artifact-download/commit context.
+**"Evaluate required gates" runs last, after the artifact upload, not before it** — every
+`steps.<id>.outcome` reference above reflects that step's own pass/fail, ignoring any
+`continue-on-error`, so the branch marker and artifact upload's own `if: always()` steps
+still run and their content is captured even when an earlier stage failed; only the final
+verdict step actually fails the job. Each referenced step's `id:` is defined earlier in this
+job (§3's stage-by-stage yaml above) — omit or no-op the `playwright_test`/
+`playwright_metrics` lines for a project without an E2E suite, same conditional-inclusion
+pattern used elsewhere in this document. Because `playwright_test`'s outcome participates in
+this gate as a hard failure, confirm the Playwright test step itself carries no
+`continue-on-error: true` and no trailing `|| true` — a bare, ungated `npx playwright test`
+invocation (§3 Stage 3c, above).
+
+**This job's own working branch's README badge** reads `metrics/source.toml` (same
+shields.io dynamic-TOML pattern as the other metrics badges) so it always reflects the
+latest push's branch, commit, and pass/fail state on whichever branch that push was on —
+updated on **every** push, not gated to a clean run. This is intentional: during active
+development the README is functioning as a personal status dashboard, and a stale "last
+known green" badge would hide exactly the information (a currently-red push) that badge
+exists to surface. Consistent with the rest of this document's branch-local framing: you
+check each branch's own README as you work — there is nothing `main`-specific about this
+badge or the file that feeds it.
+
+### Stage 6: Metrics Commit *(every branch, separate job)*
+Bot commit of regenerated `metrics/*.toml` (including `source.toml`) back to the triggering
+branch. Unlike the `THIRD_PARTY_LICENSES.md` drift check above, metrics are auto-committed
+rather than fail-on-drift — they carry no compliance/legal weight, only informational/badge
+value, so routine auto-refresh is acceptable where a license disclosure's drift is not. This
+job remains genuinely separate from `ci_pipeline` (not folded into the merge above) because
+it needs its own artifact-download/commit context — **not**, as an earlier draft implied,
+because it runs under a different (`main`-only) trigger condition; it now runs on every
+branch, same as `ci_pipeline`.
+
+**Corrected job — replace any `main`-gated version with exactly this:**
+```yaml
+  metrics_commit:
+    name: Metrics Commit
+    needs: ci_pipeline
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Download metrics artifact
+        id: download_metrics_artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: metrics
+          path: metrics/
+
+      - name: Commit updated metrics
+        id: commit_metrics
+        run: |
+          git config user.name "<project>-ci-bot"
+          git config user.email "ci-bot@<project>.example"
+          git add metrics/*.toml
+          git diff --staged --quiet || git commit -m "ci: refresh metrics [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
+```
+
+**Three fixes from an earlier draft, and why each matters:**
+1. **`if: always() && github.ref == 'refs/heads/main'` → `if: always()`** — this job now
+   runs on **every** branch push, not `main` only. Metrics Commit is not a `main`-gated job
+   at all.
+2. **Bare `actions/checkout@v5` → add `with: ref: ${{ github.ref_name }}`** — without an
+   explicit `ref`, checkout can leave the workspace in detached-HEAD state for the
+   triggering commit. Pinning `ref` guarantees the job checks out the actual branch that
+   triggered the run.
+3. **Bare `git push` → `git push origin HEAD:${{ github.ref_name }}`** — a bare push from a
+   detached-HEAD checkout has no reliable target branch. The explicit refspec guarantees the
+   commit goes back to whichever branch triggered the run — never `main` specifically,
+   whichever branch it actually was.
+
+**Nothing in this CI pipeline is `main`-specific.** Every branch is self-contained: its own
+metrics, its own README badge state, its own Metrics Commit run. If a future revision of
+this document reintroduces a `main`-only assumption anywhere, that is a defect to fix, not a
+default to preserve — this branch-uniform behavior is the settled design, not an interim
+state.
 
 ---
 

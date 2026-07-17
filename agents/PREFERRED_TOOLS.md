@@ -83,6 +83,88 @@ Install: `cargo install cargo-llvm-cov --locked`. Requires `llvm-tools-preview`.
 
 ---
 
+## Frontend Visual Testing (Playwright)
+
+> Standardizes the *mechanism* for adding Playwright (or an equivalent) to a project with a
+> human-facing UI. The config content shown below — browser targets, worker count, version
+> pins — is illustrative only; each project determines its own real values at Design Step 5
+> and bakes them into the generated files, rather than copying the example values verbatim
+> as if they were fixed defaults.
+
+**Install — one exact idempotent guarded block, added to `setup_env.sh`:**
+```bash
+if ! command -v npx >/dev/null 2>&1 || ! npx playwright --version >/dev/null 2>&1; then
+    echo "Playwright is missing. Attempting to install..."
+    if command -v npm >/dev/null 2>&1; then
+        if [ "$(id -u)" -eq 0 ]; then
+            npm install -g playwright
+        elif command -v sudo >/dev/null 2>&1; then
+            sudo npm install -g playwright
+        else
+            npm install playwright
+        fi
+        npx playwright install-deps || true
+        npx playwright install || true
+    else
+        echo "Warning: npm is not available. Playwright cannot be auto-installed."
+    fi
+fi
+```
+This install step is the **one place** non-fatal (`|| true`) handling belongs for
+Playwright — the same Missing Tool Protocol pattern already used for every other tool's
+`setup_env.sh` entry. **It does not extend to the actual test-execution step** — see
+`agents/CI.md` Stage 3c, where `npx playwright test` is a hard gate like every other CI
+stage, never non-fatal.
+
+**`test/playwright/package.json`** — declares `@playwright/test` as a `devDependency`
+(illustrative shape only; the project sets its own version pin):
+```json
+{
+  "name": "[project]-playwright-tests",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}
+```
+
+**`test/playwright/playwright.config.js`** — illustrative shape only; the project sets its
+own `testDir`, worker count, browser projects, etc.:
+```js
+const { defineConfig, devices } = require('@playwright/test');
+module.exports = defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  workers: 1,
+  use: { headless: true },
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+});
+```
+
+**Tests live under `test/playwright/tests/*.spec.js`**, written against
+`@playwright/test`'s `test`/`expect` pattern:
+```js
+const { test, expect } = require('@playwright/test');
+test('conformance test placeholder', async ({ page }) => {
+  await page.goto('about:blank');
+  expect(await page.title()).toBe('');
+});
+```
+
+**`.gitignore`:** ignore `node_modules/` at any depth, not just at root — same
+depth-agnostic convention as this file's Trunk `dist/`-separation entries
+(`agents/exemplars/development_plan_template.md` §3's `.gitignore` skeleton):
+```gitignore
+**/node_modules
+```
+
+See `agents/CI.md` Stage 3c for how this integrates into the CI pipeline (browser install,
+hard-gated test execution, evidence capture).
+
+---
+
 ## WASM
 
 ### trunk
@@ -178,6 +260,32 @@ a failing CI run.
       "CDLA-Permissive-2.0",
   ]
 
+  [licenses.private]
+  # This project's own workspace crates carry the project's PolyForm Noncommercial output
+  # license (README_template.md's License section), not a dependency license — checking
+  # them against the [licenses] allow-list above would incorrectly fail, since that
+  # allow-list is a dependency-permissiveness test PolyForm Noncommercial was never meant
+  # to satisfy. `ignore = true` excludes private/unpublished workspace crates from the
+  # licenses check entirely (distinct from both the global `allow` list, which applies
+  # project-wide, and `[[licenses.exceptions]]` below, which is scoped to one third-party
+  # dependency). Every member crate's Cargo.toml sets `publish = false` at scaffold time
+  # (agents/exemplars/development_plan_template.md §3) so cargo-deny recognizes it as
+  # private.
+  ignore = true
+
+  # [[licenses.exceptions]]
+  # A per-crate exception for a specific third-party dependency whose own license doesn't
+  # satisfy the global [licenses] allow-list above, scoped to that crate alone — never
+  # added to the global `allow` list, which has no workspace/transitive scope filter and
+  # would apply the exception project-wide. See PREFERRED_DEPENDENCIES.md's License
+  # Compatibility Criterion for when this is appropriate vs. when a dependency should
+  # simply be avoided. Every exception entry is logged in
+  # docs/[project_name]_dev_risks.md (agents/exemplars/dev_risks_template.md), same
+  # standing-risk convention as an [advisories].ignore entry.
+  # [[licenses.exceptions]]
+  # allow = ["OFL-1.1"]
+  # name = "some-font-crate"
+
   [advisories]
   # As of 0.19.x, vulnerability/unmaintained/unsound/yanked/notice all deny by default —
   # there is NO lint-level field for them anymore (the old "deny"/"warn"/"allow" strings
@@ -207,13 +315,37 @@ a failing CI run.
     `unmaintained`/`notice`-tier advisories only. A genuine CVE is resolved (upgrade,
     patch, or remove the dependency), never silently ignored, regardless of how deep it
     sits in the tree.
-  - **Recorded as a standing risk to revisit**, same convention as the `[patch]` exception
-    in `PREFERRED_DEPENDENCIES.md` — logged in the Architecture Specification's Risk
-    Management section and `CHANGELOG.md`, with the RUSTSEC ID and date.
+  - **Recorded as a standing risk to revisit** — logged in
+    `docs/[project_name]_dev_risks.md` (`agents/exemplars/dev_risks_template.md`), not the
+    Architecture Specification's Risk Management section, since this is a Development-Phase
+    discovery rather than a Design-Phase-identified risk; also recorded in `CHANGELOG.md`,
+    with the RUSTSEC ID and date. Each `ignore` entry's `reason` field should be the short
+    inline form of the same justification written out in full in the dev-risks entry — the
+    dev-risks file is the durable, discoverable home for the complete reasoning; the
+    `deny.toml` comment is not a substitute for it.
   - **Re-checked at each dependency bump**, not set once and forgotten — remove the entry
     the moment a maintained fork or replacement crate appears for that dependency.
   - Note that an ignored advisory still prints a note in cargo-deny's output even when
     suppressed from failing the check — the exception is visible in CI logs, not hidden.
+
+  **Worked examples — a consistent shape for a properly-justified `ignore` entry, drawn
+  from real dispositions (reference material, not new rules):**
+  - **Transitive, compile-time-only proc-macro crates** (e.g. `paste`, `proc-macro-error`,
+    `proc-macro-error2`) — the justification emphasizes that the crate has no runtime
+    surface at all, notes which direct dependency pulls it in, and ties re-evaluation to
+    that dependency's next major version.
+  - **Transitive crates with real runtime surface but no practical swap**, because the
+    crate pulling them in is a load-bearing engine rather than a small utility (e.g.
+    `rustybuzz`, `ttf-parser`, `encoding` pulled in via `resvg`/`usvg`/`rxing`) — the
+    justification is honest about the runtime surface rather than understating it, but
+    still ties disposition to "no practical swap without replacing the whole engine."
+  - **A crate that is both unmaintained-and-ignorable in one transitive path and the
+    subject of a direct-dependency policy change elsewhere** (e.g. `bincode`, ignorable
+    transitively via `gloo-worker`, while also being the direct dependency
+    `PREFERRED_DEPENDENCIES.md` swaps for `postcard`) — these are two separate,
+    non-conflicting dispositions: ignore the transitive instance you don't control, swap
+    the direct instance you do. Note both in `docs/[project_name]_dev_risks.md` as distinct
+    entries rather than conflating them into one.
 - **Clippy strictness — mandatory floor vs. per-project opt-in.** `-D warnings` (deny
   actual compiler/clippy warnings) is **mandatory on every project, no exceptions** — cheap
   and catches real defects. `-D clippy::unwrap_used` (deny every `.unwrap()` call,

@@ -57,6 +57,19 @@ explicitly designed to allow sublicensing under different, more restrictive term
   copyleft), LGPL (Rust's typical static linking triggers its relink/object-file obligation —
   a real additional obligation, not just notice), MPL-2.0 (weak-copyleft, file-level
   share-alike — a common trap, since it can look permissive-ish at a glance but isn't).
+- **A specific third-party dependency whose own license doesn't satisfy the criterion, but
+  is accepted anyway as a narrow, scoped exception, belongs in `deny.toml`'s
+  `[[licenses.exceptions]]` — never the global `[licenses]` allow list.** cargo-deny's
+  `[licenses]` allow-list has no workspace/transitive scope filter — anything added there
+  applies project-wide, to every crate, not just the one it was meant for.
+  `[[licenses.exceptions]]` scopes the exception to the named crate alone (e.g. a font or
+  data-bundling crate carrying `OFL-1.1`, which is not on the standard allow-list but is
+  reasonable to accept for that one dependency). Same approval tier as an Unlisted
+  dependency (`AGENTS.md` §2.2), and same standing-risk logging convention as an
+  `[advisories].ignore` entry: recorded in `docs/[project_name]_dev_risks.md`
+  (`agents/exemplars/dev_risks_template.md`), not the Architecture Specification's Risk
+  Management section, since this is discovered once the actual dependency tree resolves,
+  not during Design. See `PREFERRED_TOOLS.md`'s `deny.toml` skeleton for the exact syntax.
 - **Transitive dependencies are the actual risk, not direct ones.** A direct dependency is
   easy to eyeball against this criterion; an incompatible license four levels down a
   dependency's own tree is not (observed case: `yansi` MIT/Apache-2.0-dual — itself fine —
@@ -88,11 +101,12 @@ manifest at face value.
   project, with no published version or viable alternative — same explicit-approval
   requirement as an Unlisted dependency (`AGENTS.md` §2.2), not a unilateral judgment call.
   If approved: pin to an exact commit hash (never a branch or tag that can move), record the
-  `[patch]` entry's justification and the upstream issue/PR tracking eventual release in the
-  Architecture Specification's Risk Management section (`agents/exemplars/
-  architecture_specification_template.md` §8) and in `CHANGELOG.md`, and treat it as a
-  standing risk to revisit — remove the patch and return to the published crate the moment
-  a release resolves it, not left indefinitely once the immediate blocker is gone.
+  `[patch]` entry's justification and the upstream issue/PR tracking eventual release in
+  `docs/[project_name]_dev_risks.md` (`agents/exemplars/dev_risks_template.md`) and in
+  `CHANGELOG.md` — not the Architecture Specification's Risk Management section, since this
+  is a Development-Phase discovery rather than a Design-Phase-identified risk — and treat it
+  as a standing risk to revisit — remove the patch and return to the published crate the
+  moment a release resolves it, not left indefinitely once the immediate blocker is gone.
 - **A local patch/fork/vendor never substitutes for a real upstream contribution path**
   where one exists — the exception above is for unblocking the project now, not a permanent
   fork strategy.
