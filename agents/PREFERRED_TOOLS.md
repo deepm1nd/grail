@@ -386,6 +386,8 @@ every action pin needs checked, not a one-off fixed for a single action:
 |---|---|
 | `actions/checkout` | `@v5` |
 | `actions/cache` | `@v5` (requires Actions Runner ≥2.327.1 — already satisfied on every GitHub-hosted runner; only matters for self-hosted) |
+| `actions/upload-artifact` | `@v5` |
+| `actions/download-artifact` | `@v5` |
 
 Check for a newer default whenever the warning recurs on an action not yet in this table —
 add it here rather than treating each recurrence as a one-off.
@@ -408,6 +410,16 @@ Flashing/serial-monitor for ESP32/ESP-IDF. `cargo install espflash --locked`. Fl
 ---
 
 ## Missing Tool Protocol
+
+**Prefer a prebuilt binary release over building from source whenever one exists for the
+environment's platform** — a GitHub release binary, a package-manager binary (`apt`,
+`brew`, etc.), or an equivalent — rather than `cargo install`/source builds, wherever the
+tool publishes one. This saves build time and avoids coupling the tool's build to the
+project's own Rust toolchain version. Fall back to `cargo install --locked` (or an
+equivalent source build) only when no binary release exists for the environment's
+platform. This applies both to a tool's initial `setup_env.sh` entry (drafted at Design
+Step 5/8, `agents/DESIGN.md` §5.8) and to any later Missing-Tool-Protocol self-install
+below.
 
 1. Attempt to install per this file (or `scripts/setup_env.sh`).
 2. Verify the install succeeded.

@@ -93,6 +93,13 @@ Before anything else touches the repo: check out the current phase's **Branch Na
 prior session already started the phase. **Never work a phase's tasks directly on the
 default branch, and never work one phase's tasks on another phase's branch.**
 
+**Use the Branch Name exactly as declared in Plan §6.1 — verbatim, character-for-character.
+Do not append, prepend, or otherwise modify it**, including appending a numeric hash,
+timestamp, or session identifier (observed failure pattern: `phase12b-4334437132416834814`
+or `phase11a_transcode_backend_codec-5155833834103153101` checked out instead of the Plan's
+actual declared name). `git checkout -b <exact_branch_name>` / `git checkout
+<exact_branch_name>` — no suffix, no prefix, no reformatting.
+
 **Re-verify the current branch (`git branch --show-current` or equivalent) before starting
 every task, not just once at session start.** If the working branch does not exactly match
 the phase's declared Branch Name, stop and correct it before writing any code — do not

@@ -41,3 +41,18 @@ After the existing `espup install` checklist item, add:
 ```
 
 This is a Trivial, mechanically-dictated correction (no judgment call) — apply directly.
+
+## Patch: Binary-Install Preference (v0.9.3)
+
+**Reason:** `agents/PREFERRED_TOOLS.md`'s Missing Tool Protocol now mandates preferring a
+prebuilt binary release over a source build wherever one exists for the target platform.
+This guide's existing install commands (`espup`, `espflash`, etc.) use `cargo install
+--version X --locked` throughout, which reads as an implicit exception if left unremarked.
+
+**Apply:** for any tool in this guide's Version Reference table that publishes a prebuilt
+binary release for the environment's platform (e.g. `espflash` ships GitHub release
+binaries), prefer installing that binary over `cargo install`, consistent with
+`agents/PREFERRED_TOOLS.md`. Fall back to the pinned `cargo install --version X --locked`
+form shown elsewhere in this guide only when no binary release exists for the platform, or
+when a tool's correctness depends on being built against the exact local toolchain (verify
+case-by-case; not assumed).
