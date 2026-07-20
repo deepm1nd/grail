@@ -360,7 +360,7 @@ corrected fix from an earlier draft that had it wrong (see the note below).**
       - name: Upload metrics artifact
         id: upload_metrics_artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: metrics
           path: metrics/*.toml
@@ -443,6 +443,8 @@ branch, same as `ci_pipeline`.
     needs: ci_pipeline
     if: always()
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
         with:
@@ -450,7 +452,7 @@ branch, same as `ci_pipeline`.
 
       - name: Download metrics artifact
         id: download_metrics_artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: metrics
           path: metrics/
@@ -465,7 +467,7 @@ branch, same as `ci_pipeline`.
           git push origin HEAD:${{ github.ref_name }}
 ```
 
-**Three fixes from an earlier draft, and why each matters:**
+**Four fixes from an earlier draft, and why each matters:**
 1. **`if: always() && github.ref == 'refs/heads/main'` → `if: always()`** — this job now
    runs on **every** branch push, not `main` only. Metrics Commit is not a `main`-gated job
    at all.
@@ -477,6 +479,11 @@ branch, same as `ci_pipeline`.
    detached-HEAD checkout has no reliable target branch. The explicit refspec guarantees the
    commit goes back to whichever branch triggered the run — never `main` specifically,
    whichever branch it actually was.
+4. **Added `permissions: contents: write`** — the default `GITHUB_TOKEN` permissions for a
+   workflow run are read-only unless a job explicitly requests write access; without this
+   block, `git push` in the Commit step fails with a permissions error regardless of the
+   other three fixes being correct. This is scoped to `metrics_commit` alone, not set
+   workflow-wide, since `ci_pipeline` itself never pushes anything.
 
 **Nothing in this CI pipeline is `main`-specific.** Every branch is self-contained: its own
 metrics, its own README badge state, its own Metrics Commit run. If a future revision of

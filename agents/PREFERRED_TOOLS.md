@@ -415,11 +415,31 @@ Flashing/serial-monitor for ESP32/ESP-IDF. `cargo install espflash --locked`. Fl
 environment's platform** — a GitHub release binary, a package-manager binary (`apt`,
 `brew`, etc.), or an equivalent — rather than `cargo install`/source builds, wherever the
 tool publishes one. This saves build time and avoids coupling the tool's build to the
-project's own Rust toolchain version. Fall back to `cargo install --locked` (or an
-equivalent source build) only when no binary release exists for the environment's
-platform. This applies both to a tool's initial `setup_env.sh` entry (drafted at Design
+project's own Rust toolchain version. **For any Rust/`cargo`-installable tool, prefer
+`cargo binstall <crate>` specifically** over plain `cargo install` — `cargo-binstall`
+fetches the crate's prebuilt binary release directly (falling back to a source build
+itself only if no binary is published for that crate/platform), giving the binary-install
+preference above a single, consistent, cargo-native mechanism rather than requiring a
+different ad hoc install method per tool. `cargo-binstall` itself is installed once, early
+in `setup_env.sh` (before any tool that would use it), via its own published install
+script/binary — not via a plain `cargo install cargo-binstall`, which would defeat the
+point. Fall back to plain `cargo install --locked` (or an equivalent source build) only
+when `cargo binstall` itself fails for that crate (no binary published) — not preemptively
+skipped. This applies both to a tool's initial `setup_env.sh` entry (drafted at Design
 Step 5/8, `agents/DESIGN.md` §5.8) and to any later Missing-Tool-Protocol self-install
 below.
+
+**`setup_env.sh` (and `setup_env.bat`) as a whole must be idempotent, not merely each
+individual install line in isolation.** Re-running the complete script against an
+already-fully-provisioned environment must succeed cleanly with no errors, no duplicate
+installs, and no destructive side effects — every install step checks whether its tool is
+already present/correctly versioned before installing, not just wrapped in a
+per-line "idempotent" comment. This matters specifically because the Missing Tool
+Protocol below appends new install commands to this script incrementally, session by
+session, over a project's whole lifetime — a script that only happens to be idempotent
+line-by-line can still fail as a whole if steps interact (e.g. an early step's failure
+left partial state a later step doesn't expect). Verify the *whole script*, re-run
+end-to-end, not just the newly-appended line, whenever `setup_env.sh` is modified.
 
 1. Attempt to install per this file (or `scripts/setup_env.sh`).
 2. Verify the install succeeded.

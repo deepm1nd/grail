@@ -72,6 +72,7 @@
 │   ├── check_env.sh            # Read-only pre-flight verifier
 │   └── metrics/                # Parsers feeding metrics/*.toml
 ├── test/                       # Per-phase verification files & evidence
+│   └── [projectname]_requirement_traceability.md  # Requirement-to-test traceability
 ├── Cargo.toml
 ├── rust-toolchain.toml
 ├── deny.toml

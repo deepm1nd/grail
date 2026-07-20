@@ -16,7 +16,7 @@ Complex/Multi-Domain Rust Project Variant
 4. System Architecture (ISO 42010) · 5. External Interfaces & Integrations · 6. Technology
 Stack & Dependencies · 7. Constraints & Assumptions · 8. Risks & Technical Debt ·
 9. Implementation Roadmap & Build Order · 10. Public API & Framework Consumer Contract ·
-11. Appendices · Appendix R Version History
+11. Appendices · Appendix B Bug Fix Log · Appendix F Spec Amendments · Appendix R Version History
 
 ---
 
@@ -433,6 +433,60 @@ port = 8080
 
 | ADR ID | Title | Status |
 |---|---|---|
+
+## Appendix B — Bug Fix Log (Maintenance Phase)
+
+> Companion to `agents/MAINTENANCE.md`. **Append-only, edited in place, never
+> renumbered.** Populated only once this project enters Maintenance Phase — empty at
+> Design time and throughout ordinary Development. Logs Tier 1/2 corrective bug fixes
+> (Track A) — Tier 3/Future-Feature entries go to Appendix F instead, even when a Tier 3
+> item originated as a bug report.
+
+Numbered by the release version each fix ships in (`B.<version>`, e.g. `B.0.10.3`), with
+sub-letters for multiple fixes batched into the same release (`B.0.10.3a`, `B.0.10.3b`).
+
+### B.<version> — <short title>
+- **Version:** v0.<x>.<y>
+- **Date:**
+- **Bug Report reference:**
+- **Requirement ID(s) affected, if any:**
+- **Root cause:**
+- **Regression scope:**
+- **Status:** Fixed | Verified | Released
+
+*(No fixes logged yet.)*
+
+## Appendix F — Spec Amendments (Maintenance Phase)
+
+> Companion to `agents/MAINTENANCE.md`. **Append-only, edited in place, never
+> renumbered or rewritten** — correct a past entry's error with a new entry noting the
+> correction, same convention as `CHANGELOG.md` and `dev_risks.md`. Logs Tier 3 bug fixes
+> and Future Feature promotions (Track B) that add, modify, or supersede a Requirement —
+> including a divergence discovered and resolved during ordinary Development's Final
+> Phase (`agents/DEVELOPMENT.md` §5.2.4 item 5), not only during Maintenance Phase.
+
+Numbered by the release version each amendment ships in (`F.<version>`, e.g. `F.0.10.0`),
+with sub-letters for multiple amendments in the same release (`F.0.10.0a`, `F.0.10.0b`).
+**The original numbered Spec section is never rewritten** — it remains the historical
+record of what was actually designed/built at the time; this appendix does the
+superseding. A Requirement ID is never renumbered when superseded — only its stated
+content changes, so every task/test that already cites it stays validly traceable. A
+change that would alter the Requirement's original intent/acceptance criteria (not merely
+its implementation mechanism) is a **new** Requirement ID that deprecates the old one,
+not a superseding amendment to the same ID.
+
+### F.<version> — <short title>
+- **Version:** v0.<x>.<y>
+- **Date:**
+- **Origin:** Bug Report #### | Future Feature #### | Tier 3 escalation | Development
+  Final Phase divergence (`PROD-005`)
+- **Requirement ID(s) affected:** added / modified / superseded — for each: old text →
+  new text
+- **Rationale:**
+- **Spec section(s) referenced (not rewritten):** §x.x
+- **Regression impact:** components/tests this invalidates or requires new coverage for
+
+*(No amendments logged yet.)*
 
 ## Appendix R — Version History
 

@@ -281,6 +281,55 @@ DoD is content review and user approval. **Design Refs:** N/A — sourced from t
 repository, not an Architecture Spec section. **Submit Point:** at DoD satisfaction; not
 split (Visual/Behavioral-equivalent, no build-test-debug cycle).
 
+**Productization Readiness tasks (final phase):** one `PROD-NNN` task per applicable item
+of the Productization Readiness Checklist (`agents/DEVELOPMENT.md` §5.2.4) — applicability
+of `PROD-007`–`PROD-009` determined by Design Step 5's Productization Applicability
+finding. Each follows the standard Task Template above (Design Refs, Verification Method,
+DoD, Submit Point); none are split (Code/Verify), being Visual/Behavioral-equivalent or
+Hybrid review-and-confirm tasks rather than a build-test-debug cycle.
+
+- **`PROD-001` — Regression Traceability:** confirm every Core Requirement ID (Spec §3)
+  has a row in `test/[projectname]_requirement_traceability.md` and that every listed test
+  is independently invocable by name/tag (actually run each by name, not merely assumed
+  present). **Verification Method:** Hybrid. **DoD:** table complete, every listed test
+  confirmed runnable by name. **Design Refs:** Spec §3.
+- **`PROD-002` — Versioning:** tag the repository at the current version; confirm
+  `CHANGELOG.md`'s `[Unreleased]` section is empty and the tag matches the latest entry.
+  **Verification Method:** Visual/Behavioral. **DoD:** tag present, `CHANGELOG.md`
+  reconciled. **Design Refs:** N/A — as-built repository state.
+- **`PROD-003` — Anti-Stub Final Sweep:** re-run the Maximal Implementation / Anti-Stub
+  check (`AGENTS.md` §2.3) against the as-built repository; review the Open Items Register
+  for any item that should already have been reached. **Verification Method:**
+  Visual/Behavioral. **DoD:** sweep complete, no unresolved stub/TODO markers, Open Items
+  Register clean. **Design Refs:** N/A — as-built repository state.
+- **`PROD-004` — README:** see `DOC-FINAL` above; this item is satisfied by that task, not
+  a separate one.
+- **`PROD-005` — Spec/Dev-Risks Currency:** review the Architecture Specification against
+  the as-built system; any divergence is fixed or logged as an Appendix F Spec Amendment
+  (`agents/exemplars/architecture_specification_template.md` Appendix F); re-evaluate every
+  Open entry in `docs/[project_name]_dev_risks.md` against its own Re-evaluation Trigger.
+  **Verification Method:** Visual/Behavioral. **DoD:** Spec/as-built divergence resolved or
+  logged; dev-risks log current. **Design Refs:** Architecture Spec, full document.
+- **`PROD-006` — License/Dependency Drift:** run `cargo deny check licenses` against the
+  current `Cargo.lock`; confirm `THIRD_PARTY_LICENSES.md` matches. **Verification Method:**
+  Build+Test. **DoD:** `cargo deny check licenses` clean, disclosure file matches. **Design
+  Refs:** `agents/PREFERRED_DEPENDENCIES.md`.
+- **`PROD-007` — Rollback Procedure** *(conditional — release/deploy step present)*:
+  document and actually execute, once, in a non-production environment, the procedure for
+  reverting to the previous tagged version; confirm migration reversibility if the project
+  owns a schema. **Verification Method:** Hybrid. **DoD:** procedure documented, executed
+  once, reversibility confirmed if applicable. **Design Refs:** N/A — as-built deployment
+  process.
+- **`PROD-008` — Operational Runbook** *(conditional — running/deployed service
+  component present)*: document start/stop/restart, common failure symptoms and
+  remediation, and backup/restore if the service holds persistent data. **Verification
+  Method:** Visual/Behavioral. **DoD:** runbook document created and reviewed. **Design
+  Refs:** N/A — as-built deployment process.
+- **`PROD-009` — Monitoring Baseline** *(conditional — running/deployed service component
+  present)*: confirm structured logs are actually emitted at runtime and include a version
+  identifier. **Verification Method:** Visual/Behavioral. **DoD:** log output confirmed to
+  include version identifier. **Design Refs:** `agents/PREFERRED_DEPENDENCIES.md` (`tracing`).
+
 ## 9. Test Strategy & Plan
 Unit / Integration / System & Acceptance (for any UI/Tauri component: browser/device-target
 matrix and headless-test harness) plans.
@@ -458,6 +507,12 @@ happens to be compatible.
   (e.g. `Code+Verify` only where the phase is dominated by split tasks).
 - [ ] Every phase (§6.1) shows a computed Complexity Score, recomputable from its own listed
   tasks; none over the §6 ceiling without a recorded override note in the same cell.
+- [ ] The Final Phase's task list includes one `PROD-NNN` task per applicable
+  Productization Readiness Checklist item (`agents/DEVELOPMENT.md` §5.2.4), consistent
+  with Design Step 5's Productization Applicability finding.
+- [ ] Every phase (§6.1)'s Exit Criteria include running the full local CI-equivalent
+  sequence and resolving/fixing any finding it surfaces (`agents/DEVELOPMENT.md` §5.2
+  step 4), cited by reference, not restated in full per phase.
 
 ## Appendix G — Glossary
 

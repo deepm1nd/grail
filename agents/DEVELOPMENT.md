@@ -200,7 +200,7 @@ advances into a second phase even if time/capacity remains.
     checklist **continuously, in place** — not batched until end of phase, and never via a
     copy of the checklist (§4); (c) submits at that task's declared Submit Point
     immediately, not deferred to end-of-phase, and before starting the next task.
-4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome.
+4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome. **In addition to this build/test pass, every phase's Exit Criteria include running the full local CI-equivalent sequence** — Lint & Format, Build, Test, Coverage, Security Scan (`agents/CI.md`'s stage skeleton), the same sequence already mandated per-task at Submit Points (step 5, below) — **once more at the phase level, and resolving/fixing any bug or issue this run surfaces before the phase's Exit Criteria can be checked off.** A phase is not exited on the strength of its individual tasks' local Submit Point checks alone; the full sequence is re-run integrated, across the whole phase's combined changes, and any finding is fixed in this same phase, not deferred to the next one or left for CI's async pass to catch later.
 5.  **Pre-Commit Verification & Quality Assurance:**
     -   **Mandatory Pre-Submit Local Verification** (`agents/DESIGN.md` §5.8): before any
         task-complete Submit Point, run the full local CI-equivalent sequence — Lint &
@@ -214,7 +214,7 @@ advances into a second phase even if time/capacity remains.
         reviewed and committed by a human. A Development Phase session's role on a license
         finding is to report it and, per the project's own stated default, propose
         swapping the offending dependency — never to edit the disclosure file itself.
-    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review. **Every phase, without exception, also updates the README's shields.io badge URLs (`agents/exemplars/README_template.md`, Metrics & Badges) to the current phase's Branch Name** — metrics commit to whichever branch CI ran on, not to `main`, so a badge URL left pointing at a prior phase's branch (or at `main`) goes stale the moment that phase's branch stops receiving pushes. This check also re-confirms `[org]`/`[repo]` are still correctly substituted, not left as literal placeholders.
+    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **Every phase, without exception, also updates the README's shields.io badge URLs (`agents/exemplars/README_template.md`, Metrics & Badges) to the current phase's Branch Name** — metrics commit to whichever branch CI ran on, not to `main`, so a badge URL left pointing at a prior phase's branch (or at `main`) goes stale the moment that phase's branch stops receiving pushes. This check also re-confirms `[org]`/`[repo]` are still correctly substituted, not left as literal placeholders.
     -   **Assurance Review:** Perform a final, active review of all code and changes in the current phase. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists — checked continuously during the phase, not only here (`AGENTS.md` §2.3's Maximal Implementation mandate); this review is a final backstop, not the primary enforcement point.
 6.  **Write the Phase Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_phaseN_summary.md`.
 7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the phase-level wrap-up only: docs, README updates, and the Phase Summary itself, submitted together after the **Phase-End Quality Assurance** is complete. This is not the sole checkpoint for the phase's work (per-task submits already provide that); it closes out anything not itself task-scoped.
@@ -277,6 +277,64 @@ current dependency tree would actually produce.
 **`LICENSE.md`** (drafted at Step 8, static text) needs no reconciliation the way
 `THIRD_PARTY_LICENSES.md` does — Phase 0's review is a simple accuracy check (correct
 license text, correct copyright holder/year), same tier as `.gitignore`'s review.
+
+#### 5.2.4. Productization Readiness Checklist
+
+**Every item below is a mandatory Exit Criterion of the Final Phase** (Development Plan
+§15), checked once, at the end of the project, in addition to that phase's own task-level
+DoD items — not a substitute for them. This checklist is the single canonical definition
+referenced by both the Final Phase's Exit Criteria and, for Maintenance Phase work on an
+existing project, `agents/MAINTENANCE.md`'s Readiness Audit — defined once, here, not
+restated in either place. Applicability of items 7–9 (marked *conditional*, below) is
+determined at Design Step 5 (`agents/DESIGN.md` §5.5's Productization Applicability
+finding) and drives which of `PROD-007`–`PROD-009` (`agents/exemplars/
+development_plan_template.md` §8) are drafted into the Final Phase at Step 8.
+
+1. **Regression Scaffold:** every Core-status Requirement ID (Spec §3) traces to ≥1
+   independently re-runnable test — re-runnable by name/tag, not merely "covered somewhere
+   in the Phase N verification run." The Requirement-to-Test traceability table exists as
+   a committed artifact, `test/[projectname]_requirement_traceability.md`, not something
+   reconstructed ad hoc from memory or grep. This table is drafted as a skeleton (one row
+   per Core Requirement ID, empty test column) at Design Step 8, then updated
+   incrementally every Development phase as that phase's own tasks add tests — it is a
+   living artifact maintained continuously, not assembled for the first time here.
+2. **Versioning:** the repository is tagged at the current version; `CHANGELOG.md`'s
+   `[Unreleased]` section is empty (every change either has a released version entry or is
+   explicitly deferred and logged as such); the tag matches `CHANGELOG.md`'s latest entry.
+3. **No Incomplete/Stubbed Work:** the Maximal Implementation / Anti-Stub mandate
+   (`AGENTS.md` §2.3) is re-checked against the actual as-built repository at this point —
+   not merely trusted from each task's own self-reported DoD — and the Open Items Register
+   contains no item that should already have been reached and resolved by this phase.
+4. **User-Facing Docs:** `README.md` reflects the as-built system (this item is satisfied
+   by, not separate from, the existing `DOC-FINAL` task, `agents/exemplars/
+   development_plan_template.md` §8).
+5. **Developer-Facing Docs:** the Architecture Specification has no known undocumented
+   divergence from the as-built system — any found divergence is either fixed or logged as
+   an Appendix F Spec Amendment (`agents/exemplars/architecture_specification_template.md`
+   Appendix F); `docs/[project_name]_dev_risks.md` is current (every Open risk
+   re-evaluated against its own Re-evaluation Trigger, not left stale).
+6. **License/Dependency Drift:** `cargo deny check licenses` is clean against the current
+   `Cargo.lock`; `THIRD_PARTY_LICENSES.md` matches its actual output with no undisclosed
+   drift.
+7. **Rollback Procedure** *(conditional — only if the project has a release/deploy step)*:
+   a documented, step-by-step procedure for reverting to the previous tagged version is
+   actually executed once, in a non-production environment, not merely written; if the
+   project owns a database schema, migration reversibility is confirmed (backward-compatible
+   migrations only).
+8. **Operational Runbook** *(conditional — only if the project has a running/deployed
+   service component)*: documented start/stop/restart procedure, common failure symptoms
+   and their remediation, and a backup/restore procedure if the service holds persistent
+   data.
+9. **Monitoring/Observability Baseline** *(conditional — only if the project has a
+   running/deployed service component)*: structured logging (`tracing`,
+   `agents/PREFERRED_DEPENDENCIES.md`) is confirmed actually emitted at runtime and
+   includes a version identifier, so a future bug report can be correlated to a specific
+   build. No SLO/error-budget/alerting apparatus is required unless a specific project's
+   own Architecture Specification explicitly scopes one in.
+
+A gap found in any of these nine items (or the applicable subset) at Final Phase is treated
+exactly like any other unmet Exit Criterion — it blocks Phase completion, it is not
+deferred past this project's own Final Verification.
 
 ### 5.3. Completion of Development
 After all phases in the `Development Plan` are complete, the agent must notify the user and await instruction on next steps, which may include a post-development remediation cycle.

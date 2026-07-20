@@ -149,6 +149,55 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
   `[org]`/`[repo]` re-confirmed correctly substituted
 - [ ] Content reviewed and approved by user
 
+### Task: PROD-001 — Regression Traceability
+- [ ] Every Core Requirement ID (Spec §3) has a row in
+  `test/[projectname]_requirement_traceability.md`
+- [ ] Every listed test confirmed independently invocable by name/tag (actually run, not
+  assumed present)
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+
+### Task: PROD-002 — Versioning
+- [ ] Repository tagged at the current version
+- [ ] `CHANGELOG.md`'s `[Unreleased]` section empty; tag matches latest entry
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+
+### Task: PROD-003 — Anti-Stub Final Sweep
+- [ ] Maximal Implementation / Anti-Stub check (`AGENTS.md` §2.3) re-run against as-built
+  repository; no unresolved stub/TODO markers found
+- [ ] Open Items Register reviewed; no item that should already have been reached remains
+  unresolved
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+
+### Task: PROD-005 — Spec/Dev-Risks Currency
+> `PROD-004` is satisfied by `DOC-FINAL` above — not a separate task.
+- [ ] Architecture Specification reviewed against as-built system; any divergence fixed or
+  logged as an Appendix F Spec Amendment
+- [ ] Every Open entry in `docs/[project_name]_dev_risks.md` re-evaluated against its own
+  Re-evaluation Trigger
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+
+### Task: PROD-006 — License/Dependency Drift
+- [ ] `cargo deny check licenses` run clean against current `Cargo.lock`
+- [ ] `THIRD_PARTY_LICENSES.md` confirmed to match
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+
+### Task: PROD-007 — Rollback Procedure (if applicable — release/deploy step present)
+- [ ] Rollback-to-previous-tag procedure documented
+- [ ] Procedure actually executed once, in a non-production environment
+- [ ] Migration reversibility confirmed, if the project owns a schema
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+
+### Task: PROD-008 — Operational Runbook (if applicable — running/deployed service present)
+- [ ] Start/stop/restart procedure documented
+- [ ] Common failure symptoms and remediation documented
+- [ ] Backup/restore procedure documented, if the service holds persistent data
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+
+### Task: PROD-009 — Monitoring Baseline (if applicable — running/deployed service present)
+- [ ] Structured logging confirmed emitted at runtime
+- [ ] Log output confirmed to include a version identifier
+- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+
 ### Task: [DOMAIN-NNN]
 - [ ] Code implemented and hermetically builds (`[command]`)
 - [ ] Verification Method checks pass (`[command]`)

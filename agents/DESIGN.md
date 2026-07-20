@@ -149,6 +149,12 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   to this project — WASM/Trunk build, Playwright/E2E suite, ESP32/ESP-IDF, infra services
   via `deploy/docker-compose.dev.yml`. No file is produced here; this feeds Step 8's
   `ci.yml` generation.
+- **Productization Applicability:** Determine which of the conditional Productization
+  Readiness Checklist items (`agents/DEVELOPMENT.md` §5.2.4, items 7–9 — Rollback
+  Procedure, Operational Runbook, Monitoring/Observability Baseline) apply to this
+  project, based on whether it has a release/deploy step and/or a running/deployed
+  service component. No file is produced here; this feeds Step 8's Final Phase task
+  generation (`PROD-007`–`PROD-009`, `agents/exemplars/development_plan_template.md` §8).
 - **Direct-Dependency License Check:** Each proposed **direct** dependency is checked
   against `agents/PREFERRED_DEPENDENCIES.md`'s License Compatibility Criterion
   (permissive, notice-only — no share-alike, no copyleft), as an extension of the
@@ -316,23 +322,40 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   `[patch]` exceptions) — distinct from the Architecture Specification's Risk Management
   section, which covers risks identified during Design and is never used for these
   (`agents/exemplars/dev_risks_template.md`'s Purpose and Scope section).
+- **Requirement Traceability Table Skeleton:** Generate
+  `test/[projectname]_requirement_traceability.md` with one row per Core-status
+  Requirement ID (Spec §3), test column empty. This is a skeleton only — Development
+  Phase updates it incrementally, phase by phase, as each phase's tasks add tests
+  (`agents/DEVELOPMENT.md` §5.2.4 item 1).
+- **Productization Readiness Tasks:** Draft the Final Phase's task list to include one
+  `PROD-NNN` task per applicable Productization Readiness Checklist item
+  (`agents/DEVELOPMENT.md` §5.2.4), using Step 5's Productization Applicability finding to
+  determine whether `PROD-007`–`PROD-009` are included. Each follows the same Task
+  Template shape as every other task (Design Refs, Verification Method, DoD, Submit
+  Point, `agents/exemplars/development_plan_template.md` §8) — never left as bare Exit
+  Criteria checkboxes with no corresponding task.
 - **Output:** Development Plan, Checklist, Dev Prompt, draft README, draft `.gitignore`,
   draft `ci.yml`, `scripts/metrics/`, `LICENSE.md`, draft `THIRD_PARTY_LICENSES.md`, initial
-  `CHANGELOG.md`, and initial `docs/[project_name]_dev_risks.md`.
+  `CHANGELOG.md`, initial `docs/[project_name]_dev_risks.md`, and the
+  `test/[projectname]_requirement_traceability.md` skeleton.
 - **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, `.gitignore`, `ci.yml`,
-  `scripts/metrics/`, `LICENSE.md`, `THIRD_PARTY_LICENSES.md`, `CHANGELOG.md`, and
-  `docs/[project_name]_dev_risks.md` for User Approval.**
+  `scripts/metrics/`, `LICENSE.md`, `THIRD_PARTY_LICENSES.md`, `CHANGELOG.md`,
+  `docs/[project_name]_dev_risks.md`, and the `test/[projectname]_requirement_traceability.md`
+  skeleton for User Approval.**
 
 ### 5.9. Step 9: Plan & Checklist Audit
-- **Note: `.gitignore`, `LICENSE.md`, `scripts/metrics/`, `THIRD_PARTY_LICENSES.md`, and
-  `docs/[project_name]_dev_risks.md` are not Step 9 audit inputs.** Step 9 audits only the Development
+- **Note: `.gitignore`, `LICENSE.md`, `scripts/metrics/`, `THIRD_PARTY_LICENSES.md`,
+  `docs/[project_name]_dev_risks.md`, and `test/[projectname]_requirement_traceability.md`
+  are not Step 9 audit inputs.** Step 9 audits only the Development
   Plan and Checklist against the finalized Architecture Specification and their own
   Definition of Done (§15) — `.gitignore`'s and `LICENSE.md`'s correctness are confirmed
   separately at Development Phase 0's review (`LICENSE.md` being static text, this is a
   simple accuracy check, not a substantive one); `scripts/metrics/`'s correctness is
   confirmed the first time CI actually runs it; `THIRD_PARTY_LICENSES.md`'s correctness is
   confirmed at Development Phase 0's first `cargo deny check licenses` run and kept current
-  by CI's Stage 5 drift check thereafter (`agents/CI.md`) — none of these are things Step 9
+  by CI's Stage 5 drift check thereafter (`agents/CI.md`); the traceability table's
+  completeness is confirmed at Final Phase's `PROD-001` task (`agents/DEVELOPMENT.md`
+  §5.2.4 item 1) — none of these are things Step 9
   can meaningfully verify itself.
 - **`ci.yml` gets two narrow, mechanical checks, not a full audit pass.** Unlike
   `.gitignore`/`THIRD_PARTY_LICENSES.md` above, `ci.yml` gains two Tier-A-equivalent
@@ -359,6 +382,11 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
      practice (a generated README covering similar ground in a different structure,
      rather than the template's actual structure) and is now audited mechanically rather
      than assumed followed from §5.8's instruction alone.
+  5. A Final Phase missing any applicable Productization Readiness Checklist item
+     (`agents/DEVELOPMENT.md` §5.2.4) as a corresponding `PROD-NNN` task — cross-checked
+     against Step 5's Productization Applicability finding to confirm items 7–9 are
+     included or excluded correctly — is a Trivial finding, fixed in place by inserting
+     the missing task(s).
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
 - **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every phase's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling phase with no recorded override is a finding**. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a

@@ -176,12 +176,15 @@ version before bumping.
 
 **Prefer a prebuilt binary release over `cargo install` wherever one exists for the
 environment's platform**, consistent with `agents/PREFERRED_TOOLS.md`'s Missing Tool
-Protocol. `espflash` (below) ships prebuilt GitHub release binaries for common
-platforms — prefer that binary over `cargo install espflash` when one is available for
-the target platform. `espup` itself is not known to ship a prebuilt binary as of this
-writing, so the pinned `cargo install --version --locked` form above remains its install
-path; re-check whenever this guide is revisited, since a future `espup` release may change
-that.
+Protocol. **`cargo binstall espflash` is the preferred install form** — it fetches
+`espflash`'s prebuilt GitHub release binary directly via cargo's own tooling, falling
+back to a source build itself only if no binary is published for that platform — rather
+than a separate ad hoc GitHub-releases download step or plain `cargo install espflash`.
+`espup` itself is not known to ship a prebuilt binary as of this writing (`cargo
+binstall espup` would simply fall back to the same source build as plain `cargo
+install`), so the pinned `cargo install --version --locked` form above remains its
+install path; re-check whenever this guide is revisited, since a future `espup` release
+may change that.
 
 ---
 
@@ -379,7 +382,7 @@ The concurrency model (tasks, channels, timers, async I/O) is the same on both
 | `tokio` | `1.x` | Features: `["rt", "net", "sync", "time", "macros"]` |
 | `rust-src` | (current stable) | `rustup component add rust-src` |
 | `espup` | `0.14.1` (pinned — do not use unpinned `latest`) | `cargo install espup --version 0.14.1 --locked` |
-| `espflash` | latest | For flashing; prefer the prebuilt binary release from `espflash`'s GitHub releases for the target platform over `cargo install espflash`; fall back to `cargo install espflash --locked` only if no binary release exists for that platform |
+| `espflash` | latest | For flashing; `cargo binstall espflash` (prebuilt binary via cargo's own tooling); falls back to `cargo install espflash --locked` only if no binary release exists for that platform |
 
 ---
 
