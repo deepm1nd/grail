@@ -86,23 +86,16 @@ of either.
   checklist's structural content (phase/task text, Entry/Exit Criteria wording, DoD item
   wording) — a genuine need to change checklist *content* (not just check a box) is the
   Plan-Change Escalation path above, never a same-session direct edit.
-- **Escalation Model — Stop, Summarize, Wait (`AGENTS.md` §2.6):** A missing tool with a
-  known install command that installs cleanly is the **sole case that continues without
-  stopping**: install, append idempotently to `scripts/setup_env.sh`/`.bat`, inform the
-  user, proceed. **Everything else the agent cannot resolve itself — a package/version
-  conflict, an install that fails, a persistent test failure, an ambiguous spec question,
-  an unverifiable Entry Criteria/DoR — stops the entire session immediately.** No PR, no
-  partial continuation to other tasks, no further troubleshooting attempt. The agent:
-  1. Halts all task work.
-  2. Writes `[projectname]_phaseN_summary.md` (§11.3) with full diagnostic detail: what was
-     tried, exact failure output, and — if determinable — whether the root cause looks
-     Plan/Checklist-level or Architecture-level (Plan §13.1's A/B classification).
-  3. Leaves the repository in its last clean, committed state (no half-applied change).
-  4. Stops. The human brings the Phase Summary to a **Design Phase session**, which
-     diagnoses the issue, updates the Architecture Spec and/or Development Plan as
-     needed, determines the correct restart phase, and restructures the Plan/Checklist.
-     The human then rolls the repository back to the end of the last known-good phase and
-     hands a fresh Development Phase session the updated documents to resume from there.
+- **Escalation Model — Stop, Summarize, Wait:** Follows `agents/exemplars/
+  development_plan_template.md` §13 exactly. A missing tool/prerequisite that installs
+  cleanly (`AGENTS.md` §2.6) is the sole case that continues without stopping.
+  **Everything else the agent cannot resolve itself — a package/version conflict, an
+  install that fails, a persistent test failure, an ambiguous spec question, an
+  unverifiable Entry Criteria/DoR — stops the entire session immediately**: halt all task
+  work, write the Phase Summary with full diagnostic detail, leave the repository in its
+  last clean committed state, and stop — no PR, no partial continuation, no further
+  troubleshooting. See Plan §13 for the full trigger list and its §13.1 A/B
+  (Replanning/Re-architecting) classification for Design-Phase re-engagement.
 - **One Session Unit Per Session (`AGENTS.md` §2.8):** A Development Phase session completes
   **at most one** declared Session Unit — a full Phase (default), a single Task, or one
   Code/Verify sub-task, per the Plan's per-phase declaration
@@ -214,7 +207,10 @@ advances into a second phase even if time/capacity remains.
         reviewed and committed by a human. A Development Phase session's role on a license
         finding is to report it and, per the project's own stated default, propose
         swapping the offending dependency — never to edit the disclosure file itself.
-    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **Every phase, without exception, also updates the README's shields.io badge URLs (`agents/exemplars/README_template.md`, Metrics & Badges) to the current phase's Branch Name** — metrics commit to whichever branch CI ran on, not to `main`, so a badge URL left pointing at a prior phase's branch (or at `main`) goes stale the moment that phase's branch stops receiving pushes. This check also re-confirms `[org]`/`[repo]` are still correctly substituted, not left as literal placeholders.
+    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **Every phase, without exception, also updates the README's shields.io badge URLs to the
+current phase's Branch Name, per `agents/exemplars/README_template.md`'s Metrics & Badges
+convention** — re-confirming `[org]`/`[repo]` are still correctly substituted too, not
+left as literal placeholders.
     -   **Assurance Review:** Perform a final, active review of all code and changes in the current phase. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists — checked continuously during the phase, not only here (`AGENTS.md` §2.3's Maximal Implementation mandate); this review is a final backstop, not the primary enforcement point.
 6.  **Write the Phase Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_phaseN_summary.md`.
 7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the phase-level wrap-up only: docs, README updates, and the Phase Summary itself, submitted together after the **Phase-End Quality Assurance** is complete. This is not the sole checkpoint for the phase's work (per-task submits already provide that); it closes out anything not itself task-scoped.

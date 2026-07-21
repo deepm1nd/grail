@@ -343,28 +343,12 @@ dedicated Actions no longer applies now that everything is one job:
   at Stage 6 below being the one deliberate exception, made explicit because unlike a
   license disclosure, metrics have no compliance weight).
 
-### Branch/Status Marker (`metrics/source.toml`), then Artifact Upload, then Evaluate Required Gates
-Three steps close out `ci_pipeline`, in this exact order — **the order matters and is a
-corrected fix from an earlier draft that had it wrong (see the note below).**
+### Evaluate Required Gates, then Branch/Status Marker (`metrics/source.toml`), then Artifact Upload
+Three steps close out `ci_pipeline`, in this exact order — **the order matters and has
+been corrected twice from earlier drafts that each got it wrong in a different way (see
+the two notes below).**
 
 ```yaml
-      - name: Write branch/status marker
-        id: write_source_marker
-        if: always()
-        run: |
-          node scripts/metrics/write_source_marker.js \
-            --branch "${{ github.ref_name }}" \
-            --commit "${{ github.sha }}" \
-            --status "${{ job.status }}"
-
-      - name: Upload metrics artifact
-        id: upload_metrics_artifact
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: metrics
-          path: metrics/*.toml
-
       - name: Evaluate required gates
         id: evaluate_required_gates
         if: always()
@@ -385,6 +369,23 @@ corrected fix from an earlier draft that had it wrong (see the note below).**
           if [ "$success" = false ]; then
             exit 1
           fi
+
+      - name: Write branch/status marker
+        id: write_source_marker
+        if: always()
+        run: |
+          node scripts/metrics/write_source_marker.js \
+            --branch "${{ github.ref_name }}" \
+            --commit "${{ github.sha }}" \
+            --status "${{ job.status }}"
+
+      - name: Upload metrics artifact
+        id: upload_metrics_artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: metrics
+          path: metrics/*.toml
 ```
 
 `metrics/source.toml` output shape:
@@ -396,23 +397,39 @@ status = "pass"        # or "fail" — reflects this run's actual pipeline outco
 updated = "2026-07-14T18:03:00Z"
 ```
 
-**Ordering fix — why "Write branch/status marker" must come before "Upload metrics
-artifact":** an earlier draft of this skeleton ran these in the order Stage 5 steps →
-Upload metrics artifact → Evaluate required gates → Write branch/status marker. Because the
-marker write (which produces `metrics/source.toml`) ran *after* the artifact upload, the
-uploaded artifact never actually contained `source.toml` — it didn't exist yet at upload
-time. The corrected order above writes the marker first, so the upload captures the
-complete, current `metrics/*.toml` set, including `source.toml`.
+**Ordering fix #1 (superseded by fix #2 below) — why "Write branch/status marker" was
+once moved before "Upload metrics artifact":** an earlier draft ran these in the order
+Stage 5 steps → Upload metrics artifact → Evaluate required gates → Write branch/status
+marker. Because the marker write (which produces `metrics/source.toml`) ran *after* the
+artifact upload, the uploaded artifact never actually contained `source.toml` — it didn't
+exist yet at upload time. That draft's fix moved the marker write to run before the
+upload — but left `Evaluate required gates` running *last*, which introduced a second,
+separate bug (fix #2, below).
 
-**"Evaluate required gates" runs last, after the artifact upload, not before it** — every
-`steps.<id>.outcome` reference above reflects that step's own pass/fail, ignoring any
-`continue-on-error`, so the branch marker and artifact upload's own `if: always()` steps
-still run and their content is captured even when an earlier stage failed; only the final
-verdict step actually fails the job. Each referenced step's `id:` is defined earlier in this
-job (§3's stage-by-stage yaml above) — omit or no-op the `playwright_test`/
-`playwright_metrics` lines for a project without an E2E suite, same conditional-inclusion
-pattern used elsewhere in this document. Because `playwright_test`'s outcome participates in
-this gate as a hard failure, confirm the Playwright test step itself carries no
+**Ordering fix #2 — why "Evaluate required gates" must run *first*, not last:** with the
+marker write positioned before `Evaluate required gates` (fix #1's draft), `${{
+job.status }}` at marker-write time could only ever read as `"success"` — none of the
+individual stage steps (test, coverage, deny, audit, drift-check) fail the job on their
+own, since they run with `continue-on-error` and only the aggregation step's own unguarded
+`exit 1` actually fails the job (see below). Writing the marker before that aggregation
+step ran meant `metrics/source.toml` reported `status = "pass"` even on a run where a
+required check had genuinely failed — exactly the silent-false-success failure mode the
+gate-aggregation mechanism exists to prevent, just relocated to the marker file instead of
+the job's own pass/fail. Moving `Evaluate required gates` to run *first* among these three
+steps resolves both constraints together: `job.status` is accurate by the time the marker
+is written (the aggregation step has already run and, if applicable, already failed the
+job), and the marker is still written before the artifact upload, so `source.toml` is
+still captured in the artifact.
+
+**All three steps carry `if: always()`,** so the marker-write and artifact-upload steps
+still run even when `Evaluate required gates` has failed the job — only `Evaluate required
+gates` itself determines the job's actual pass/fail; every `steps.<id>.outcome` reference
+inside it reflects that step's own pass/fail, ignoring any `continue-on-error`. Each
+referenced step's `id:` is defined earlier in this job (§3's stage-by-stage yaml above) —
+omit or no-op the `playwright_test`/`playwright_metrics` lines for a project without an
+E2E suite, same conditional-inclusion pattern used elsewhere in this document. Because
+`playwright_test`'s outcome participates in this gate as a hard failure, confirm the
+Playwright test step itself carries no
 `continue-on-error: true` and no trailing `|| true` — a bare, ungated `npx playwright test`
 invocation (§3 Stage 3c, above).
 

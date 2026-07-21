@@ -170,23 +170,16 @@ for which steps, if any, are exempt from its standard procedure.
 
 ### 2.6. Mandate for Missing Tools and Prerequisites
 **MANDATE: A missing tool/prerequisite that resolves cleanly does not stop the session.**
-1. Attempt to install it (per `agents/PREFERRED_TOOLS.md`/`agents/PREFERRED_SERVICES.md`).
-2. **Append the install command(s) idempotently** to `scripts/setup_env.sh` (bash) and
-   `scripts/setup_env.bat` (Windows), creating either if absent (e.g.
-   `command -v <tool> >/dev/null 2>&1 || <install command>`).
-3. **If the install succeeds cleanly:** inform the user, then proceed — this is the sole
-   case that continues without stopping.
-4. **If the install fails, or the tool resolves but a version conflict, incompatibility,
-   or other unexpected failure follows:** this is no longer a "trivial resolve." A
-   Development Phase session stops entirely per `agents/DEVELOPMENT.md` §4's escalation
-   model (write the Phase Summary, stop — no further troubleshooting, no partial
-   continuation). A Design Phase session escalates per the relevant step's gate.
-
-**Note — this mandate assumes a session/environment that persists tool installs across
-subsequent work (a Development Phase session, potentially backed by a Jules Environment
-Snapshot).** A CI run has no such persistence — every run starts from zero state — so
-`agents/CI.md`'s Stage 0 restates the install step as unconditional and mandatory on every
-run, not a one-time "install if missing" check; see that file for the CI-specific handling.
+Full protocol — install, verify, append idempotently to `scripts/setup_env.sh`/`.bat`,
+inform the user, proceed — is `agents/PREFERRED_TOOLS.md`'s Missing Tool Protocol section
+(also covering the CI-specific handling, since a CI run has no persistent environment to
+carry an install across runs the way a Development Phase session's may). **A clean
+install-and-proceed is the sole case that continues without stopping.** Any install
+failure, or a resolved tool whose build/test still fails (version conflict,
+incompatibility, other unexpected error), is no longer a trivial resolve: a Development
+Phase session stops entirely per `agents/DEVELOPMENT.md` §4's escalation model (write the
+Phase Summary, stop — no further troubleshooting, no partial continuation); a Design Phase
+session escalates per the relevant step's gate.
 
 ### 2.7. Mandate Against Reproducing Shared Working Documents
 **MANDATE: The agent MUST use the Development Checklist and any other shared, in-place

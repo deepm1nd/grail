@@ -455,14 +455,13 @@ end-to-end, not just the newly-appended line, whenever `setup_env.sh` is modifie
 Playwright browser drivers in headless CI) may fail without triggering the above —
 `setup_env.sh` logs the failure and continues via error-accumulation, never `set -e`.
 
-**CI has no equivalent of a Jules session's Environment Snapshot.** A Development Phase
-session may start from an already-provisioned environment (a prior Snapshot); a CI run
-never does — every GitHub Actions job starts from zero state. This means `scripts/setup_env.sh`
-MUST be its own explicit step in `ci.yml` (`agents/CI.md`'s Stage 0), run before any
-step — including a version/environment check like `check_env.sh` — that assumes tools
-are already present. A `ci.yml` that runs `check_env.sh` without a preceding
-`setup_env.sh` step is not an environment quirk; it is a missing pipeline step, and
-Design Step 9's audit checks for it explicitly (`agents/DESIGN.md` §5.9).
+**CI has no equivalent of a Jules session's Environment Snapshot** — see `agents/CI.md`'s
+Stage 0 for the full handling. In short: every GitHub Actions job starts from zero state,
+so `scripts/setup_env.sh` MUST be its own explicit, unconditional step in `ci.yml`, run
+before any step (including `check_env.sh`) that assumes tools are present. A `ci.yml` that
+runs `check_env.sh` without a preceding `setup_env.sh` step is a missing pipeline step, not
+an environment quirk — Design Step 9's audit checks for it explicitly
+(`agents/DESIGN.md` §5.9).
 
 **Apt-based installs in `setup_env.sh` must be defensive, in every environment, not
 just in CI.** Do not assume the environment's default apt sources already include

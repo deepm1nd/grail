@@ -207,41 +207,20 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 - **Output:** Final Deficiency Audit Report — presented in chat at the gate; not a
   standalone required file. On any finding, its content is embedded directly in the
   backtrack handoff note (`CLAUDE.md` §3.10/§3.11) rather than delivered separately.
-- **GATE behavior depends on the report's findings and each finding's Severity
-  (`CLAUDE.md` §3.11 — Trivial: mechanically unambiguous, no judgment call, no risk of
-  masking a deeper issue; Substantive: anything else):**
-  - **Zero findings:** the gate behaves normally — STOP, present the clean Audit Report, await User Approval to proceed to Step 8.
-  - **All findings Trivial, none Substantive:** no backtrack, no new session. Claude fixes
-    every Trivial finding directly, in this same session, and presents the corrected content
-    plus a short fix log at the gate; the gate then proceeds normally — STOP, await approval
-    to Step 8. This exists so small mechanical defects (a duplicate section, a stale
-    cross-reference, a naming-convention slip) don't trigger the full cycle below.
+- **GATE behavior follows `CLAUDE.md` §3.11's Trivial/Substantive mechanics exactly,
+  applied to this Spec audit — see that section for the full workflow, circuit-breaker,
+  and Post-Audit Fix Pass detail; only the Step-7-specific outcomes are restated here:**
+  - **Zero findings:** gate behaves normally — STOP, present the clean Audit Report,
+    await User Approval to proceed to Step 8.
+  - **All findings Trivial, none Substantive:** fixed in place, same session, per §3.11;
+    gate then proceeds normally — STOP, await approval to Step 8.
   - **Any Substantive finding (regardless of accompanying Trivial ones):** the normal
-    approval gate does NOT apply. Instead, the
-    mandatory **Step 7 Backtrack Workflow** (`CLAUDE.md` §3.11) governs: every finding
-    (Trivial and Substantive alike) is
-    traced to its originating step (1–6); the agent reopens the *earliest* originating step
-    and works forward, fixing each step's findings, any incidentally-discovered defect found
-    along the way (regardless of whether it predates the session), and any cascading effects
-    on later already-approved content, ending with a fresh package of all touched files and a
-    handoff note for a brand-new Step 7 session. **Opening that backtrack session and
-    proceeding directly into fixing is the default** — the user starting the new session is
-    itself the go-ahead; no separate "proceed with fixes" instruction is needed. That new
-    session re-audits the Spec independently from scratch — it does not take the backtrack
-    session's own account on faith. This repeats until a Step 7 run produces zero findings or
-    all-Trivial findings. **The user
-    may instead invoke the Post-Audit Fix Pass** (`CLAUDE.md` §3.6.1, exact phrase
-    `POST AUDIT FIX`) — a compressed single-session version of the same
-    forward-through-Step-6 work, still mandatorily ending in a fresh Step 7 session; the
-    default remains the full workflow unless the user explicitly invokes the pass. **Neither
-    path leaves a discovered defect flagged-but-unfixed for a future auditor to verify** —
-    everything found, from the report or incidentally, gets fixed in the same pass.
-  - **Circuit breaker:** if a re-audit produces a Substantive finding for the *second*
-    consecutive non-clean Step 7 pass (repeated all-Trivial passes don't count, since those
-    resolve immediately above), the workflow does not silently repeat a third time unchanged — `CLAUDE.md` §3.11
-    step 7 governs: a Convergence Diagnostic comparing the two passes' findings, then an
-    explicit user choice (Post-Audit Fix Pass / accept as a documented deferred item /
-    manually-scoped fix). A third identical pass with no change in approach is not permitted.
+    approval gate does not apply — the full Step 7 Backtrack Workflow (§3.11) governs
+    instead: reopen the earliest originating step (1–6) and work forward, ending with a
+    fresh package and handoff note for a brand-new Step 7 session (or the user's
+    `POST AUDIT FIX` compressed alternative, same section) — repeating until a Step 7 run
+    produces zero or all-Trivial findings, subject to §3.11's circuit breaker on repeated
+    non-clean passes.
 
 ### 5.8. Step 8: Development Plan & Checklist Generation
 - **Plan:** Create the dev plan files using `agents/exemplars/development_plan_template.md`.
@@ -393,31 +372,21 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   standalone required file. On any finding, its content is embedded directly in the
   backtrack handoff note that reopens Step 8 (or the relevant Spec step), same convention
   as Step 7 (`CLAUDE.md` §3.10/§3.11).
-- **GATE behavior depends on the report's findings, mirroring Step 7 (`CLAUDE.md` §3.11's mechanics, applied here) — each finding tagged Trivial or Substantive same as Step 7:**
+- **GATE behavior follows `CLAUDE.md` §3.11's Trivial/Substantive mechanics, same as Step
+  7 — only what's specific to Step 9 (the A/B defect classification below) is restated:**
   - **Zero findings:** the gate behaves normally — STOP, present the clean report, await User Approval. This closes the Design Phase (§6).
-  - **All findings Trivial, none Substantive:** no backtrack. Claude fixes every Trivial
-    finding directly, in this same session, presents the corrected Plan/Checklist plus a
-    short fix log at the gate, and the gate proceeds normally.
+  - **All findings Trivial, none Substantive:** fixed in place, same session, per §3.11;
+    the gate proceeds normally.
   - **Any Substantive finding:** the normal approval gate does not apply. Every Substantive finding is classified as it's found:
     - **(A) Plan/Checklist-only defect** (bad phase sizing, a task missing a Verification Method, an orphan citation the Plan itself introduced, a Checklist/Plan drift) — reopen Step 8 alone in a new backtrack session, fix every Substantive and Trivial finding plus anything discovered incidentally along the way, re-package, and proceed to a fresh Step 9 session (`pass2`, `pass3`, ... per `CLAUDE.md` §3.10's naming convention) that re-audits independently from scratch.
     - **(B) Spec-originating defect** (the Plan surfaces a genuinely missing or inconsistent requirement that Step 7 should have caught, or that was only discoverable once Plan-level task decomposition exposed it) — this is equivalent in severity to a re-architecting escalation (`agents/exemplars/development_plan_template.md` §13.1(B)). Reopen the relevant Architecture Specification step (1–6), then **re-run Step 7 to a clean or all-Trivial result** before returning to Step 8, rather than patching the Plan around a still-defective Spec.
-  - **Opening the backtrack session (A or B) and proceeding directly into fixing is the
-    default**, same as Step 7 — the user starting the new session is itself the go-ahead; no
-    separate "proceed with fixes" instruction is needed. **No discovered defect is left
-    flagged-but-unfixed for a future auditor** — everything found, from the report or
-    incidentally, gets fixed in the same pass (`CLAUDE.md` §3.6.1 point 5).
-  - This repeats until a Step 9 run produces zero findings or all-Trivial findings. **For
-    either (A) or (B), the user
-    may instead invoke the Post-Audit Fix Pass** (`CLAUDE.md` §3.6.1, exact phrase
-    `POST AUDIT FIX`) — for (B), the compressed single-session equivalent still works
-    forward through Step 6 and still mandatorily ends in a fresh Step 7 session before
-    returning to Step 8/9.
-  - **Circuit breaker, mirroring Step 7 (`CLAUDE.md` §3.11 step 7):** if a re-audit produces
-    a Substantive finding for the *second*
-    consecutive non-clean Step 9 pass, the workflow does not silently repeat a third time unchanged. Claude produces a Convergence Diagnostic comparing the two passes'
-    findings (recurring vs. genuinely new), then presents an explicit choice: Post-Audit Fix
-    Pass, accept a specific finding as a documented deferred item, or a manually-scoped
-    fix. A third identical pass with no change in approach is not permitted.
+  - **Backtrack entry, repeat-until-clean, Post-Audit Fix Pass, and circuit breaker all
+    follow §3.11 exactly as in Step 7** (opening the session is itself the go-ahead; no
+    defect is left flagged-but-unfixed; a second consecutive non-clean pass triggers the
+    Convergence Diagnostic and explicit choice). One Step 9-specific note: for path (B),
+    the Post-Audit Fix Pass's compressed single-session work still runs forward through
+    Step 6 and still mandatorily ends in a fresh Step 7 session before returning to
+    Step 8/9.
 
 ## 6. Phase Completion Criteria
 Phase is complete ONLY when all approved artifacts (Spec, Plan, Checklist, Dev Prompt,

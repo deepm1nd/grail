@@ -91,6 +91,10 @@ merged into §2.5. Per item: **Originating ID** (if assigned before deferral —
 reassigned) · **What it is** (sufficient for a future session to act on) · **Why
 deferred** · **Dependency/precondition**, if known. Additive-only; an item here is never
 silently removed, only explicitly promoted (removed from here) or dropped (moved to §2.5).
+**Promotion is not exclusive to Design Phase** — a Maintenance Phase session promotes an
+item here into an active Maintenance Batch item exactly the same way, carrying forward its
+Originating ID if one was reserved, and removes it from this section at that point
+(`agents/MAINTENANCE.md` §4).
 
 ---
 
@@ -437,10 +441,12 @@ port = 8080
 ## Appendix B — Bug Fix Log (Maintenance Phase)
 
 > Companion to `agents/MAINTENANCE.md`. **Append-only, edited in place, never
-> renumbered.** Populated only once this project enters Maintenance Phase — empty at
-> Design time and throughout ordinary Development. Logs Tier 1/2 corrective bug fixes
-> (Track A) — Tier 3/Future-Feature entries go to Appendix F instead, even when a Tier 3
-> item originated as a bug report.
+> renumbered.** Empty at Design time and throughout ordinary Development. **A terse
+> pointer row only** — full reproduction steps, environment, root cause, and regression
+> scope live in that release's maintenance batch file
+> (`docs/[project_name]_maintenance_<batch>.md`, `agents/exemplars/
+> maintenance_batch_template.md`), not here. Logs Track A (Tier 1/2) items only — a Tier
+> 3 item logs to Appendix F instead, even if it started life as a bug report.
 
 Numbered by the release version each fix ships in (`B.<version>`, e.g. `B.0.10.3`), with
 sub-letters for multiple fixes batched into the same release (`B.0.10.3a`, `B.0.10.3b`).
@@ -448,25 +454,25 @@ sub-letters for multiple fixes batched into the same release (`B.0.10.3a`, `B.0.
 ### B.<version> — <short title>
 - **Version:** v0.<x>.<y>
 - **Date:**
-- **Bug Report reference:**
+- **Maintenance batch record:** `docs/[project_name]_maintenance_<batch>.md`, item `BF-####`
 - **Requirement ID(s) affected, if any:**
-- **Root cause:**
-- **Regression scope:**
+- **Root cause (one line — full detail in the batch record):**
 - **Status:** Fixed | Verified | Released
 
 *(No fixes logged yet.)*
 
 ## Appendix F — Spec Amendments (Maintenance Phase)
 
-> Companion to `agents/MAINTENANCE.md`. **Append-only, edited in place, never
-> renumbered or rewritten** — correct a past entry's error with a new entry noting the
-> correction, same convention as `CHANGELOG.md` and `dev_risks.md`. Logs Tier 3 bug fixes
-> and Future Feature promotions (Track B) that add, modify, or supersede a Requirement —
-> including a divergence discovered and resolved during ordinary Development's Final
-> Phase (`agents/DEVELOPMENT.md` §5.2.4 item 5), not only during Maintenance Phase.
+> Same convention as Appendix B above (companion to `agents/MAINTENANCE.md`; append-only,
+> edited in place; a terse pointer row only, with full scope/rationale/regression detail
+> in that release's maintenance batch file; numbered by release version with sub-letters
+> for multiple items in the same release — here, `F.<version>`, e.g. `F.0.10.0a`,
+> `F.0.10.0b`) — **except also never rewritten**, only corrected via a new entry noting
+> the correction (same convention as `CHANGELOG.md`). Logs Tier 3 bug fixes and Future
+> Feature promotions (Track B) that add, modify, or supersede a Requirement — including a
+> divergence discovered and resolved during ordinary Development's Final Phase
+> (`agents/DEVELOPMENT.md` §5.2.4 item 5), not only during Maintenance Phase.
 
-Numbered by the release version each amendment ships in (`F.<version>`, e.g. `F.0.10.0`),
-with sub-letters for multiple amendments in the same release (`F.0.10.0a`, `F.0.10.0b`).
 **The original numbered Spec section is never rewritten** — it remains the historical
 record of what was actually designed/built at the time; this appendix does the
 superseding. A Requirement ID is never renumbered when superseded — only its stated
@@ -478,13 +484,11 @@ not a superseding amendment to the same ID.
 ### F.<version> — <short title>
 - **Version:** v0.<x>.<y>
 - **Date:**
-- **Origin:** Bug Report #### | Future Feature #### | Tier 3 escalation | Development
-  Final Phase divergence (`PROD-005`)
+- **Maintenance batch record:** `docs/[project_name]_maintenance_<batch>.md`, item `BF-####`
 - **Requirement ID(s) affected:** added / modified / superseded — for each: old text →
-  new text
-- **Rationale:**
-- **Spec section(s) referenced (not rewritten):** §x.x
-- **Regression impact:** components/tests this invalidates or requires new coverage for
+  new text (one line each — full rationale in the batch record)
+- **Regression impact (one line):**
+- **Status:** Fixed | Verified | Released
 
 *(No amendments logged yet.)*
 
