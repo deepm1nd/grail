@@ -173,10 +173,12 @@ must install them itself.
 ```yaml
       - name: Check formatting
         id: check_formatting
+        continue-on-error: true
         run: cargo fmt --all -- --check
 
       - name: Run Clippy
         id: run_clippy
+        continue-on-error: true
         run: cargo clippy --workspace --all-targets -- -D warnings
         # -D warnings is mandatory on every project. -D clippy::unwrap_used is a
         # per-project opt-in (PREFERRED_TOOLS.md), added here only if that project
@@ -187,6 +189,7 @@ must install them itself.
 ```yaml
       - name: Native build
         id: native_build
+        continue-on-error: true
         run: cargo build --release
 ```
 
@@ -194,6 +197,7 @@ must install them itself.
 ```yaml
       - name: WASM build
         id: wasm_build
+        continue-on-error: true
         run: trunk build --release
 ```
 Per `PREFERRED_TOOLS.md`'s Trunk conventions (output-directory separation from `assets/`,
@@ -208,12 +212,14 @@ colocated `#[test]`s and `tests/*.rs` integration tests in the same invocation r
   ```yaml
         - name: Run nextest
           id: test_nextest
+          continue-on-error: true
           env:
             NEXTEST_EXPERIMENTAL_LIBTEST_JSON: "1"
           run: cargo nextest run --workspace --message-format libtest-json
 
         - name: Run doc-tests
           id: test_docs
+          continue-on-error: true
           run: cargo test --doc --workspace
   ```
   `cargo nextest run --workspace --message-format libtest-json` (`PREFERRED_TOOLS.md`'s
@@ -228,6 +234,7 @@ colocated `#[test]`s and `tests/*.rs` integration tests in the same invocation r
   ```yaml
         - name: Install Playwright browsers
           id: playwright_install
+          continue-on-error: true
           run: |
             cd test/playwright
             npm install
@@ -235,12 +242,14 @@ colocated `#[test]`s and `tests/*.rs` integration tests in the same invocation r
 
         - name: Run Playwright tests
           id: playwright_test
+          continue-on-error: true
           run: |
             cd test/playwright
             npx playwright test --reporter=json > /tmp/playwright.json
 
         - name: Parse Playwright results
           id: playwright_metrics
+          continue-on-error: true
           run: node scripts/metrics/parse_playwright.js /tmp/playwright.json
   ```
   **Install browsers before running tests** — `npx playwright install --deps` is a
@@ -250,9 +259,12 @@ colocated `#[test]`s and `tests/*.rs` integration tests in the same invocation r
   guarded block (`PREFERRED_TOOLS.md`) — that block only fires when Playwright itself is
   entirely missing, not necessarily on every fresh CI runner in exactly the way CI needs, so
   both are required.
-  **`playwright_test` is a hard gate, consistent with every other CI stage (nextest,
-  coverage, deny, audit, drift-check) — no `continue-on-error: true` and no trailing
-  `|| true` on the test-execution step itself.** `parse_playwright.js` → `metrics/playwright.toml`.
+  **`playwright_test` carries `continue-on-error: true`, per this document's
+  Continue-on-Error Policy (§3, below, right after Stage 5) — same reasoning as every
+  other Stage 1–5
+  step.** No trailing `|| true` on the test-execution step itself, though — that would
+  swallow the failure signal `continue-on-error`+`outcome` is specifically designed to
+  still capture. `parse_playwright.js` → `metrics/playwright.toml`.
   This stage's outputs follow the same `test/phase_N/ci/` evidence-capture convention as
   every other stage — no special-casing. Additional lettered sub-stages (3d, 3e...) as a
   project needs further test-category subdivision — same conditional pattern, not a fixed
@@ -262,10 +274,12 @@ colocated `#[test]`s and `tests/*.rs` integration tests in the same invocation r
 ```yaml
       - name: Run coverage
         id: coverage_run
+        continue-on-error: true
         run: cargo llvm-cov --workspace --json --output-path target/llvm-cov.json
 
       - name: Parse coverage results
         id: coverage_metrics
+        continue-on-error: true
         run: node scripts/metrics/parse_coverage.js target/llvm-cov.json
 ```
 `cargo llvm-cov --workspace --json --output-path target/llvm-cov.json` → parsed by
@@ -285,22 +299,27 @@ dedicated Actions no longer applies now that everything is one job:
 ```yaml
       - name: cargo-deny
         id: cargo_deny
+        continue-on-error: true
         run: cargo deny --format json check > /tmp/deny.json
 
       - name: Parse deny results
         id: parse_deny
+        continue-on-error: true
         run: node scripts/metrics/parse_deny.js /tmp/deny.json   # or bash+jq if trivial
 
       - name: cargo-audit
         id: cargo_audit
+        continue-on-error: true
         run: cargo audit --json > /tmp/audit.json
 
       - name: Parse audit results
         id: parse_audit
+        continue-on-error: true
         run: node scripts/metrics/parse_audit.js /tmp/audit.json
 
       - name: Parse license violation/addition metrics
         id: parse_license_metrics
+        continue-on-error: true
         run: node scripts/metrics/parse_license_metrics.js /tmp/deny.json
         # Writes metrics/licenses.toml (violations_count, crates_added_count — feeds
         # the two README license badges) and appends one line per newly-seen crate to
@@ -315,6 +334,7 @@ dedicated Actions no longer applies now that everything is one job:
 
       - name: THIRD_PARTY_LICENSES.md drift check
         id: drift_check
+        continue-on-error: true
         run: bash scripts/metrics/check_license_drift.sh
 ```
 
@@ -343,6 +363,39 @@ dedicated Actions no longer applies now that everything is one job:
   at Stage 6 below being the one deliberate exception, made explicit because unlike a
   license disclosure, metrics have no compliance weight).
 
+### Continue-on-Error Policy — which stages get it, and why
+
+**Every step in Stages 1–5 carries `continue-on-error: true`** — `check_formatting`,
+`run_clippy`, `native_build`, `wasm_build`, `test_nextest`, `test_docs`,
+`playwright_install`, `playwright_test`, `playwright_metrics`, `coverage_run`,
+`coverage_metrics`, `cargo_deny`, `parse_deny`, `cargo_audit`, `parse_audit`,
+`parse_license_metrics`, `drift_check`. This is what lets `Evaluate required gates`
+(below) see every stage's real outcome in one run, rather than the job stopping at the
+first failure and skipping everything after it — defeating the entire purpose of
+aggregating pass/fail into one clear failure point, which is what that step exists to do.
+This applies even to steps not themselves referenced in the aggregation script
+(`playwright_install`, `parse_license_metrics`) — their failure without
+`continue-on-error` would still block every step downstream of them, continue-on-error or
+not.
+
+**This decision is coupled to the gate-evaluation script, not independent of it**:
+`check_formatting`/`run_clippy`/`native_build`/`wasm_build` were not originally in
+`Evaluate required gates`'s check list. Giving them `continue-on-error` *without* also
+adding them to that list would silently swallow a lint or build failure entirely — worse
+than the unguarded hard-stop behavior it replaces. Both changes ship together (the
+`Evaluate Required Gates` yaml below includes all four).
+
+**Two exceptions — no `continue-on-error` here:**
+- **Stage 0 (Environment Setup)** — a genuine prerequisite hard-stop. If the pinned
+  toolchain fails to install, every later stage's output is meaningless noise (command-
+  not-found failures, not real signal), so Stage 0 failing stops the job immediately, as
+  it always has.
+- **`Evaluate required gates` itself** — this is the one step whose own failure is
+  *meant* to fail the job; giving it `continue-on-error` would defeat its entire purpose.
+  The two steps after it (`Write branch/status marker`, `Upload metrics artifact`, below)
+  use `if: always()` instead — the correct, different mechanism for "run regardless of
+  what happened upstream," not `continue-on-error`.
+
 ### Evaluate Required Gates, then Branch/Status Marker (`metrics/source.toml`), then Artifact Upload
 Three steps close out `ci_pipeline`, in this exact order — **the order matters and has
 been corrected twice from earlier drafts that each got it wrong in a different way (see
@@ -354,10 +407,14 @@ the two notes below).**
         if: always()
         run: |
           success=true
+          if [ "${{ steps.check_formatting.outcome }}" != "success" ]; then echo "formatting check failed"; success=false; fi
+          if [ "${{ steps.run_clippy.outcome }}" != "success" ]; then echo "clippy failed"; success=false; fi
+          if [ "${{ steps.native_build.outcome }}" != "success" ]; then echo "native build failed"; success=false; fi
+          if [ "${{ steps.wasm_build.outcome }}" != "success" ]; then echo "wasm build failed"; success=false; fi  # omit this line if no WASM component
           if [ "${{ steps.test_nextest.outcome }}" != "success" ]; then echo "nextest failed"; success=false; fi
           if [ "${{ steps.test_docs.outcome }}" != "success" ]; then echo "doc tests failed"; success=false; fi
-          if [ "${{ steps.playwright_test.outcome }}" != "success" ]; then echo "playwright test failed"; success=false; fi
-          if [ "${{ steps.playwright_metrics.outcome }}" != "success" ]; then echo "playwright metrics failed"; success=false; fi
+          if [ "${{ steps.playwright_test.outcome }}" != "success" ]; then echo "playwright test failed"; success=false; fi  # omit if no Playwright suite
+          if [ "${{ steps.playwright_metrics.outcome }}" != "success" ]; then echo "playwright metrics failed"; success=false; fi  # omit if no Playwright suite
           if [ "${{ steps.coverage_run.outcome }}" != "success" ]; then echo "coverage run failed"; success=false; fi
           if [ "${{ steps.coverage_metrics.outcome }}" != "success" ]; then echo "coverage metrics failed"; success=false; fi
           if [ "${{ steps.cargo_deny.outcome }}" != "success" ]; then echo "cargo-deny failed"; success=false; fi

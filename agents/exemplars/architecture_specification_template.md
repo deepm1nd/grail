@@ -94,7 +94,7 @@ silently removed, only explicitly promoted (removed from here) or dropped (moved
 **Promotion is not exclusive to Design Phase** — a Maintenance Phase session promotes an
 item here into an active Maintenance Batch item exactly the same way, carrying forward its
 Originating ID if one was reserved, and removes it from this section at that point
-(`agents/MAINTENANCE.md` §4).
+(`agents/MAINTENANCE.md` §5).
 
 ---
 
@@ -444,7 +444,7 @@ port = 8080
 > renumbered.** Empty at Design time and throughout ordinary Development. **A terse
 > pointer row only** — full reproduction steps, environment, root cause, and regression
 > scope live in that release's maintenance batch file
-> (`docs/[project_name]_maintenance_<batch>.md`, `agents/exemplars/
+> (`[project_name]_[type]_v[N.NN.NN].md` once released, `agents/exemplars/
 > maintenance_batch_template.md`), not here. Logs Track A (Tier 1/2) items only — a Tier
 > 3 item logs to Appendix F instead, even if it started life as a bug report.
 
@@ -454,7 +454,8 @@ sub-letters for multiple fixes batched into the same release (`B.0.10.3a`, `B.0.
 ### B.<version> — <short title>
 - **Version:** v0.<x>.<y>
 - **Date:**
-- **Maintenance batch record:** `docs/[project_name]_maintenance_<batch>.md`, item `BF-####`
+- **Maintenance batch record:** `[project_name]_[type]_v[N.NN.NN].md` (released) or
+  `[project_name]_maintenance_open.md` (while open), item `BF-####`
 - **Requirement ID(s) affected, if any:**
 - **Root cause (one line — full detail in the batch record):**
 - **Status:** Fixed | Verified | Released
@@ -463,16 +464,17 @@ sub-letters for multiple fixes batched into the same release (`B.0.10.3a`, `B.0.
 
 ## Appendix F — Spec Amendments (Maintenance Phase)
 
-> Same convention as Appendix B above (companion to `agents/MAINTENANCE.md`; append-only,
-> edited in place; a terse pointer row only, with full scope/rationale/regression detail
-> in that release's maintenance batch file; numbered by release version with sub-letters
-> for multiple items in the same release — here, `F.<version>`, e.g. `F.0.10.0a`,
-> `F.0.10.0b`) — **except also never rewritten**, only corrected via a new entry noting
-> the correction (same convention as `CHANGELOG.md`). Logs Tier 3 bug fixes and Future
-> Feature promotions (Track B) that add, modify, or supersede a Requirement — including a
-> divergence discovered and resolved during ordinary Development's Final Phase
-> (`agents/DEVELOPMENT.md` §5.2.4 item 5), not only during Maintenance Phase.
+> Companion to `agents/MAINTENANCE.md`. **Append-only, edited in place, never
+> renumbered or rewritten** — correct a past entry's error with a new entry noting the
+> correction, same convention as `CHANGELOG.md`. **A terse pointer row only** — full
+> scope, rationale, and regression detail live in that release's maintenance batch file,
+> not here. Logs Tier 3 bug fixes and Future Feature promotions (Track B) that add,
+> modify, or supersede a Requirement — including a divergence discovered and resolved
+> during ordinary Development's Final Phase (`agents/DEVELOPMENT.md` §5.2.4 item 5), not
+> only during Maintenance Phase.
 
+Numbered by the release version each amendment ships in (`F.<version>`, e.g. `F.0.10.0`),
+with sub-letters for multiple amendments in the same release (`F.0.10.0a`, `F.0.10.0b`).
 **The original numbered Spec section is never rewritten** — it remains the historical
 record of what was actually designed/built at the time; this appendix does the
 superseding. A Requirement ID is never renumbered when superseded — only its stated
@@ -484,7 +486,8 @@ not a superseding amendment to the same ID.
 ### F.<version> — <short title>
 - **Version:** v0.<x>.<y>
 - **Date:**
-- **Maintenance batch record:** `docs/[project_name]_maintenance_<batch>.md`, item `BF-####`
+- **Maintenance batch record:** `[project_name]_[type]_v[N.NN.NN].md` (released) or
+  `[project_name]_maintenance_open.md` (while open), item `BF-####`
 - **Requirement ID(s) affected:** added / modified / superseded — for each: old text →
   new text (one line each — full rationale in the batch record)
 - **Regression impact (one line):**

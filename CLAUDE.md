@@ -1,12 +1,17 @@
-# CLAUDE.md — Design Phase Working Arrangement
+# CLAUDE.md — Design & Maintenance Phase Working Arrangement
 
 See `CHANGELOG.md` for full version history (human reference only; agents skip it).
 
 Governs Claude's operation of the **Design Phase** of this repository, per `AGENTS.md` and
-`agents/DESIGN.md`. Scope: producing the Architecture Specification, Development Plan, and
-Development Checklist only — not Development Phase execution. Where this file conflicts with
-a future revision of `AGENTS.md`/`agents/DESIGN.md`, those win; this is a working-arrangement
-summary, not a replacement.
+`agents/DESIGN.md`, and, for **§1 (Operating Mode: Advisory) only**, the Claude-side
+sessions of **Maintenance Phase** (`agents/MAINTENANCE.md` M1–M3) — both are Claude
+sessions with no persistent repo access, governed by the same Advisory Mode contract.
+Scope for Design Phase: producing the Architecture Specification, Development Plan, and
+Development Checklist only — not Development Phase execution. §§2–6 below are Design-Phase-
+specific and do not apply to Maintenance sessions; `agents/MAINTENANCE.md` governs
+Maintenance-specific content directly. Where this file conflicts with a future revision of
+`AGENTS.md`/`agents/DESIGN.md`/`agents/MAINTENANCE.md`, those win; this is a
+working-arrangement summary, not a replacement.
 
 ---
 
@@ -991,7 +996,10 @@ copied or renamed (`AGENTS.md` §2.7).
 
 ## 6. Out of Scope for This File
 
-Development Phase execution behavior (`agents/DEVELOPMENT.md`); `agents/SCRIPT_RULES.md` (no
+Development Phase execution behavior (`agents/DEVELOPMENT.md`); Maintenance-Phase-specific
+mechanics beyond the shared Advisory Mode contract (§1) — the M1–M4 process, trigger
+phrases, batch/checklist/prompt filenames, Tier/Track/Type classification, and the Release
+Checklist all belong to `agents/MAINTENANCE.md`, not here; `agents/SCRIPT_RULES.md` (no
 script execution in Advisory Mode). The concrete task-level mechanics of frontend targeted
 interleaving (§3.4's Step 8 row states only the principle Design Phase applies when sizing
 phases — the full mechanism belongs in

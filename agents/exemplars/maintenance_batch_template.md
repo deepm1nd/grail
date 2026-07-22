@@ -1,68 +1,84 @@
-# Maintenance Batch: [v0.<x>.<y> — or "Unreleased" while still open]
+# Maintenance Batch: [projectname]_maintenance_open
 
-> Companion to `agents/MAINTENANCE.md`. **One file per release batch.** Created when the
-> user begins assembling the next release (or kept standing as `..._maintenance_open.md`
-> between releases), renamed/archived to reflect the actual version once cut. Contains
-> **full detail** — reproduction steps, environment, root cause, regression scope — for
-> every item being worked toward this release. Appendix B/F in the Architecture
-> Specification hold only a terse pointer row per item, referencing this file and an item
-> ID below — full detail lives here, once, not duplicated in both places.
+> Companion to `agents/MAINTENANCE.md`. One file per release batch, holding the
+> Spec-equivalent content (M1–M3) for every item headed to this release — full detail,
+> not a terse log; Appendix B/F in the Architecture Specification hold only a pointer row
+> per item, once released. Renamed to `[projectname]_[type]_v[N.NN.NN].md` at release
+> (`agents/MAINTENANCE.md` §8/§11). Task content (M4) lives in the paired
+> `maintenance_checklist_template.md`-generated file, not here.
 >
-> Items not resolved by the time a release is cut **carry over unforced** into the next
-> batch file — being open here doesn't force inclusion in an imminent release.
+> Items not resolved by the time a release is cut carry over unforced into the next batch
+> file. Section numbers below (§1–§4, §11) are chosen to align with
+> `development_plan_template.md`'s equivalent content, so a citation resolves the same way
+> regardless of which document is governing a given session.
 
-**Batch status:** Open | Released (v0.<x>.<y>, YYYY-MM-DD)
+**Batch status:** Open | Released (v[N.NN.NN], YYYY-MM-DD, type: fix | feature | enhancement)
 
 ---
 
-## Item BF-0001 — [short title]
+## Item [ID] — [short title]
 
-- **Kind:** Bug | Feature
-- **Track:** A | B
-- **Tier:** 1 | 2 | 3 (`agents/MAINTENANCE.md` §5)
-- **Status:** Reported/Proposed → Triaged/Approved → Briefed → Fixed → Verified
-- **Reported/Proposed:** YYYY-MM-DD, by whom
+- **Kind (working hypothesis until §3):** Bug | Feature/Enhancement idea
+- **Status:** Open → Classified → Briefed → Fixed → Verified
 
+### §1 — Elicitation (M1)
 **For a bug:**
-- **Environment:**
-- **Steps to reproduce:**
-- **Expected behavior:**
-- **Actual behavior:**
-- **Severity / Priority:** *(kept as two separate fields, never conflated)*
+- Environment:
+- Steps to reproduce:
+- Expected behavior:
+- Actual behavior:
 
-**For a feature:**
-- **Scope/description:** *(what this actually does, once past `Proposed`)*
-- **Rationale:**
+**For a feature/enhancement:**
+- Scope/description:
+- Rationale:
 
-**Filled in at Triage/Briefing (both kinds):**
-- **Root cause / feature design:**
-- **Requirement ID(s) affected:** added / modified / superseded — old text → new text
-  where applicable
-- **Regression scope:** *(Claude + user, jointly — `agents/MAINTENANCE.md` §7)*
-- **Target branch:** `[exact name — verbatim, per `dev_prompt_template.md` §3]`
-- **Instructions to Jules:** *(concrete enough that Jules doesn't re-derive root cause —
-  see `maintenance_prompt_jules_template.md` for the hand-off itself)*
+### §2 — Requirements, Test, Verification (M2)
+- Requirement ID(s) touched: existing (cite) | modified (old→new) | new
+- Test/regression coverage identified:
+- **Self-check (9 Requirement Quality Criteria / Requirement Smell catalog, `DESIGN.md`
+  §4.5)** — applied to any Requirement text this item touched: pass | issue found, resolved
 
-**Filled in at Verification:**
-- **Matches root cause/scope:** Y/N — [note if N]
-- **Regression scope actually run:** Y/N — [note if N]
-- **Appendix B/F row added:** Y/N — reference: `[B|F].<version><letter>`
+### §3 — Classification, Architecture Synthesis, Impact Assessment (M3)
+- **Tier:** 1 — Trivial | 2 — Standard | 3 — Architectural/Feature
+- **Track:** A — Corrective | B — Substantive
+- **Type:** fix | feature | enhancement
+- **Architecture Synthesis** (only where the item warrants it — interface/data-model/
+  viewpoint impact):
+- **Impact assessment:** [what changed, concretely] → **Recommended bump:** patch | minor | major
+  **Rationale:**
+- **Asset Manifest** (feature/enhancement items with visual/media content only — mirrors
+  `CLAUDE.md` §3.7):
+
+  | Filename | Type | Repository Target Path | Authoritative/Informative For | Authority Level | Provided At |
+  |---|---|---|---|---|---|
+  | | | | | | |
+
+### §4 — Task Decomposition (M4)
+Tasks for this item live in `[projectname]_maintenance_checklist_open.md` (this item's own
+`## Phase [ID]` block) — not duplicated here. **Self-check:** every task has a
+Verification Method and DoD (confirmed in the Checklist file itself).
+
+### Verification (filled in after Jules reports back)
+- Matches §1–§3 content: Y/N — [note if N]
+- Regression scope actually run: Y/N — [note if N]
+- Appendix B/F row added: Y/N — reference: `[B|F].<version><letter>`
 
 ---
 
-*(Repeat one `## Item BF-####` block per item in this batch — sequential ID within this
-file, reset per batch file. Do not compress or summarize multiple items into one block;
-each item gets its own, however small.)*
+*(Repeat one `## Item [ID]` block per item in this batch — sequential ID within this file
+(`BF-0001`, `BF-0002`, ...), reset per batch file. Do not compress or summarize multiple
+items into one block; each item gets its own, however small.)*
 
 ---
 
-## Batch Release Checklist (filled in when cutting this release)
+## §11 — Escalation
 
-- [ ] Every item above is `Status: Verified`, or explicitly carried over to the next batch
-      (noted, not silently dropped)
-- [ ] SemVer bump determined — highest bump any single item in this batch requires
-      (`agents/MAINTENANCE.md` §10)
-- [ ] Appendix B/F terse rows added to the Architecture Specification for every item,
-      referencing this file by name and item ID
-- [ ] `CHANGELOG.md` entry added; `[Unreleased]` section emptied
-- [ ] Repo tagged; this file renamed/archived to its released version's filename
+See `agents/MAINTENANCE.md` §12 — stop, summarize, wait on genuinely ambiguous
+classification, scope creep discovered during implementation, or a standing safety
+concern. Not restated here.
+
+## Release Checklist
+
+See `agents/MAINTENANCE.md` §11 — the patch-baseline/minor/major checklist is defined
+once there, not duplicated per batch file. Complete it at release time, referencing this
+file's items.
