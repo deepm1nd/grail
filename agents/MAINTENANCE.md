@@ -233,19 +233,23 @@ fn test_<nnn>__<snake_case_description>() { /* ... */ }
 e.g. `TEST-0042` → `fn test_0042__login_rejects_invalid_password()`. Underscore-only (no
 dashes — `PREFERRED_DEPENDENCIES.md`'s identifier rule / `RUST_PREFERENCES.md`), the
 Test ID's numeric portion left-padded to 4 digits, a fixed double-underscore separating
-the ID segment from the free-text description so parsing is unambiguous. Resolves via
+the ID segment from the free-text description so parsing is unambiguous. **The
+description segment is 3–5 words, no more** — enough to identify the test at a glance in
+`cargo nextest` output, not a restatement of its full assertion (that belongs in the Test
+Case Catalog, Spec §3.2, not the function name). Resolves via
 `cargo nextest run test_0042` (substring match) or `cargo nextest run test_0042 --exact`
 (exact match) — no new tooling, no tag plugin. One `TEST-[NNN]` = one canonical test
 function by default; a test legitimately covering multiple Test IDs names as
-`test_0042_0043__description()`, and nextest substring match on either ID still resolves
-it.
+`test_0042_0043__description()` (description still 3–5 words), and nextest substring
+match on either ID still resolves it.
 
 **Non-Rust tests (Playwright/E2E):**
 ```javascript
 test('TEST-0042: login rejects invalid password', async ({ page }) => { /* ... */ });
 ```
-Resolves via `npx playwright test -g "TEST-0042"` — Playwright's own native title-filter
-mechanism, no new tooling.
+Same **3–5 word** limit on the description following the colon. Resolves via
+`npx playwright test -g "TEST-0042"` — Playwright's own native title-filter mechanism, no
+new tooling.
 
 **Test ID → Requirement ID mapping** stays exactly where it already lives — the Test Case
 Catalog (Spec §3.2) and Traceability Matrix (Spec §3.4), which already support
