@@ -1,12 +1,14 @@
 # Maintenance-Agent Prompt — Template
 
-> Produced once per batch, at the end of M4, saved as
-> `[projectname]_maintenance_prompt_open.md` — renamed to
-> `[projectname]_v[N.NN.NN]_prompt.md` at release (`agents/MAINTENANCE.md` §8/§11). Reused
-> verbatim at the start of every session working this batch — not regenerated per session.
-> If the batch/Checklist changes materially, amend this file once, in place. Dedicated to
-> Maintenance Phase — mirrors `dev_prompt_template.md`'s shape, but that file is never
-> modified or reused to serve this purpose.
+> Produced once per batch, at the end of the batch's Claude-side work (M1 exit for a
+> lightweight-only batch, or M4 for a batch containing full-path items), saved as
+> `[projectname]_v[N.NN.NN]_prompt.md` — the real target version from the moment the
+> batch opens (`agents/MAINTENANCE.md` §5/§8/§11); no `_open` placeholder stage, no
+> release-time rename, except a rare escalation-driven mid-batch correction. Reused
+> verbatim at the start of every session working this batch — not regenerated per
+> session. If the batch/Checklist changes materially, amend this file once, in place.
+> Dedicated to Maintenance Phase — mirrors `dev_prompt_template.md`'s shape, but that file
+> is never modified or reused to serve this purpose.
 >
 > Fill in `[PROJECT_NAME]`, `[projectname]`, and the bracketed filenames to match actual
 > delivered names.
@@ -26,6 +28,21 @@ user will say "Continue" or "Proceed" to resume; this is normal, expected flow, 
 error.** **Session Unit** for this session is one Maintenance Batch item (Checklist Phase)
 — work only within that scope, never beyond it, regardless of remaining capacity.
 
+**Phase-boundary scope rule (`agents/MAINTENANCE.md` §10) — read this before touching the
+Checklist:** you check **only your own Phase's Exit Criteria** when you finish your item.
+You do **not** check, confirm, or comment on the next Phase's Entry Criteria — that Phase
+is always opened in a different, later session, and it checks its own Entry Criteria
+itself at that time. Reaching forward into the next Phase's section of the Checklist,
+even just to glance at it, is out of scope for this session.
+
+**Escape valve (`agents/MAINTENANCE.md` §9/§12):** if your item's actual scope, once
+you're underway, reaches further than what was briefed — whether it was briefed via the
+full M0–M4 pipeline or handed to you directly from a lightweight-path M1 exit — stop and
+report back for a scope revision. **"This was supposed to be lightweight but I'm finding
+real architectural impact" is exactly the same trigger as "the briefed scope was too
+narrow"** — treat it identically: stop, do not proceed wider unilaterally, do not attempt
+to resolve it yourself.
+
 ### 1. Read docs — mandatory upfront, then on demand only
 
 **CRITICAL CONTEXT WINDOW RULES — read and follow before opening any file:**
@@ -34,17 +51,19 @@ error.** **Session Unit** for this session is one Maintenance Batch item (Checkl
   'START,ENDp' file` for line ranges; `grep -n "pattern" -A N file` for sections.
 
 **Read now (mandatory, in this order):**
-1. `[projectname]_maintenance_checklist_open.md` — your primary working document. **Edit
-   in place only.** Never copy/rename/version it. This is the *only* doc file you may
-   edit, and only within your current, identified Phase (item) — every other file is
-   read-only; an apparent error is an Escalation Trigger, never a same-session fix.
-2. `[projectname]_maintenance_open.md` — the current item's `§1–§3` content (Elicitation,
-   Requirements/Test/Verification, Classification/Architecture Synthesis/Impact
-   Assessment). Extract with: `awk '/^## Item [ID]/,/^## Item /' [projectname]_maintenance_open.md`
-   (replace `[ID]` with the actual item ID from the Checklist).
-3. If a UI/media asset is involved: verify the item's Asset Manifest (batch file §3) is
-   satisfied by `assets/{html,images,audio,video}/`. A missing named asset is an
-   Escalation Trigger.
+1. `[projectname]_v[N.NN.NN]_checklist.md` — your primary working document. **Edit in
+   place only.** Never copy/rename/version it. This is the *only* doc file you may edit,
+   and only within your current, identified Phase (item) — every other file is read-only;
+   an apparent error is an Escalation Trigger, never a same-session fix.
+2. `[projectname]_[type]_v[N.NN.NN].md` — the current item's `§0–§3` content (Elicitation,
+   Impact Triage, and — full-path items only — Requirements/Test/Verification,
+   Classification/Architecture Synthesis/Impact Assessment). A **lightweight-path** item's
+   record ends at §1 — there is no §2/§3 to read for it. Extract with:
+   `awk '/^## Item [ID]/,/^## Item /' [projectname]_[type]_v[N.NN.NN].md` (replace `[ID]`
+   with the actual item ID from the Checklist).
+3. If a UI/media asset is involved: verify the item's Asset Manifest (batch file §3,
+   full-path items only) is satisfied by `assets/{html,images,audio,video}/`. A missing
+   named asset is an Escalation Trigger.
 
 ### 2. On-demand reference — consult ONLY when uncertainty arises
 
@@ -53,17 +72,18 @@ missing clarity — stop, extract only the named section, resolve it, then conti
 
 | Uncertainty type | File | Section | Extraction method |
 |---|---|---|---|
-| Requirement wording, this item's classification | `[projectname]_maintenance_open.md` | This item's `§2`/`§3` | `awk '/^## Item [ID]/,/^## Item /' FILE` |
+| Requirement wording, this item's classification | `[projectname]_[type]_v[N.NN.NN].md` | This item's `§2`/`§3` (full path) or `§1` (lightweight) | `awk '/^## Item [ID]/,/^## Item /' FILE` |
 | Existing Requirement text, unrelated to this item | Architecture Specification (as-built) | §3 (Requirements) | `grep -n "REQ-ID" FILE -A 10` |
-| Existing test/traceability | `test/[projectname]_requirement_traceability.md` | — | `grep -n "REQ-ID" FILE -A 5` |
+| Test-to-requirement traceability, naming convention | `test/[projectname]_requirement_traceability.md`, `agents/MAINTENANCE.md` §6a | — | `grep -n "REQ-ID" FILE -A 5`; `awk '/^## 6a\./,/^## 7\./' agents/MAINTENANCE.md` |
 | Regression scope guidance by project type | `agents/MAINTENANCE.md` | §7 | `awk '/^## 7\./,/^## 8\./' FILE` |
-| Escalation protocol | `agents/MAINTENANCE.md` | §12 | `awk '/^## 12\./,/^## 13\./' FILE` |
+| Escalation protocol | `agents/MAINTENANCE.md` | §12 | `awk '/^## 12\./,/^## Appendix/' FILE` |
 
 ### 3. Check out the item's branch — and verify it before every task
 Before anything else touches the repo: check out this item's **Branch Name** (batch file
-§3, or wherever it was recorded during Briefing) — create it if it doesn't exist yet, or
-resume it if a prior session already started it. **Never work directly on the default
-branch, and never work one item's tasks on another item's branch.**
+§3 for a full-path item, or wherever it was recorded during Briefing for a lightweight-
+path item — create it if it doesn't exist yet, or resume it if a prior session already
+started it. **Never work directly on the default branch, and never work one item's tasks
+on another item's branch.**
 
 **Use the Branch Name exactly as recorded — verbatim, character-for-character. Do not
 append, prepend, or otherwise modify it**, including appending a numeric hash, timestamp,
@@ -95,11 +115,12 @@ is complete but either fails: stop the session now** — write the discrepancy i
 session report (step 9) and stop. Do not silently fix and continue.
 
 ### 7. Confirm this item's scope before implementing
-Read the batch file's `§1–§3` content for this item (step 1.2) in full. **Implement
-against what's briefed — do not re-derive root cause or scope yourself.** If the item's
-regression scope, once you're underway, appears to reach further than what's stated, stop
-and report back for a scope revision rather than proceeding wider unilaterally
-(`agents/MAINTENANCE.md` §12).
+Read the batch file's `§0–§3` content for this item (step 1.2) in full — `§0–§1` only for
+a lightweight-path item. **Implement against what's briefed — do not re-derive root cause
+or scope yourself.** If the item's regression scope, once you're underway, appears to
+reach further than what's stated — including a lightweight-path item revealing real
+architectural impact — stop and report back for a scope revision rather than proceeding
+wider unilaterally (this prompt's Escape Valve note above; `agents/MAINTENANCE.md` §9/§12).
 
 ### 8. Work the item's tasks, one at a time, in Checklist order
 Same discipline as Development: no reordering, no skipping ahead, no omitting a DoD
@@ -108,6 +129,10 @@ moment each is satisfied. **The instant a task's DoD is satisfied:** if it has a
 Verification Method, append its entry to `test/[projectname]_phase_[N]_verification.md`-
 equivalent evidence for this item (paste actual terminal output verbatim, never a
 paraphrase), plus any screenshots/clips per the project's existing evidence convention.
+**If the task involves adding or renaming a test per the Regression Scaffold naming
+convention** (`agents/MAINTENANCE.md` §6a), confirm the new/renamed test resolves via
+`cargo nextest run <id> --exact` (or the Playwright `-g` equivalent) before checking its
+DoD item — do not assume the name is correct without actually running it.
 
 **Update the Checklist for this task now — before calling `submit`.** Do not check the
 task's `Submitted` box until **after** `submit` completes and the user responds
@@ -119,14 +144,16 @@ a low-confidence result — **stop immediately.** Go to step 9 now.
 
 ### 9. Report back — on normal completion or on stopping
 Report: which task(s) were completed, evidence for each, any deviation from the batch
-file's stated scope, and whether the item's regression scope (per its §2/§3 content) was
-fully run. **If you stopped on an unresolved issue: this is the end of the session** — no
-further progress. The user takes this report to a Claude Verification session
-(`agents/MAINTENANCE.md` §10).
+file's stated scope, and whether the item's regression scope (per its §2/§3, or §1 for a
+lightweight item, content) was fully run. **If you stopped on an unresolved issue: this is
+the end of the session** — no further progress. The user takes this report to a Claude
+Verification session (`agents/MAINTENANCE.md` §10).
 
 ### 10. On normal completion only: final wrap-up submit and stop
 Confirm build/tests green. Notify the user this item's Checklist Phase is complete. **Do
 not begin the next item**, regardless of remaining capacity — it starts in a new session.
+**Do not check the next item's Entry Criteria either** — per this prompt's Phase-Boundary
+Scope Rule above, that belongs entirely to the session that opens it.
 
 ### 11. Session-End Checklist
 - [ ] Every DoD item you completed is checked in the Checklist.
@@ -135,6 +162,8 @@ not begin the next item**, regardless of remaining capacity — it starts in a n
 - [ ] Session report written (step 9).
 - [ ] Evidence captured for every task completed this session with a real Verification
       Method — actual output, not a paraphrase.
+- [ ] Every new/renamed test this session actually resolves via its declared name/tag
+      (`cargo nextest run <id> --exact` or Playwright `-g`) — not merely named correctly.
 - [ ] You verified, per task, that you were on this item's exact declared Branch Name —
       never the default branch, never another item's branch — checked with a command.
 - [ ] Every task was worked in Checklist order; none skipped/reordered without explicit
@@ -142,6 +171,8 @@ not begin the next item**, regardless of remaining capacity — it starts in a n
 - [ ] No half-applied change left uncommitted.
 - [ ] `scripts/setup_env.sh`/`.bat` reflect any prerequisites self-installed this session.
 - [ ] You have not begun any task belonging to another item.
+- [ ] You checked only your own Phase's Exit Criteria — not the next Phase's Entry
+      Criteria.
 - [ ] The Checklist was the only doc file you edited, bracket-content-only, within your
       current item's Phase only.
 - [ ] You did not perform a broad repository scan or read a large file in full without a
@@ -157,7 +188,7 @@ not begin the next item**, regardless of remaining capacity — it starts in a n
 
 ## Notes for Whoever Fills In This Template
 - Replace every `[PROJECT_NAME]`, `[projectname]`, and `[ID]` placeholder with actual
-  values, generated fresh at the end of each batch's M4.
+  values, generated fresh at the end of each batch's Claude-side work.
 - Fill step 4's build/test commands and step 5 from the project's own conventions; remove
   step 5 entirely if the project uses no infrastructure services.
 - Reused verbatim across every session working this batch; fix this file once, in place,

@@ -490,25 +490,71 @@ Playwright test step itself carries no
 `continue-on-error: true` and no trailing `|| true` — a bare, ungated `npx playwright test`
 invocation (§3 Stage 3c, above).
 
-**This job's own working branch's README badge** reads `metrics/source.toml` (same
-shields.io dynamic-TOML pattern as the other metrics badges) so it always reflects the
-latest push's branch, commit, and pass/fail state on whichever branch that push was on —
-updated on **every** push, not gated to a clean run. This is intentional: during active
-development the README is functioning as a personal status dashboard, and a stale "last
-known green" badge would hide exactly the information (a currently-red push) that badge
-exists to surface. Consistent with the rest of this document's branch-local framing: you
-check each branch's own README as you work — there is nothing `main`-specific about this
-badge or the file that feeds it.
+**This job's own working branch's README badge** is written from `metrics/source.toml` by
+Stage 6's `write_readme_badges.js` step into the `<!-- BADGE:source:START -->`/
+`<!-- BADGE:source:END -->` marker (a static badge, same mechanism as the other six —
+`README_template.md`'s Metrics & Badges section — not the old shields.io dynamic-TOML
+pattern), so it always reflects the latest push's branch, commit, and pass/fail state on
+whichever branch that push was on — updated on **every** push, not gated to a clean run.
+This is intentional: during active development the README is functioning as a personal
+status dashboard, and a stale "last known green" badge would hide exactly the information
+(a currently-red push) that badge exists to surface. Consistent with the rest of this
+document's branch-local framing: you check each branch's own README as you work — there
+is nothing `main`-specific about this badge or the file that feeds it.
 
 ### Stage 6: Metrics Commit *(every branch, separate job)*
-Bot commit of regenerated `metrics/*.toml` (including `source.toml`) back to the triggering
-branch. Unlike the `THIRD_PARTY_LICENSES.md` drift check above, metrics are auto-committed
-rather than fail-on-drift — they carry no compliance/legal weight, only informational/badge
-value, so routine auto-refresh is acceptable where a license disclosure's drift is not. This
-job remains genuinely separate from `ci_pipeline` (not folded into the merge above) because
+Bot commit of regenerated `metrics/*.toml` (including `source.toml`) — and the README
+badges rewritten from them — back to the triggering branch. Unlike the
+`THIRD_PARTY_LICENSES.md` drift check above, metrics are auto-committed rather than
+fail-on-drift — they carry no compliance/legal weight, only informational/badge value, so
+routine auto-refresh is acceptable where a license disclosure's drift is not. This job
+remains genuinely separate from `ci_pipeline` (not folded into the merge above) because
 it needs its own artifact-download/commit context — **not**, as an earlier draft implied,
 because it runs under a different (`main`-only) trigger condition; it now runs on every
 branch, same as `ci_pipeline`.
+
+**README badges are static, not `dynamic/toml`, specifically to work on private repos.**
+The old `dynamic/toml` badge type required shields.io's server to externally fetch
+`raw.githubusercontent.com/.../metrics/*.toml`, which silently fails (renders "invalid")
+on any private repository with no authentication path available to fix it. A static badge
+(`img.shields.io/badge/<label>-<message>-<color>`) needs no external fetch, so it works
+identically on public and private repos — at the cost of needing something to write the
+message text into `README.md` directly: `scripts/metrics/write_readme_badges.js`, a
+project-specific script authored during Development Phase (not a grail-supplied file —
+grail specifies its required behavior here, the same way it specifies `ci.yml`'s shape
+without shipping a finished workflow file).
+
+**Required behavior of `scripts/metrics/write_readme_badges.js`:**
+- Reads each `metrics/*.toml` file named in the table below; computes a
+  `label-message-color` triple per badge.
+- Replaces the content between each `<!-- BADGE:<name>:START -->`/
+  `<!-- BADGE:<name>:END -->` marker pair in `README.md` with a freshly built badge
+  Markdown line — matching via a regex on the literal marker pair (dotall), never deleting
+  the markers themselves, only what's between them.
+- **Field mapping** (preserve the original labels/colors from the pre-migration dynamic
+  badges; only the fetch mechanism changes):
+
+  | Marker | Source file | Field | Message | Color |
+  |---|---|---|---|---|
+  | `coverage` | `metrics/coverage.toml` | `coverage.percent` | `{percent}%25` (URL-encode `%`) | `brightgreen` (fixed) |
+  | `tests` | `metrics/tests.toml` | `tests.passed` | `{passed}` | `brightgreen` (fixed) |
+  | `audit` | `metrics/audit.toml` | `audit.status` | `{status}` (spaces→`_`) | `brightgreen` if status matches `clean`/`pass`/`success` (case-insensitive), else `red` |
+  | `deny` | `metrics/deny.toml` | `deny.status` | `{status}` (spaces→`_`) | same rule as `audit` |
+  | `license_violations` | `metrics/licenses.toml` | `licenses.violations_count` | `{count}` | `brightgreen` (fixed) |
+  | `crates_added` | `metrics/licenses.toml` | `licenses.crates_added_count` | `{count}` | `blue` (fixed) |
+  | `source` | `metrics/source.toml` | `source.status` | `{status}` (spaces→`_`) | same rule as `audit` |
+
+- **Missing-file behavior:** if a metrics file doesn't exist yet (e.g. the very first CI
+  run, before Stage 5 has populated it), that badge's message stays `pending`, color
+  `lightgrey` — the script must not crash, and must still write every other badge.
+- **Escaping:** replace any space in a message/label with `_`; escape any literal hyphen
+  as `--` (shields.io's static badge syntax uses `-` as the label/message/color separator,
+  so a literal hyphen must be doubled to avoid being parsed as a field boundary).
+- **TOML parsing:** use whichever TOML-parsing library this project's other
+  `scripts/metrics/parse_*.js` files already use — no new parsing dependency introduced
+  solely for this script.
+- Invoked as `node scripts/metrics/write_readme_badges.js` from the repository root (the
+  Stage 6 step below), with no arguments.
 
 **Corrected job — replace any `main`-gated version with exactly this:**
 ```yaml
@@ -531,12 +577,15 @@ branch, same as `ci_pipeline`.
           name: metrics
           path: metrics/
 
+      - name: Write README badges
+        run: node scripts/metrics/write_readme_badges.js
+
       - name: Commit updated metrics
         id: commit_metrics
         run: |
           git config user.name "<project>-ci-bot"
           git config user.email "ci-bot@<project>.example"
-          git add metrics/*.toml
+          git add metrics/*.toml README.md
           git diff --staged --quiet || git commit -m "ci: refresh metrics [skip ci]"
           git push origin HEAD:${{ github.ref_name }}
 ```

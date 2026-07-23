@@ -246,6 +246,10 @@ session.
 - [ ] No half-applied change left uncommitted.
 - [ ] `scripts/setup_env.sh`/`.bat` reflect any prerequisites self-installed this session.
 - [ ] You have not begun any task belonging to the next phase.
+- [ ] You checked only your own phase's Exit Criteria — you did not also check, confirm,
+  or comment on the next phase's Entry Criteria. That check belongs entirely to the
+  session that opens the next phase (step 7 of this prompt, run fresh at that time) — not
+  to this session, however trivial the look-ahead seems.
 - [ ] The Checklist was the only doc file you edited. Every edit was bracket-content-only —
   a mark changed inside an existing `[ ]`, a `Submitted` box checked, or a new Session Log
   row appended — within your current Phase only. You did not reword any task/DoD line, add

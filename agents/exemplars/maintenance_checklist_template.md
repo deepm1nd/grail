@@ -1,9 +1,11 @@
-# Maintenance Checklist: [projectname]_maintenance_checklist_open — Batch Variant
+# Maintenance Checklist: [projectname]_v[N.NN.NN]_checklist — Batch Variant
 
 > Companion to `maintenance_batch_template.md` and `agents/MAINTENANCE.md`. **Named
-> `[projectname]_maintenance_checklist_open.md` while the batch is open, renamed to
-> `[projectname]_v[N.NN.NN]_checklist.md` at release** (`agents/MAINTENANCE.md` §8/§11),
-> edited in place across the batch's lifetime. Dedicated to Maintenance Phase — mirrors
+> `[projectname]_v[N.NN.NN]_checklist.md` from the moment the batch opens** — batch
+> composition is fixed at open time (`agents/MAINTENANCE.md` §5), so the target version is
+> known immediately and there is no `_open` placeholder stage or release-time rename
+> (`agents/MAINTENANCE.md` §8/§11), except a rare escalation-driven mid-batch correction.
+> Edited in place across the batch's lifetime. Dedicated to Maintenance Phase — mirrors
 > `development_checklist_template.md`'s Phase/Task/DoD/Submit-Point/Session-Log shape
 > exactly, but `development_checklist_template.md` itself is never modified or reused to
 > serve this purpose, so Development Phase's own proven pipeline is unaffected.
@@ -12,8 +14,14 @@
 - **One `## Phase [ID]: <Title>` section per Maintenance Batch item**, same ID and order
   as the batch file (`maintenance_batch_template.md`) — no Phase 0 scaffold section, no
   Final Phase Productization section; a Maintenance batch has neither.
-- Each phase opens with **Entry Criteria** (from the item's M1/M2 content) and closes with
-  **Exit Criteria** = Verified (`agents/MAINTENANCE.md` §10).
+- Each phase opens with **Entry Criteria** (from the item's M0/M2 content — or, for a
+  lightweight-path item, from M1's exit directly) and closes with **Exit Criteria** =
+  Verified (`agents/MAINTENANCE.md` §10).
+- **Phase-boundary scope rule (`agents/MAINTENANCE.md` §10):** a session closing a Phase's
+  Exit Criteria checks **only that Phase's own Exit Criteria** — never the next Phase's
+  Entry Criteria. The next Phase is always opened in a new session, which checks its own
+  Entry Criteria itself at that time; this is not a redundant check to skip, it is simply
+  not this session's job to do early.
 - Each task is a `### Task: <TASK-ID>` sub-section with DoD items as individual
   checkboxes — same Task Template shape as Development (Design Refs, Verification Method,
   DoD, Submit Point).
@@ -60,7 +68,10 @@ or left as a placeholder.)*
 ## Batch Verification (Release Checklist)
 
 See `agents/MAINTENANCE.md` §11 for the actual patch/minor/major Release Checklist —
-completed once, at release time, referencing every Phase above. Not restated here.
+completed once, at release time, referencing every Phase above. Not restated here. Since
+this file's own name already carries its real target version (assigned at batch-open),
+release is a confirmation pass over the checklist below, not a rename pass — absent
+`MAINTENANCE.md` §8's sole mid-batch-correction exception.
 
 ---
 

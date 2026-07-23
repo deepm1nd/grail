@@ -30,11 +30,14 @@
   delivered Checklist expands the entire Plan.
 - **Continuous updates, in place** — each DoD sub-item checked the moment it's satisfied,
   not batched to end of task/phase.
-- **Every phase's Documentation/QA task carries a recurring "README badge URLs point to
-  this phase's Branch Name" DoD item** (`agents/DEVELOPMENT.md` §5.2, `README_template.md`'s
-  Metrics & Badges note) — not just the first and final phases. Metrics commit to whichever
-  branch CI ran on, so this is re-checked every phase, not a one-time Design-time
-  substitution.
+- **README badges are static and CI-written** (`agents/DEVELOPMENT.md` §5.2,
+  `README_template.md`'s Metrics & Badges section, `agents/CI.md` Stage 6) — there is no
+  per-phase Branch-Name substitution DoD item any more; CI rewrites badge values on every
+  push regardless of which phase or branch is active.
+- **Phase-boundary scope rule (`agents/MAINTENANCE.md` §10, same principle applied here):**
+  a session closing a Phase's Exit Criteria checks **only that Phase's own Exit Criteria**
+  — never the next Phase's Entry Criteria. The next Phase is always opened in a new
+  session, which checks its own Entry Criteria itself, at that time.
 - **Tasks are worked in the order they appear in this Checklist, phase by phase, task by
   task.** A Development Phase session never reorders, skips ahead, or leaves a DoD sub-item
   unchecked-but-passed-over to move on — without the user's explicit permission given that
@@ -60,8 +63,6 @@
 > here — this task reviews it against the repository as it starts to take shape.
 - [ ] `README.md` (already drafted) reviewed against current repo state; overview, build/run
   instructions, and project structure confirmed accurate or corrected
-- [ ] Badge URLs' `[current_branch]` placeholder set to this phase's declared Branch Name;
-  `[org]`/`[repo]` confirmed correctly substituted (not left as literal placeholders)
 - [ ] Content reviewed and approved by user
 
 ### Task: DOC-002 — Review, confirm, and extend CI workflow
@@ -119,11 +120,6 @@
 - [ ] Test Case [ID] verified
 - [ ] Required artifact captured: [artifact]
 
-### Task: DOC-PHASE-BADGE — Update README badge branch (every phase, recurring)
-- [ ] Badge URLs' branch segment updated to this phase's declared Branch Name
-- [ ] `[org]`/`[repo]` re-confirmed correctly substituted
-- [ ] Content reviewed and approved by user
-
 **Exit Criteria:** [ ] [...]
 
 ---
@@ -145,15 +141,15 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 ### Task: DOC-FINAL — Final review of project README.md
 - [ ] `README.md` reviewed for accuracy against the as-built system
 - [ ] Any divergence from the Design-drafted / Phase-0-reviewed version corrected
-- [ ] Badge URLs' branch segment updated to this (final) phase's declared Branch Name;
-  `[org]`/`[repo]` re-confirmed correctly substituted
 - [ ] Content reviewed and approved by user
 
 ### Task: PROD-001 — Regression Traceability
 - [ ] Every Core Requirement ID (Spec §3) has a row in
   `test/[projectname]_requirement_traceability.md`
-- [ ] Every listed test confirmed independently invocable by name/tag (actually run, not
-  assumed present)
+- [ ] Every test named per the convention in `agents/MAINTENANCE.md` §6a
+  (`test_<nnnn>__description` for Rust; `TEST-<nnnn>: description` title for Playwright)
+- [ ] Every listed test confirmed independently invocable by name/tag via
+  `scripts/verify_traceability.js` (actually run, not assumed present)
 - [ ] **Submitted** (task-complete Submit Point per Plan §8)
 
 ### Task: PROD-002 — Versioning

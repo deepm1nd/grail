@@ -207,14 +207,11 @@ advances into a second phase even if time/capacity remains.
         reviewed and committed by a human. A Development Phase session's role on a license
         finding is to report it and, per the project's own stated default, propose
         swapping the offending dependency — never to edit the disclosure file itself.
-    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **Every phase, without exception, also updates the README's shields.io badge URLs to the
-current phase's Branch Name, per `agents/exemplars/README_template.md`'s Metrics & Badges
-convention** — re-confirming `[org]`/`[repo]` are still correctly substituted too, not
-left as literal placeholders.
+    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **README badges are static and CI-written** (`agents/exemplars/README_template.md`'s Metrics & Badges section, `agents/CI.md` Stage 6) — there is no per-phase Branch-Name substitution for a Development session to perform; CI's Metrics Commit step rewrites the badge values on every push, from whichever branch it ran on. No Documentation-integrity DoD item exists for this any more.
     -   **Assurance Review:** Perform a final, active review of all code and changes in the current phase. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists — checked continuously during the phase, not only here (`AGENTS.md` §2.3's Maximal Implementation mandate); this review is a final backstop, not the primary enforcement point.
 6.  **Write the Phase Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_phaseN_summary.md`.
 7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the phase-level wrap-up only: docs, README updates, and the Phase Summary itself, submitted together after the **Phase-End Quality Assurance** is complete. This is not the sole checkpoint for the phase's work (per-task submits already provide that); it closes out anything not itself task-scoped.
-8.  **Stop. Do Not Proceed to the Next Session Unit.** Per `AGENTS.md` §2.8, the session ends here regardless of remaining capacity, whether the declared Session Unit was a full Phase, a single Task, or one Code/Verify sub-task. Notify the user the unit is complete and await a new session to begin the next one.
+8.  **Stop. Do Not Proceed to the Next Session Unit.** Per `AGENTS.md` §2.8, the session ends here regardless of remaining capacity, whether the declared Session Unit was a full Phase, a single Task, or one Code/Verify sub-task. Notify the user the unit is complete and await a new session to begin the next one. **Do not check the next Session Unit's Entry Criteria either** — a session verifies only its own Exit Criteria; the next Session Unit is always opened fresh, in a different session, which checks its own Entry Criteria itself at that time (same rule as `agents/MAINTENANCE.md` §10's Phase-boundary scope rule — reaching forward, even to glance, is out of this session's scope).
 
 #### 5.2.1. Project README
 
@@ -293,7 +290,12 @@ development_plan_template.md` §8) are drafted into the Final Phase at Step 8.
    reconstructed ad hoc from memory or grep. This table is drafted as a skeleton (one row
    per Core Requirement ID, empty test column) at Design Step 8, then updated
    incrementally every Development phase as that phase's own tasks add tests — it is a
-   living artifact maintained continuously, not assembled for the first time here.
+   living artifact maintained continuously, not assembled for the first time here. **The
+   concrete naming convention connecting a Test ID to an actual invocable test
+   (`test_<nnnn>__description` for Rust, resolved via `cargo nextest run <id> --exact`; a
+   `TEST-<nnnn>: description` title for Playwright, resolved via `-g`), and the
+   verification script that confirms this mechanically rather than by assumption, are
+   defined once, canonically, in `agents/MAINTENANCE.md` §6a — not restated here.**
 2. **Versioning:** the repository is tagged at the current version; `CHANGELOG.md`'s
    `[Unreleased]` section is empty (every change either has a released version entry or is
    explicitly deferred and logged as such); the tag matches `CHANGELOG.md`'s latest entry.
