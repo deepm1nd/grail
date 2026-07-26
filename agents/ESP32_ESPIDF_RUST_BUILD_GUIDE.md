@@ -170,7 +170,7 @@ rustup target list --installed | grep espidf
 is current at install time, which may install a toolchain predating Rust 2024 edition
 stabilization or the project's workspace MSRV — this actually happened on a real project
 (installed result: `1.82.0-nightly`, 2024-10-24, below any reasonable MSRV target),
-producing a full Phase 0 escalation. Always pin the exact `espup` version in
+producing a full Task Group 0 escalation. Always pin the exact `espup` version in
 `scripts/setup_env.sh`, and re-verify it against the Version Reference table's `rustc`
 version before bumping.
 

@@ -448,7 +448,7 @@ end-to-end, not just the newly-appended line, whenever `setup_env.sh` is modifie
    **proceed** — this is the sole case that continues without stopping.
 4. **If the install fails, or resolves the tool but the resulting build/test still
    fails for any reason (version conflict, incompatibility, unexpected error): stop
-   the session per `agents/DEVELOPMENT.md` §4's escalation model** — write the Phase
+   the session per `agents/DEVELOPMENT.md` §4's escalation model** — write the Task Group
    Summary and stop. Do not attempt further troubleshooting or continue other tasks.
 
 **Non-fatal tools:** tools documented in Development Plan §4 as non-fatal (e.g.

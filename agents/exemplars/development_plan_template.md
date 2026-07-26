@@ -1,17 +1,17 @@
 # Development Plan: [Project Name]
-Complex/Multi-Phase Rust Project Variant
+Complex/Multi-Task-Group Rust Project Variant
 
 > **Use this variant** when the Architecture Spec is large (multiple files, 100+ requirements,
-> multi-stage Build Order, and/or multiple Rust components) such that a flat Phase/Task list
-> wouldn't let a reader answer at a glance: prerequisites, phase entry/exit conditions, DoD
-> proof, phase dependencies, failure handling. Otherwise use the simpler flat plan.
+> multi-stage Build Order, and/or multiple Rust components) such that a flat Task-Group/Task list
+> wouldn't let a reader answer at a glance: prerequisites, Task Group entry/exit conditions, DoD
+> proof, Task Group dependencies, failure handling. Otherwise use the simpler flat plan.
 >
 > **Scope:** Rust-only, any number of Rust components (native services, Rust/WASM frontends,
 > Tauri/UniFFI shells, CLI tools, shared crates).
 
 ## Table of Contents
 0. Architecture Cross-Reference · 1. Introduction · 2. Technology Stack · 3. Project Folder
-Structure · 4. Environment & Prerequisites · 5. Dev & Test Configuration · 6. Phases &
+Structure · 4. Environment & Prerequisites · 5. Dev & Test Configuration · 6. Task Groups &
 Milestones · 7. Risk Management · 8. Task Decomposition · 9. Test Strategy · 10. Logging
 Strategy · 11. Session Handoff Protocol · 12. Abort/Rollback Protocol · 13. Escalation
 Triggers · 14. Change Control · 15. Plan-Level Definition of Done · Appendix G Glossary ·
@@ -94,7 +94,7 @@ possibly updated relative to what was shown during Design.
 preventing collision.
 
 **`.gitignore` — drafted at Design Step 8, reviewed/confirmed/extended at Development
-Phase 0**, mirroring the `README.md` convention (`agents/DEVELOPMENT.md` §5.2.1). The
+Task Group 0**, mirroring the `README.md` convention (`agents/DEVELOPMENT.md` §5.2.1). The
 mandatory entries below use **depth-agnostic patterns** — they must match regardless of
 whether a Rust crate/component or Trunk build lives at the repository root or in any
 nested subfolder (workspace member, `libs/`, `services/`, etc.):
@@ -119,10 +119,10 @@ nested subfolder (workspace member, `libs/`, `services/`, etc.):
 ```
 
 Additional project-specific entries (generated artifacts, local scratch dirs, etc.) are
-appended at Development Phase 0 review, not invented speculatively at Design time.
+appended at Development's Task Group 0 review, not invented speculatively at Design time.
 
 Per `AGENTS.md` §2.1, non-reproducible evidence artifacts under `test/` (the concise
-per-phase Verification file plus each phase's detailed screenshots/logs subfolder — see
+per-Task-Group Verification file plus each Task Group's detailed screenshots/logs subfolder — see
 §11.4 below) are **not** gitignored — they are committed, as they cannot be recreated after
 a session crash. `/target` and `/dist` are reproducible from source and MUST be gitignored,
 not committed.
@@ -156,72 +156,72 @@ longer a trivial resolve — the session stops per §13's escalation model, full
 **Rule:** no task's DoD may depend on a production credential/provider/infrastructure — that
 requirement is itself an Escalation Trigger (§13).
 
-## 6. Phases and Milestones
+## 6. Task Groups and Milestones
 
-**Each phase must fit one agent session** (assume an agent less capable than the one
+**Each Task Group must fit one agent session** (assume an agent less capable than the one
 drafting this Plan). Complexity score: `(task_count × 1) + (new_public_interfaces × 2) +
 (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)`; default ceiling **15**,
 project-tunable. Score above ceiling → split further, unless the user explicitly approves
 a recorded override (§6.1's Complexity Score column carries the override note inline —
-never a silent exception). **Independent of sizing: a session completes at most one phase**,
+never a silent exception). **Independent of sizing: a session completes at most one Task Group**,
 regardless of remaining capacity (`AGENTS.md` §2.8).
 
 **Frontend Targeted Interleaving:** where a UI exists, each screen/component's frontend
-task is placed in the **same phase** as the real (non-mock) backend/data source it depends
-on — never earlier (forces a stub) and never batched into a trailing frontend-only phase.
+task is placed in the **same Task Group** as the real (non-mock) backend/data source it depends
+on — never earlier (forces a stub) and never batched into a trailing frontend-only Task Group.
 Each such task's Design Refs (§8) cite the mockup's prose description (Spec §4.13) and its
 logged Authority Level (`CLAUDE.md` §3.7) — a Conceptual-level mockup leaves more to the
 task's own judgment than an Authoritative one, stated explicitly rather than left implicit.
 A task introducing a page/view/setting not in the mockup traces back to the Design-Phase
 Proactive UI-Impact flag that justified it.
 
-### 6.1. Phase Index
+### 6.1. Task Group Index
 
-**Session Unit** (`AGENTS.md` §2.8): declared per phase — `Phase` (default, whole phase per
+**Session Unit** (`AGENTS.md` §2.8): declared per Task Group — `Task Group` (default, whole Task Group per
 session), `Task` (one task per session), or `Code+Verify` (one Code or Verify sub-task per
-session — only meaningful for phases dominated by split tasks, §8). Changed later only via
+session — only meaningful for Task Groups dominated by split tasks, §8). Changed later only via
 §14 Plan-Change Escalation, never unilaterally by an executing session.
 
-**Branch Name** (one per phase, assigned at drafting time): a human-readable, concise,
-descriptive `snake_case` name reflecting the phase's actual content — e.g.
-`phase2_auth_and_session_mgmt`, not `phase2` alone (uninformative) or the Title column
+**Branch Name** (one per Task Group, assigned at drafting time): a human-readable, concise,
+descriptive `snake_case` name reflecting the Task Group's actual content — e.g.
+`task_group2_auth_and_session_mgmt`, not `task_group2` alone (uninformative) or the Title column
 mechanically underscored. Name it for what a human skimming `git branch -a` would want to
-see, based on the phase's real Title and task list. Assigned once here; changed later only
-via §14 Plan-Change Escalation like any other Phase Index field.
+see, based on the Task Group's real Title and task list. Assigned once here; changed later only
+via §14 Plan-Change Escalation like any other Task Group Index field.
 
-| Phase | Build-Order Step(s) | Component(s) | Title | Branch Name | Session Unit | Entry Criteria | Exit Criteria | Req Domains | Task Count | Complexity Score |
+| Task Group | Build-Order Step(s) | Component(s) | Title | Branch Name | Session Unit | Entry Criteria | Exit Criteria | Req Domains | Task Count | Complexity Score |
 |---|---|---|---|---|---|---|---|---|---|---|
 
 **Complexity Score column — mandatory, computed, never left blank.** The §6 formula's value
-for this phase, shown as computed (e.g. `11`), not just implied by Task Count. Over-ceiling
+for this Task Group, shown as computed (e.g. `11`), not just implied by Task Count. Over-ceiling
 without a recorded override note in the same cell (e.g. `17 — override approved [date]`) is
 a drafting defect, not a judgment call left to the executing session.
 
-**Final phase includes a README review/finalization task** — the README itself is drafted
-at Design Step 8, not scaffolded here; Development's Phase 0 task is to review, confirm, and
+**Final Task Group includes a README review/finalization task** — the README itself is drafted
+at Design Step 8, not scaffolded here; Development's Task Group 0 task is to review, confirm, and
 enhance it against the repository as it develops (`agents/DEVELOPMENT.md` §5.2.1).
 
-### 6.2. Phase Dependency Graph
+### 6.2. Task Group Dependency Graph
 
-Express which phases run in parallel vs. strictly sequential, which component each belongs
-to, and the single highest-leverage blocker phase ("critical path") — state explicitly if a
-phase in one component depends on a phase in another.
+Express which Task Groups run in parallel vs. strictly sequential, which component each belongs
+to, and the single highest-leverage blocker Task Group ("critical path") — state explicitly if a
+Task Group in one component depends on a Task Group in another.
 
 ## 7. Risk Management & Mitigation
 
 Populate from concrete, spec-derived risks: every external/infra dependency assumed
 available, every security-critical/hard-to-test algorithm, every spec-flagged tradeoff, every
-cross-component contract a later phase depends on.
+cross-component contract a later Task Group depends on.
 
-| Risk | Impact | Likelihood | Mitigation | Affected Phase(s) |
+| Risk | Impact | Likelihood | Mitigation | Affected Task Group(s) |
 |---|---|---|---|---|
 
 ## 8. Task Decomposition
 
 **Task Template:**
-- **Task ID:** `[DOMAIN]-[NNN]` · **Phase** · **Component**
+- **Task ID:** `[DOMAIN]-[NNN]` · **Task Group** · **Component**
 - **Description**
-- **DoR** (what must be true to start — distinct from phase Entry Criteria)
+- **DoR** (what must be true to start — distinct from Task Group Entry Criteria)
 - **File(s) touched** · **Dependencies** · **Effort (S/M/L)**
 - **Verification Method:** Build+Test (exact `cargo` commands) | Visual/Behavioral (exact
   rendering + check: headless-browser assertion, screenshot diff, zero console errors,
@@ -230,7 +230,7 @@ cross-component contract a later phase depends on.
   **UI-touch rule:** any task that adds, modifies, or visibly changes a UI component,
   feature, or appearance MUST use **Visual/Behavioral** or **Hybrid** — never Build+Test
   alone — and MUST specify at least one screen capture in its DoD/Commands.
-  **Consolidation:** if a phase has multiple UI-touching tasks whose changes are all
+  **Consolidation:** if a Task Group has multiple UI-touching tasks whose changes are all
   visible together in one screen/state, one shared capture may satisfy all of them — cite
   it from each task's DoD rather than duplicating. If the changes are **not** all visible
   in the same screen/state (different pages, different interaction states, or a change not
@@ -269,16 +269,16 @@ Visual/Behavioral tasks (no build-test-debug cycle exists to isolate).
 - **`005b` (Verify):** DoR is `005a`'s Submit Point reached. DoD is the task's original DoD
   (tests pass, artifacts captured) — this is where the build-test-debug loop lives, isolated
   from `005a`'s own session/context. Own Submit Point at its own DoD.
-- **Counts as two tasks** against the §6 Phase Sizing complexity formula — stated explicitly
+- **Counts as two tasks** against the §6 Task Group Sizing complexity formula — stated explicitly
   so sizing doesn't silently overrun once splits are applied.
 
-**README task (final phase):** `DOC-FINAL` — review the Design-drafted `README.md` against
+**README task (final Task Group):** `DOC-FINAL` — review the Design-drafted `README.md` against
 the as-built system, correct any divergence, get user approval. **DoD:** N/A build command;
 DoD is content review and user approval. **Design Refs:** N/A — sourced from the as-built
 repository, not an Architecture Spec section. **Submit Point:** at DoD satisfaction; not
 split (Visual/Behavioral-equivalent, no build-test-debug cycle).
 
-**Productization Readiness tasks (final phase):** one `PROD-NNN` task per applicable item
+**Productization Readiness tasks (final Task Group):** one `PROD-NNN` task per applicable item
 of the Productization Readiness Checklist (`agents/DEVELOPMENT.md` §5.2.4) — applicability
 of `PROD-007`–`PROD-009` determined by Design Step 5's Productization Applicability
 finding. Each follows the standard Task Template above (Design Refs, Verification Method,
@@ -338,31 +338,31 @@ Incorporate the Architecture Specification's logging strategy and instrumentatio
 
 **At session start, before any task:** (1) run §4's setup-check including the version
 sanity check; (2) read the Checklist (`[projectname]_dev_checklist.md`, used **in place**,
-never copied) and identify the first phase with any unchecked task; (3) run the project's
+never copied) and identify the first Task Group with any unchecked task; (3) run the project's
 current build/test commands and confirm the result matches what the Checklist claims — a
-discrepancy is itself an escalation, not something silently fixed; (4) confirm the phase's
-Entry Criteria by inspecting repo state directly; (5) **for the identified phase's tasks,
+discrepancy is itself an escalation, not something silently fixed; (4) confirm the Task Group's
+Entry Criteria by inspecting repo state directly; (5) **for the identified Task Group's tasks,
 run the three-way task-state check against declared Submit Points**
 (`agents/DEVELOPMENT.md` §5.2 step 2): no submit → not started; a WIP-Checkpoint submit only
 → resume in place from that checkpoint's own description, never redo from scratch; a
 task-complete submit → done. A checklist mark with no matching submit, or vice versa, is an
 Escalation Trigger (§13), never silently patched over. (6) work only within the identified
-phase and the session's declared Session Unit (`AGENTS.md` §2.8) — never begin work outside
+Task Group and the session's declared Session Unit (`AGENTS.md` §2.8) — never begin work outside
 that scope, even with capacity remaining.
 
 **At session end, on normal completion:** update the Checklist in place; leave every
-component hermetically buildable even if the phase isn't fully done; produce/update the
-Phase Summary (§11.3); stop regardless of remaining capacity.
+component hermetically buildable even if the Task Group isn't fully done; produce/update the
+Task Group Summary (§11.3); stop regardless of remaining capacity.
 
 **On an unresolved Escalation Trigger (§13): do not reach normal session end.** Stop
 immediately per §13's model instead.
 
-### 11.3. Phase Summary
+### 11.3. Task Group Summary
 
-**One file per phase, `[projectname]_phaseN_summary.md`**, produced at phase close —
-whether the phase succeeded, partially succeeded, or the session stopped on an escalation.
+**One file per Task Group, `[projectname]_task_groupN_summary.md`**, produced at Task Group close —
+whether the Task Group succeeded, partially succeeded, or the session stopped on an escalation.
 Required content:
-- **Header:** Phase ID/title, Build-Order step(s), date, executing session self-description,
+- **Header:** Task Group ID/title, Build-Order step(s), date, executing session self-description,
   every DoD item checked (Yes/No — if No, which and why).
 - **Tasks completed, with evidence** — Task ID, exact Verification Method result
   (commands, pass/fail), pointer to each Required Artifact.
@@ -380,11 +380,11 @@ Required content:
 
 ### 11.4. Verification File
 
-**One file per phase, `test/[projectname]_phase_[N]_verification.md`, appended to in
-place across every session that touches the phase** (never copied/renamed — same
+**One file per Task Group, `test/[projectname]_task_group_[N]_verification.md`, appended to in
+place across every session that touches the Task Group** (never copied/renamed — same
 in-place discipline as the Checklist, `AGENTS.md` §2.7). It is the concise evidence
-receipt for the phase's task claims — distinct from the Phase Summary (§11.3), which is
-the narrative. The Phase Summary links to this file rather than repeating its content.
+receipt for the Task Group's task claims — distinct from the Task Group Summary (§11.3), which is
+the narrative. The Task Group Summary links to this file rather than repeating its content.
 
 **Scope — which tasks get an entry:** any task whose Verification Method
 (`agents/exemplars/development_plan_template.md` §8) is **Build+Test**, **Hybrid**, or
@@ -408,11 +408,11 @@ timing as the Checklist), each entry no more than a few lines:
 - **UI/visual tasks (dynamic scenes** — animation, multi-step interaction, anything that
   changes meaningfully over time): three short clips (start, middle, finishing — roughly
   5 seconds each), not one long recording.
-- Each entry cites the artifact by filename, pointing into that phase's detail folder
+- Each entry cites the artifact by filename, pointing into that Task Group's detail folder
   (below) — e.g. `Task AUTH_003: cargo nextest ... 6 passed. Screenshot:
   AUTH_003_login_success.png`.
 
-**Detail folder — `test/phase_[N]/`:** holds the actual screenshots/clips named
+**Detail folder — `test/task_group_[N]/`:** holds the actual screenshots/clips named
 `[TASK_ID]_[short_description].[ext]` (e.g. `AUTH_003_login_success.png`,
 `UI_007_toast_animation_start.mp4`). Raw build/test logs are **not** retained here —
 only the summary line goes in the Verification file itself, per the Mandatory Artifact
@@ -421,17 +421,17 @@ gitignored (§3 above).
 
 ## 12. Abort / Rollback Protocol
 
-Treat a task/phase as aborted (not silently reworked) when: the chosen approach is found to
+Treat a task/Task Group as aborted (not silently reworked) when: the chosen approach is found to
 violate an Architecture Spec constraint; a DoR turns out false; completing as specified
 would require modifying a file/contract outside its stated scope. **On abort:** revert
 uncommitted changes for that task to its **last submitted state** (its most recent
 task-complete submit, or its most recent WIP checkpoint if no task-complete submit exists,
-or a clean pre-task state if neither exists) — never to a phase-level checkpoint, since
+or a clean pre-task state if neither exists) — never to a Task-Group-level checkpoint, since
 per-task Submit Points (§8) mean sibling tasks' completed work is never at risk from this
-task's abort; do not mark it complete; record the abort and cause in the Phase Summary.
+task's abort; do not mark it complete; record the abort and cause in the Task Group Summary.
 **Per §13, an abort the agent cannot resolve itself now stops the entire session** — it does
-not continue with other unaffected tasks in the phase. Rollback never crosses a phase
-boundary except when root cause is a defect in already-completed earlier-phase work — that's
+not continue with other unaffected tasks in the Task Group. Rollback never crosses a Task Group
+boundary except when root cause is a defect in already-completed earlier-Task Group work — that's
 an Escalation Trigger (§13), not a unilateral rollback.
 
 ## 13. Escalation Triggers — Stop, Summarize, Wait
@@ -445,42 +445,42 @@ that fails, a persistent test failure, an ambiguous Spec question, an unverifiab
 Criteria, a low-confidence artifact, a task requiring a production credential/
 infrastructure — stops the entire session immediately:**
 1. Halt all task work — no partial continuation to other tasks, no further troubleshooting.
-2. Write `[projectname]_phaseN_summary.md` (§11.3) with full diagnostic detail: what was
+2. Write `[projectname]_task_groupN_summary.md` (§11.3) with full diagnostic detail: what was
    tried, exact failure output, and — if determinable — the (A)/(B) classification.
 3. Leave the repository in its last clean, committed state. No PR, no further progress.
-4. Stop. The human brings the Phase Summary to a Design Phase session, which diagnoses the
+4. Stop. The human brings the Task Group Summary to a Design Phase session, which diagnoses the
    issue, updates the Architecture Spec and/or this Plan as needed, determines the correct
-   restart phase, and restructures the Plan/Checklist. The human then rolls the repository
-   back to the end of the last known-good phase and hands a fresh Development Phase session
+   restart Task Group, and restructures the Plan/Checklist. The human then rolls the repository
+   back to the end of the last known-good Task Group and hands a fresh Development Phase session
    the updated documents to resume from there.
 
 ### 13.1. Escalation Requiring Design-Phase Re-Engagement
 
-Distinct from an in-session trigger above: evidence across multiple Phase Summaries
+Distinct from an in-session trigger above: evidence across multiple Task Group Summaries
 revealing a structural Plan/Spec problem, not one blocked task.
-- **(A) Replanning** — Plan/Checklist needs to change (bad phase sizing, a broken
+- **(A) Replanning** — Plan/Checklist needs to change (bad Task Group sizing, a broken
   Verification Method, an orphan citation, Checklist/Plan drift); Spec is sound.
 - **(B) Re-architecting** — the Architecture Specification itself needs to change (a
   pattern of aborts traces to one architectural assumption; a chosen approach is
   structurally unworkable).
 
-State which applies in the Phase Summary and direct the human to a new Design Phase
-session with the **full series of Phase Summaries produced so far**, not just the
+State which applies in the Task Group Summary and direct the human to a new Design Phase
+session with the **full series of Task Group Summaries produced so far**, not just the
 triggering one.
 
 ## 14. Change Control for This Plan
 
-A phase's task list may be amended after work starts only when a later phase/task discovers
+A Task Group's task list may be amended after work starts only when a later Task Group/task discovers
 the original decomposition was wrong/incomplete. Record in `CHANGELOG.md`: what changed,
-which phase/task, why. Never retroactively mark completed tasks differently than they were
-actually completed. Task/Phase IDs are never renumbered — new tasks get new IDs, deprecated
-ones marked `[DEPRECATED]`. Changes spanning more than one phase, or changing Exit Criteria,
+which Task Group/task, why. Never retroactively mark completed tasks differently than they were
+actually completed. Task/Task Group IDs are never renumbered — new tasks get new IDs, deprecated
+ones marked `[DEPRECATED]`. Changes spanning more than one Task Group, or changing Exit Criteria,
 are "Major" and must be surfaced to the reviewer even without a Spec change. **The Checklist
 and Dev Prompt are amended in place, never reproduced as a new file** (`AGENTS.md` §2.7).
 
 **Ambiguity-resolving amendments.** Any amendment that resolves an ambiguity — where
-already-completed phases might not have satisfied the now-clarified intent — MUST add a
-verification task to the next dependent, not-yet-started phase. That task explicitly checks
+already-completed Task Groups might not have satisfied the now-clarified intent — MUST add a
+verification task to the next dependent, not-yet-started Task Group. That task explicitly checks
 whether prior work satisfies the clarified requirement, corrects it if not, and confirms the
 result via the standard DoD/Verification-Method pattern (§8). It never assumes the old work
 happens to be compatible.
@@ -489,9 +489,9 @@ happens to be compatible.
 
 - [ ] Every Core-status requirement ID (Spec §3) appears in ≥1 task's Traceability field.
 - [ ] No task cites a requirement ID that doesn't exist (no orphan citations).
-- [ ] Every phase (§6.1) has non-empty Entry and Exit Criteria.
+- [ ] Every Task Group (§6.1) has non-empty Entry and Exit Criteria.
 - [ ] Every task (§8) has a non-empty Verification Method and ≥1 DoD checkbox.
-- [ ] The Phase Dependency Graph (§6.2) is acyclic and every phase reachable from Phase 0.
+- [ ] The Task Group Dependency Graph (§6.2) is acyclic and every Task Group reachable from Task Group 0.
 - [ ] The Checklist contains exactly one line per task DoD item — no drift.
 - [ ] §0's Architecture Cross-Reference lists every source document cited in §8.
 - [ ] Every filename conforms to `CLAUDE.md` §4 (`[projectname]_dev_plan_NN_topic_v[N].md`,
@@ -500,16 +500,16 @@ happens to be compatible.
   external refs needed" statement) and a stated Submit Point.
 - [ ] Every task whose Verification Method is Build+Test or Hybrid is split into `a`/`b`
   sub-tasks per §8's mandatory Code/Verify split rule; no such task remains unsplit.
-- [ ] Every phase (§6.1) has a stated Session Unit, consistent with its task composition
-  (e.g. `Code+Verify` only where the phase is dominated by split tasks).
-- [ ] Every phase (§6.1) shows a computed Complexity Score, recomputable from its own listed
+- [ ] Every Task Group (§6.1) has a stated Session Unit, consistent with its task composition
+  (e.g. `Code+Verify` only where the Task Group is dominated by split tasks).
+- [ ] Every Task Group (§6.1) shows a computed Complexity Score, recomputable from its own listed
   tasks; none over the §6 ceiling without a recorded override note in the same cell.
-- [ ] The Final Phase's task list includes one `PROD-NNN` task per applicable
+- [ ] The Final Task Group's task list includes one `PROD-NNN` task per applicable
   Productization Readiness Checklist item (`agents/DEVELOPMENT.md` §5.2.4), consistent
   with Design Step 5's Productization Applicability finding.
-- [ ] Every phase (§6.1)'s Exit Criteria include running the full local CI-equivalent
+- [ ] Every Task Group (§6.1)'s Exit Criteria include running the full local CI-equivalent
   sequence and resolving/fixing any finding it surfaces (`agents/DEVELOPMENT.md` §5.2
-  step 4), cited by reference, not restated in full per phase.
+  step 4), cited by reference, not restated in full per Task Group.
 
 ## Appendix G — Glossary
 

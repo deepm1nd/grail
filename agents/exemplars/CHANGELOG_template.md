@@ -8,7 +8,7 @@ session that touches the repository. Never delete or rewrite a past entry —
 correct a factual error by adding a new entry noting the correction.
 
 Each entry should record: what changed, why (Escalation Trigger, Plan-Change
-Escalation, retrofit, routine phase work, etc.), and which files were
+Escalation, retrofit, routine Task Group work, etc.), and which files were
 touched — enough for a later session or a human reviewer to understand the
 change without re-deriving it from a diff.
 

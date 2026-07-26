@@ -66,7 +66,7 @@ the Plan has no equivalent per-step authorship history to preserve.
 `agents/exemplars/architecture_specification_template.md`,
 `agents/exemplars/development_plan_template.md`,
 `agents/exemplars/development_checklist_template.md`,
-`agents/exemplars/dev_prompt_template.md` (complex/multi-phase Rust variant).
+`agents/exemplars/dev_prompt_template.md` (complex/multi-Task-Group Rust variant).
 Plan and Checklist stay in lockstep (one checklist line per task DoD item). A later template
 revision means Claude conforms existing documents to it and flags the restructuring as a
 Major Change (§3.6) — never silently.
@@ -214,9 +214,9 @@ preset — this is fixed. The table states only what's specific to each step.
 | 6 | Final Architecture Synthesis (ISO 42010) | Architecture files `_06_viewpoints`, `_07_interfaces_and_stack`, `_08_constraints_and_roadmap` (new); `_05_verified_traceability` (finalized) | Mostly recombination of already-approved content — less new drafting. One live judgment call: formal notation vs. prose per element, stated briefly so the user can override without re-litigating. Covers all 4 mandatory viewpoints. Asset Manifest migrates to permanent home in `_06`'s §4.13. |
 | 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | **No RCD/RATS here — by design.** Adversarial independence from the rest of the process, including Claude's own prior work. Checks, on Claude's own analysis: every User Story maps to a requirement; every requirement atomic; no elided/summarized content; no gap forcing a stub downstream; every Asset Manifest entry referenced with a prose description and, for mockups, a
 logged Authority Level; every filename conforms to §4; **no file carries a front-of-file metadata box (§4.3) — a
-finding here is Trivial per §3.11's tiering**; **the Open Items Register contains only valid, not-yet-reached Deferred items — any Resolved/Future Feature/Rejected entry still sitting on the Register, or any item with no terminal outcome at all, is itself a finding** (§3.12). **Every finding tagged Trivial or Substantive (§3.11) — all-Trivial fixes in place, same session, no backtrack; any Substantive finding → Step 7 Backtrack Workflow (§3.11).** Zero findings → proceed to Step 8. |
-| 8 | Development Plan & Checklist | Development Plan + Checklist + Dev Prompt + draft README + draft `.gitignore` + draft `ci.yml` + draft `THIRD_PARTY_LICENSES.md` | Environment/config facts (toolchain, CI, local setup) elicited directly; unspecified items with a reasonable default proposed once per Plan via RATS, not once per phase. ****Phase Sizing:** `Score = (task_count × 1) + (new_public_interfaces × 2) + (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)`, default ceiling **≤15** (a Code/Verify-split task counts as 2 tasks). **Shown as its own computed Complexity Score column in the Phase Index (§6.1), never left blank or only implied by Task Count**; over-ceiling requires a recorded override note in the same cell. **Frontend targeted interleaving** where a UI exists: each screen/component's frontend task sits in the same phase as its real backend/data dependency. **Per-task Design Refs, Submit Points, and per-phase Session Unit are populated at drafting time** (`agents/exemplars/development_plan_template.md` §6.1/§8), not left as stubs — Design Refs cite the specific Spec file/section/item each task derives from; the mandatory Code/Verify split is derived mechanically from each task's Verification Method. **Drafts the project README** (overview/stack/roadmap) — Development Phase's Phase 0 task reviews/confirms/enhances it. **Generates `ci.yml`** from `agents/CI.md`'s skeleton, using Step 5's CI Stage Applicability findings, and **initial `THIRD_PARTY_LICENSES.md` content** from Step 5's License Disclosure Artifact finding — both reviewed/confirmed at Development Phase 0 (`agents/DEVELOPMENT.md` §5.2.2/§5.2.3). **Deliverable:** `agents/exemplars/dev_prompt_template.md` → `[projectname]_dev_prompt.md`, produced once, reused every Development-Phase session. |
-| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No RCD/RATS here either — mirrors Step 7's independence.** Runs `agents/exemplars/development_plan_template.md` §15 directly as an audit checklist: every Core requirement traced, no orphan citations, every phase has Entry/Exit Criteria, every task has a Verification Method and DoD, Phase Dependency Graph acyclic, Checklist/Plan lockstep, every filename conforms to §4, Build Order fidelity, Frontend Targeted Interleaving where a UI exists, **every phase's Complexity Score recomputed from its own listed tasks and checked against the §6 ceiling (any mismatch, or any over-ceiling phase with no recorded override, is a finding)**, and **the Open Items Register contains only valid, not-yet-reached Deferred items — same check as Step 7 (§3.12), re-verified here in case anything slipped through since.** **Zero findings closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only** — reopen Step 8 alone — **or (B) Spec-originating** — reopen the relevant Spec step, re-clear Step 7, then return to Step 8. Repeats until clean. See `agents/DESIGN.md` §5.9. |
+finding here is Trivial per §3.11's tiering**; **the Open Items Register contains only valid, not-yet-reached Deferred items — any Resolved/Future Feature/Rejected entry still sitting on the Register, or any item with no terminal outcome at all, is itself a finding** (§3.12). **Every finding tagged Trivial or Substantive (§3.11) — all-Trivial fixes in place, same session, no backtrack; any Substantive finding → Step 7 Backtrack Protocol (§3.11).** Zero findings → proceed to Step 8. |
+| 8 | Development Plan & Checklist | Development Plan + Checklist + Dev Prompt + draft README + draft `.gitignore` + draft `ci.yml` + draft `THIRD_PARTY_LICENSES.md` | Environment/config facts (toolchain, CI, local setup) elicited directly; unspecified items with a reasonable default proposed once per Plan via RATS, not once per Task Group. ****Task Group Sizing:** `Score = (task_count × 1) + (new_public_interfaces × 2) + (cross_file_tasks × 2) + (cross_task_dependencies × 1.5)`, default ceiling **≤15** (a Code/Verify-split task counts as 2 tasks). **Shown as its own computed Complexity Score column in the Task Group Index (§6.1), never left blank or only implied by Task Count**; over-ceiling requires a recorded override note in the same cell. **Frontend targeted interleaving** where a UI exists: each screen/component's frontend task sits in the same Task Group as its real backend/data dependency. **Per-task Design Refs, Submit Points, and per-Task-Group Session Unit are populated at drafting time** (`agents/exemplars/development_plan_template.md` §6.1/§8), not left as stubs — Design Refs cite the specific Spec file/section/item each task derives from; the mandatory Code/Verify split is derived mechanically from each task's Verification Method. **Drafts the project README** (overview/stack/roadmap) — Development Phase's Task Group 0 task reviews/confirms/enhances it. **Generates `ci.yml`** from `agents/CI.md`'s skeleton, using Step 5's CI Stage Applicability findings, and **initial `THIRD_PARTY_LICENSES.md` content** from Step 5's License Disclosure Artifact finding — both reviewed/confirmed at Development Phase 0 (`agents/DEVELOPMENT.md` §5.2.2/§5.2.3). **Deliverable:** `agents/exemplars/dev_prompt_template.md` → `[projectname]_dev_prompt.md`, produced once, reused every Development-Phase session. |
+| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No RCD/RATS here either — mirrors Step 7's independence.** Runs `agents/exemplars/development_plan_template.md` §15 directly as an audit checklist: every Core requirement traced, no orphan citations, every Task Group has Entry/Exit Criteria, every task has a Verification Method and DoD, Task Group Dependency Graph acyclic, Checklist/Plan lockstep, every filename conforms to §4, Build Order fidelity, Frontend Targeted Interleaving where a UI exists, **every Task Group's Complexity Score recomputed from its own listed tasks and checked against the §6 ceiling (any mismatch, or any over-ceiling Task Group with no recorded override, is a finding)**, and **the Open Items Register contains only valid, not-yet-reached Deferred items — same check as Step 7 (§3.12), re-verified here in case anything slipped through since.** **Zero findings closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only** — reopen Step 8 alone — **or (B) Spec-originating** — reopen the relevant Spec step, re-clear Step 7, then return to Step 8. Repeats until clean. See `agents/DESIGN.md` §5.9. |
 
 Every step ends with **STOP, present output, await explicit `APPROVED`** — never combined,
 never skipped. Per §1, every step (and
@@ -461,7 +461,7 @@ After any Steps 1, 2, 3, 4, 5, 6, or 8 gate (not 7 or 9 — see §3.4, §3.11, `
 deeper pass rather than a correction — e.g. "not detailed enough, another pass," "double the
 number of stories," "more detail in the interface specification." Distinct from the Grouped
 Closing Protocol (§3.2), which handles *correctness*; this handles *insufficiency*. The user
-may scope narrowly (a viewpoint, a phase) or broadly (the whole step), and may give a concrete
+may scope narrowly (a viewpoint, a Task Group) or broadly (the whole step), and may give a concrete
 metric — Claude treats a given metric as the actual target, not a vague cue to add a little
 more. Each repeated run is its own new session (§1), named `pass2`, `pass3`, etc. in its
 handoff-note filename (§4) — the re-touched Architecture file keeps its own independent
@@ -586,7 +586,7 @@ what gets requested every time.
 
 ---
 
-### 3.11. The Step 7 Backtrack Workflow
+### 3.11. The Step 7 Backtrack Protocol
 
 Step 7 (Spec Audit) is, by design (§3.4), a pure **finder**, never a fixer — no RCD/RATS,
 never patches content itself. This is what makes its independence meaningful. Consequence:
@@ -606,7 +606,7 @@ never left untagged:**
   convention violation, a stale version number or inline `File N vM` citation. If fixing it
   could plausibly be wrong two different ways, it is not Trivial.
 - **Substantive:** anything else — a genuine ambiguity, a missing/incorrect requirement or
-  traceability link, a Content Continuity or Anti-Stub gap, a phase-sizing problem, or
+  traceability link, a Content Continuity or Anti-Stub gap, a Task-Group-sizing problem, or
   anything requiring judgment about correctness, scope, or intent.
 
 **All findings Trivial, none Substantive:** no backtrack, no new session, no reopening an
@@ -825,7 +825,7 @@ granularities). Pattern `[projectname]_dev_plan_NN_<topic>_v[N].md`:
 - `..._01_overview_v[N].md` — §0 Architecture Cross-Reference, §1 Introduction, §2 Technology
   Stack, §3 Project Folder Structure
 - `..._02_environment_and_phases_v[N].md` — §4 Environment Setup, §5 Dev/Test Configuration,
-  §6 Phases and Milestones (including the frontend targeted-interleaving sequencing
+  §6 Task Groups and Milestones (including the frontend targeted-interleaving sequencing
   principle from §3.4's Step 8 row, elaborated per §9.1)
 - `..._03_tasks_and_testing_v[N].md` — §7 Risk Management, §8 Task Decomposition, §9 Test
   Strategy, §10 Logging Strategy
@@ -842,8 +842,8 @@ or otherwise reproduced.
 prefix, no version suffix, produced once at Step 8's end, reused verbatim every
 Development-Phase session.
 
-**Phase Summaries** (Development Phase, per `agents/exemplars/development_plan_template.md`
-§11.3): `[projectname]_phaseN_summary.md` — carries the `[projectname]` prefix for
+**Task Group Summaries** (Development Phase, per `agents/exemplars/development_plan_template.md`
+§11.3): `[projectname]_task_groupN_summary.md` — carries the `[projectname]` prefix for
 consistency, even though it's a Development-, not Design-Phase, artifact.
 
 This grouping is a starting proposal for the Plan (the Spec's 8-file grouping is fixed, tied
@@ -858,7 +858,7 @@ actual dependency, not sequence, using heading-derived anchors for a specific se
 just a file's top. (E.g. `06_viewpoints`'s ICD referencing a Data Dictionary type earlier in
 the same file is an in-file anchor; `08_constraints_and_roadmap`'s Roadmap referencing a
 requirement in `03_requirements` is cross-file.) The Spec and Plan file sets are independent —
-no cross-linking absent a concrete reason (e.g. a Plan phase implementing a specific ICD
+no cross-linking absent a concrete reason (e.g. a Plan Task Group implementing a specific ICD
 interface).
 
 **Intermediate/handoff artifacts** (handoff notes — which, on an audit finding, embed that
@@ -1002,7 +1002,7 @@ phrases, batch/checklist/prompt filenames, Tier/Track/Type classification, and t
 Checklist all belong to `agents/MAINTENANCE.md`, not here; `agents/SCRIPT_RULES.md` (no
 script execution in Advisory Mode). The concrete task-level mechanics of frontend targeted
 interleaving (§3.4's Step 8 row states only the principle Design Phase applies when sizing
-phases — the full mechanism belongs in
+Task Groups — the full mechanism belongs in
 `agents/exemplars/development_plan_template.md` §6/§9.1 and `agents/DEVELOPMENT.md`).
 `AGENTS.md` §2.5's naming convention (underscores, not hyphens) isn't a standalone concern for
 these Markdown documents, but is followed anyway for any Rust identifiers/crate names Claude

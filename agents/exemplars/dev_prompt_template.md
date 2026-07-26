@@ -20,8 +20,8 @@ in full if not already internalized this session. Fresh session, no memory of an
 `request_code_review` unless that section states otherwise). **Tool tiers and submit
 mechanics** are governed by `agents/AGENT_TOOL_POLICY.md`. **After every `submit`, stop and
 wait — the user will say "Continue" or "Proceed" to resume; this is normal, expected flow at
-every declared Submit Point, not an error.** **Session Unit** for this session's phase is
-stated in the Checklist/Plan §6.1 (`Phase`, `Task`, or `Code+Verify`) — work only within
+every declared Submit Point, not an error.** **Session Unit** for this session's Task Group is
+stated in the Checklist/Plan §6.1 (`Task Group`, `Task`, or `Code+Verify`) — work only within
 that scope, never beyond it, regardless of remaining capacity.
 
 ### 1. Read docs — mandatory upfront, then on demand only
@@ -41,17 +41,17 @@ that scope, never beyond it, regardless of remaining capacity.
 **Read now (mandatory, in this order):**
 1. `[projectname]_dev_checklist.md` — your primary working document. **Edit in place only.**
    Never copy/rename/version it. This is the *only* doc file you may edit, and only within
-   your current, identified Phase (flip DoD/task boxes, append a Session Log row) — every
+   your current, identified Task Group (flip DoD/task boxes, append a Session Log row) — every
    other file is read-only; an apparent error in one is an Escalation Trigger, never a
    same-session fix.
-2. Every existing `[projectname]_phaseN_summary.md`, in phase order — what actually happened
-   in completed phases, not just what the Plan intended. Use `ls [projectname]_phase*_summary.md`
+2. Every existing `[projectname]_task_groupN_summary.md`, in Task Group order — what actually happened
+   in completed Task Groups, not just what the Plan intended. Use `ls [projectname]_task_group*_summary.md`
    to find them; read each with targeted extraction or in full if short.
-3. `[projectname]_dev_plan_02_environment_and_phases_v[N].md` §6.1 — Phase Index only.
-   Extract with: `grep -n "Phase Index\|^| " [projectname]_dev_plan_02_environment_and_phases_v[N].md | head -60`
-4. `[projectname]_dev_plan_03_tasks_and_testing_v[N].md` §8 — current phase's tasks only.
-   Extract with: `grep -n "Phase [N]\|Task\|TASK-ID\|DoR\|DoD\|Verification" [projectname]_dev_plan_03_tasks_and_testing_v[N].md -A 8`
-   (replace `Phase [N]` with the actual phase identifier from the checklist).
+3. `[projectname]_dev_plan_02_environment_and_phases_v[N].md` §6.1 — Task Group Index only.
+   Extract with: `grep -n "Task Group Index\|^| " [projectname]_dev_plan_02_environment_and_phases_v[N].md | head -60`
+4. `[projectname]_dev_plan_03_tasks_and_testing_v[N].md` §8 — current Task Group's tasks only.
+   Extract with: `grep -n "Task Group [N]\|Task\|TASK-ID\|DoR\|DoD\|Verification" [projectname]_dev_plan_03_tasks_and_testing_v[N].md -A 8`
+   (replace `Task Group [N]` with the actual Task Group identifier from the checklist).
 5. `[projectname]_dev_plan_04_protocols_and_dod_v[N].md` — read in full. This is the
    Session Handoff, Abort/Rollback, and Escalation protocols. Not optional — it tells you
    what to do when things go wrong.
@@ -76,7 +76,7 @@ only the named section using the method shown, resolve it, then continue.
 | Concurrency model, ownership, Send/Sync boundary | `[projectname]_architecture_06_viewpoints_v[N].md` | §4.7 Process View, §4.9 Rust Conventions | `awk '/^### 4\.7/,/^### 4\.8/' FILE` |
 | Security constraint, threat model, trust boundary | `[projectname]_architecture_06_viewpoints_v[N].md` | §4.8 Security | `grep -n "THREAT-ID\|trust boundary\|mitigation" FILE -A 10` |
 | Technology choice, crate version, MSRV | `[projectname]_architecture_07_interfaces_and_stack_v[N].md` | §6 Technology Stack | `grep -n "crate-name\|MSRV\|edition" FILE -A 5` |
-| Build order, phase dependency, sequencing | `[projectname]_architecture_08_constraints_and_roadmap_v[N].md` | §9.2 Build Order | `grep -n "Step\|Phase [0-9]" FILE -A 5` |
+| Build order, Task Group dependency, sequencing | `[projectname]_architecture_08_constraints_and_roadmap_v[N].md` | §9.2 Build Order | `grep -n "Step\|Task Group [0-9]" FILE -A 5` |
 | Architectural risk, known constraint, assumption | `[projectname]_architecture_08_constraints_and_roadmap_v[N].md` | §7 Constraints, §8 Risks | `grep -n "RISK-ID\|constraint-keyword" FILE -A 8` |
 | User story intent, persona, interaction sequence | `[projectname]_architecture_02_user_stories_v[N].md` | §2.2 User Stories | `grep -n "US-ID\|persona-name" FILE -A 15` |
 | System overview, product goals, problem framing | `[projectname]_architecture_01_introduction_v[N].md` | §1.2–1.4 | `awk '/^## 1\.2/,/^## 1\.5/' FILE` |
@@ -87,22 +87,22 @@ only the named section using the method shown, resolve it, then continue.
 | Verification file format/scope, Branch Name convention | `agents/exemplars/development_plan_template.md` | §11.4, §6.1 | `grep -n "Verification File\|Branch Name" FILE -A 15` |
 | Dev plan: technology stack | `[projectname]_dev_plan_01_overview_v[N].md` | §2 | `awk '/^## 2\./,/^## 3\./' FILE` |
 
-### 3. Check out the phase branch — and verify it before every task
-Before anything else touches the repo: check out the current phase's **Branch Name**
+### 3. Check out the Task Group branch — and verify it before every task
+Before anything else touches the repo: check out the current Task Group's **Branch Name**
 (Plan §6.1) — create it from the default branch if it doesn't exist yet, or resume it if a
-prior session already started the phase. **Never work a phase's tasks directly on the
-default branch, and never work one phase's tasks on another phase's branch.**
+prior session already started the Task Group. **Never work a Task Group's tasks directly on the
+default branch, and never work one Task Group's tasks on another Task Group's branch.**
 
 **Use the Branch Name exactly as declared in Plan §6.1 — verbatim, character-for-character.
 Do not append, prepend, or otherwise modify it**, including appending a numeric hash,
-timestamp, or session identifier (observed failure pattern: `phase12b-4334437132416834814`
-or `phase11a_transcode_backend_codec-5155833834103153101` checked out instead of the Plan's
+timestamp, or session identifier (observed failure pattern: `task_group12b-4334437132416834814`
+or `task_group11a_transcode_backend_codec-5155833834103153101` checked out instead of the Plan's
 actual declared name). `git checkout -b <exact_branch_name>` / `git checkout
 <exact_branch_name>` — no suffix, no prefix, no reformatting.
 
 **Re-verify the current branch (`git branch --show-current` or equivalent) before starting
 every task, not just once at session start.** If the working branch does not exactly match
-the phase's declared Branch Name, stop and correct it before writing any code — do not
+the Task Group's declared Branch Name, stop and correct it before writing any code — do not
 assume a prior check still holds. A mismatch discovered mid-task is an inconsistency: stop,
 confirm the correct branch, and re-verify no work was accidentally committed to the wrong
 one before proceeding.
@@ -126,11 +126,11 @@ Docker unavailable → treat as a missing prerequisite (step 4's rule).
 
 ### 6. Verify repository state before touching any code
 Run the project's actual build/test commands (Plan §2/§4). **If the Checklist claims a
-phase is complete but either fails: stop the session now** — write the Phase Summary
+Task Group is complete but either fails: stop the session now** — write the Task Group Summary
 (step 9) describing the discrepancy and stop. Do not silently fix and continue.
 
 ### 7. Find the next unit
-In the Checklist, find the first phase whose Exit Criteria isn't checked. Verify its Entry
+In the Checklist, find the first Task Group whose Exit Criteria isn't checked. Verify its Entry
 Criteria are actually true from current repo state — not assumed from the Checklist alone.
 Unverifiable → stop the session now.
 
@@ -146,7 +146,7 @@ Point (Plan §8) — not raw git-log archaeology:
 A Checklist mark with no matching submit, or a submit with no matching Checklist mark, is an
 inconsistency — go to step 9 now, do not silently reconcile it yourself.
 
-Work only within the phase's declared **Session Unit** (`Phase` / `Task` / `Code+Verify`) —
+Work only within the Task Group's declared **Session Unit** (`Task Group` / `Task` / `Code+Verify`) —
 never begin work outside that scope even with capacity remaining.
 
 ### 8. Work the unit, one task (or sub-task) at a time
@@ -168,13 +168,13 @@ every DoD sub-item is `[x]` and Required Artifacts exist.
 **The instant a task's (or sub-task's) DoD is satisfied, before moving to the next task:**
 if it has a real Verification Method (Build+Test, Hybrid, or Visual/Behavioral — not a pure
 documentation/review task), append its entry to
-`test/[projectname]_phase_[N]_verification.md` (Plan §11.4) — **paste the actual terminal
+`test/[projectname]_task_group_[N]_verification.md` (Plan §11.4) — **paste the actual terminal
 output line verbatim, never a summary, paraphrase, or description in your own words** (e.g.
 never write something like "Result: Successfully compiled using `cargo check -p [crate]`" —
 that is not evidence the command ran or what it printed; copy the real `Finished`/`error`
 line or the real `cargo nextest` summary line instead), plus any screenshots (static views:
 one final-state shot) or clips (dynamic scenes: three ~5s clips — start/middle/finish) saved
-under `test/phase_[N]/` named `[TASK_ID]_[short_description].[ext]`.
+under `test/task_group_[N]/` named `[TASK_ID]_[short_description].[ext]`.
 
 **Then update the Checklist for this task now — every satisfied DoD sub-item and the task
 line itself — before calling `submit`. Do not defer this update, and do not batch it with
@@ -206,24 +206,24 @@ Do not open other files or scan the repository.
 **If anything cannot be resolved via the reference table** — a package/version conflict, a
 persistent test failure, an unverifiable DoR, a low-confidence artifact, a requirement for
 a production credential — **stop immediately.** Do not troubleshoot further, do not continue
-with other tasks in the phase. Go to step 9 now.
+with other tasks in the Task Group. Go to step 9 now.
 
-### 9. Write the Phase Summary — on normal completion or on stopping
-Write/update `[projectname]_phaseN_summary.md` (Plan §11.3): header block, tasks completed
-with evidence (**link to `test/[projectname]_phase_[N]_verification.md` rather than
+### 9. Write the Task Group Summary — on normal completion or on stopping
+Write/update `[projectname]_task_groupN_summary.md` (Plan §11.3): header block, tasks completed
+with evidence (**link to `test/[projectname]_task_group_[N]_verification.md` rather than
 repeating its content**), deviations, issues/problems (with full diagnostic detail if this is
 why you stopped), assumptions, unplanned changes, incomplete tasks, open items, and
 **Escalation Required: Yes/No** — if Yes, classify (A) replanning or (B) re-architecting if
 you can tell.
 
 **If you stopped on an unresolved issue: this is the end of the session.** No PR, no further
-progress, no commit of anything beyond what's already clean. The human takes this Phase
+progress, no commit of anything beyond what's already clean. The human takes this Task Group
 Summary to a Design Phase session to diagnose, update the Spec/Plan, and hand back a
-restructured Plan/Checklist for a fresh session to resume from the last known-good phase.
+restructured Plan/Checklist for a fresh session to resume from the last known-good Task Group.
 
 ### 10. On normal completion only: final wrap-up submit and stop
 Individual tasks are already submitted at their own declared Submit Points (step 8) — this
-is the phase-level wrap-up only: docs, README updates, and the Phase Summary, submitted
+is the Task-Group-level wrap-up only: docs, README updates, and the Task Group Summary, submitted
 together. Confirm build/tests green. Notify the user the declared Session Unit is complete.
 **Do not begin the next unit**, regardless of remaining capacity — it starts in a new
 session.
@@ -232,28 +232,28 @@ session.
 - [ ] Every DoD item you completed is checked in the Checklist — all of them.
 - [ ] Any aborted task has its boxes unchecked, with a note explaining why.
 - [ ] Build and test commands pass (unless you stopped per step 8/9, in which case this is
-  the reason the Phase Summary exists).
-- [ ] Phase Summary written and saved.
-- [ ] The Verification file (`test/[projectname]_phase_[N]_verification.md`) has an entry for
+  the reason the Task Group Summary exists).
+- [ ] Task Group Summary written and saved.
+- [ ] The Verification file (`test/[projectname]_task_group_[N]_verification.md`) has an entry for
   every task completed this session that has a real Verification Method, with any
-  screenshots/clips saved under `test/phase_[N]/` — nothing beyond the summary line/artifact
+  screenshots/clips saved under `test/task_group_[N]/` — nothing beyond the summary line/artifact
   reference (no raw logs).
-- [ ] You verified, per task (not just once at session start), that you were on the phase's
-  exact declared Branch Name — never the default branch, never another phase's branch — and
+- [ ] You verified, per task (not just once at session start), that you were on the Task Group's
+  exact declared Branch Name — never the default branch, never another Task Group's branch — and
   this was actually checked with a command, not assumed.
 - [ ] Every task was worked in Checklist order; no task was skipped, reordered, or left with
   an unchecked DoD item without the user's explicit permission given this session.
 - [ ] No half-applied change left uncommitted.
 - [ ] `scripts/setup_env.sh`/`.bat` reflect any prerequisites self-installed this session.
-- [ ] You have not begun any task belonging to the next phase.
-- [ ] You checked only your own phase's Exit Criteria — you did not also check, confirm,
-  or comment on the next phase's Entry Criteria. That check belongs entirely to the
-  session that opens the next phase (step 7 of this prompt, run fresh at that time) — not
+- [ ] You have not begun any task belonging to the next Task Group.
+- [ ] You checked only your own Task Group's Exit Criteria — you did not also check, confirm,
+  or comment on the next Task Group's Entry Criteria. That check belongs entirely to the
+  session that opens the next Task Group (step 7 of this prompt, run fresh at that time) — not
   to this session, however trivial the look-ahead seems.
 - [ ] The Checklist was the only doc file you edited. Every edit was bracket-content-only —
   a mark changed inside an existing `[ ]`, a `Submitted` box checked, or a new Session Log
-  row appended — within your current Phase only. You did not reword any task/DoD line, add
-  commentary, insert or restructure anything, or touch a mark from another phase.
+  row appended — within your current Task Group only. You did not reword any task/DoD line, add
+  commentary, insert or restructure anything, or touch a mark from another Task Group.
 - [ ] You did not perform a broad repository scan or read any Architecture Spec / Dev Plan
   file in full (except the protocols file). Every doc reference was a targeted extraction
   triggered by a specific uncertainty, using the method in the step 2 table.
@@ -272,7 +272,7 @@ session.
 ## Notes for Whoever Fills In This Template
 - Replace every `[PROJECT_NAME]`, `[projectname]`, and `_v[N]` placeholder with actual
   values. Architecture Spec file versions are independent per file — each has its own `[N]`.
-- In step 1 items 3 and 4, replace `[N]` in the grep/awk commands with the actual phase
+- In step 1 items 3 and 4, replace `[N]` in the grep/awk commands with the actual Task Group
   identifier from the checklist before handing this to a development agent.
 - Fill step 6's build/test commands from Plan §2/§4.
 - Fill step 5 only if the project uses infrastructure services; remove entirely if not.

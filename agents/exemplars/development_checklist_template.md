@@ -1,4 +1,4 @@
-# Development Checklist: [Project Name] — Complex/Multi-Phase Rust Project Variant
+# Development Checklist: [Project Name] — Complex/Multi-Task-Group Rust Project Variant
 
 > Companion to `development_plan_template.md` (Plan §15: exactly one checklist line per
 > task DoD item, no drift). **Named `[projectname]_dev_checklist.md`, edited in place across
@@ -7,38 +7,38 @@
 > Escalation (Plan §13/§14) — proposed, approved, edited in place, never forked.
 
 ## How to Use
-- One `## Phase N: <Title>` section per Plan Phase, same order as Plan §6.1.
-- Each phase opens with **Entry Criteria** (copied from Plan §6.1), verified before any task.
+- One `## Task Group N: <Title>` section per Plan Task Group, same order as Plan §6.1.
+- Each Task Group opens with **Entry Criteria** (copied from Plan §6.1), verified before any task.
 - Each task is a `### Task: <TASK-ID>` sub-section with DoD items as individual checkboxes.
-- Each phase closes with an **Exit Criteria** line, checked only when every task above it is.
+- Each Task Group closes with an **Exit Criteria** line, checked only when every task above it is.
 - `[ ]` not done · `[x]` done, DoD fully satisfied incl. artifacts · `[D]` deliberately
   deferred (only for Plan-marked-deferred tasks, never to silently skip a Core task).
-- **A "Required artifact captured" item points at the phase's Verification file/folder** —
-  `test/[projectname]_phase_[N]_verification.md` and `test/phase_[N]/`
+- **A "Required artifact captured" item points at the Task Group's Verification file/folder** —
+  `test/[projectname]_task_group_[N]_verification.md` and `test/task_group_[N]/`
   (`agents/exemplars/development_plan_template.md` §11.4) — not a description of the
   artifact inline in the Checklist.
 - **A Development Phase session's edits to this file are bracket-content-only**
   (`AGENTS.md` §2.7): flipping a mark inside an existing `[ ]`, checking a `Submitted` box,
   or appending a new Session Log row. Rewording a task/DoD line, adding commentary next to a
-  checkbox, inserting or restructuring content, or touching any other phase's marks are all
+  checkbox, inserting or restructuring content, or touching any other Task Group's marks are all
   out of scope for a Development Phase session — an apparent error in the wording itself is
   an Escalation Trigger, not a same-session fix.
 - **No compressed formats** (`AGENTS.md` §2.3): the generated Checklist writes out every
-  phase and every task in full, individually, in order — never a "repeat this block per
-  phase" placeholder, an ellipsis standing in for omitted phases/tasks, or any other
-  shorthand. This template's own `## Phase 1` block below is illustrative only; a real,
+  Task Group and every task in full, individually, in order — never a "repeat this block per
+  Task Group" placeholder, an ellipsis standing in for omitted Task Groups/tasks, or any other
+  shorthand. This template's own `## Task Group 1` block below is illustrative only; a real,
   delivered Checklist expands the entire Plan.
 - **Continuous updates, in place** — each DoD sub-item checked the moment it's satisfied,
-  not batched to end of task/phase.
+  not batched to end of task/Task Group.
 - **README badges are static and CI-written** (`agents/DEVELOPMENT.md` §5.2,
   `README_template.md`'s Metrics & Badges section, `agents/CI.md` Stage 6) — there is no
-  per-phase Branch-Name substitution DoD item any more; CI rewrites badge values on every
-  push regardless of which phase or branch is active.
-- **Phase-boundary scope rule (`agents/MAINTENANCE.md` §10, same principle applied here):**
-  a session closing a Phase's Exit Criteria checks **only that Phase's own Exit Criteria**
-  — never the next Phase's Entry Criteria. The next Phase is always opened in a new
+  per-Task Group Branch-Name substitution DoD item any more; CI rewrites badge values on every
+  push regardless of which Task Group or branch is active.
+- **Task-Group-boundary scope rule (`agents/MAINTENANCE.md` §10, same principle applied here):**
+  a session closing a Task Group's Exit Criteria checks **only that Task Group's own Exit Criteria**
+  — never the next Task Group's Entry Criteria. The next Task Group is always opened in a new
   session, which checks its own Entry Criteria itself, at that time.
-- **Tasks are worked in the order they appear in this Checklist, phase by phase, task by
+- **Tasks are worked in the order they appear in this Checklist, Task Group by Task Group, task by
   task.** A Development Phase session never reorders, skips ahead, or leaves a DoD sub-item
   unchecked-but-passed-over to move on — without the user's explicit permission given that
   session. An apparently unnecessary or already-satisfied task/item is a question or
@@ -53,7 +53,7 @@
 
 ---
 
-## Phase 0: [Title]
+## Task Group 0: [Title]
 
 **Entry Criteria:**
 - [ ] [copied verbatim from Plan §6.1]
@@ -73,7 +73,7 @@
   conditional stages (WASM, Playwright/E2E, ESP32, infra services) confirmed correctly
   present or correctly absent
 - [ ] Stage 0's `scripts/setup_env.sh` step confirmed to match the actual `setup_env.sh`
-  content this phase produces or extends
+  content this Task Group produces or extends
 - [ ] Content reviewed and approved by user
 
 ### Task: DOC-003 — Reconcile third-party license disclosure
@@ -109,7 +109,7 @@
 
 ---
 
-## Phase 1: [Title]
+## Task Group 1: [Title]
 
 **Entry Criteria:**
 - [ ] [...]
@@ -124,23 +124,23 @@
 
 ---
 
-*(This `## Phase 1` block is this template's own illustrative placeholder — one example of
-the shape a phase section takes. Per `AGENTS.md` §2.3's No Compressed Formats mandate, the
+*(This `## Task Group 1` block is this template's own illustrative placeholder — one example of
+the shape a Task Group section takes. Per `AGENTS.md` §2.3's No Compressed Formats mandate, the
 actual generated Checklist for a real project MUST NOT contain a "repeat this block"
-instruction: it fully writes out one complete `## Phase N` block per phase in Plan §6.1, in
+instruction: it fully writes out one complete `## Task Group N` block per Task Group in Plan §6.1, in
 order, each with every one of its real tasks and DoD items spelled out individually — never
 collapsed, abbreviated, or left as a placeholder for the user/agent to expand later.)*
 
 ---
 
-## Final Phase: [Title]
+## Final Task Group: [Title]
 
 **Entry Criteria:**
 - [ ] [...]
 
 ### Task: DOC-FINAL — Final review of project README.md
 - [ ] `README.md` reviewed for accuracy against the as-built system
-- [ ] Any divergence from the Design-drafted / Phase-0-reviewed version corrected
+- [ ] Any divergence from the Design-drafted / Task-Group-0-reviewed version corrected
 - [ ] Content reviewed and approved by user
 
 ### Task: PROD-001 — Regression Traceability
@@ -208,7 +208,7 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 
 - [ ] Every Core requirement ID (Spec §3) appears in ≥1 task's Traceability field above.
 - [ ] No orphan requirement citations.
-- [ ] Every phase above has Entry and Exit Criteria checked, in order.
+- [ ] Every Task Group above has Entry and Exit Criteria checked, in order.
 - [ ] Full workspace build is hermetic and green: `[command(s)]`.
 - [ ] Full test suite is green: `[command(s)]`.
 - [ ] Every filename conforms to `CLAUDE.md` §4.
@@ -223,9 +223,9 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 ## Session Log
 
 > One entry per session (Plan §11). Never edit a prior entry except to fix a factual error
-> (log the fix as a new entry). For full evidence, see Phase Summary files
-> (`[projectname]_phaseN_summary.md`).
+> (log the fix as a new entry). For full evidence, see Task Group Summary files
+> (`[projectname]_task_groupN_summary.md`).
 
-| Date | Phase(s) touched | Tasks completed | Tasks aborted | Escalation (Plan §13) | Notes |
+| Date | Task Group(s) touched | Tasks completed | Tasks aborted | Escalation (Plan §13) | Notes |
 |---|---|---|---|---|---|
 | YYYY-MM-DD | | | | | |

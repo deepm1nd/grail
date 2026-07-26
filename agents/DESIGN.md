@@ -53,7 +53,7 @@ The final documentation set MUST adhere to the following principles:
 ## 4. Agent Responsibilities
 -   **Sole Responsibility:** The agent is solely responsible for the technical quality, completeness, and rigor of the design.
 -   **Proactive Elicitation:** If information is insufficient, the agent MUST ask well-formed questions to elicit the required detail.
--   **Major Change Notification:** The agent MUST notify the user if any iteration causes a "Major Change" to the architecture. Where this arises from returning to a previously approved step (rather than from forward iteration within the current step), the explicit backtracking protocol in `AGENTS.md` §2.1 governs how the originating step is identified and how much prior work is reopened — except for findings produced by Step 7 (Spec Audit), which always follow the dedicated Step 7 Backtrack Workflow in `CLAUDE.md` §3.11 rather than the general patch-vs-reopen choice.
+-   **Major Change Notification:** The agent MUST notify the user if any iteration causes a "Major Change" to the architecture. Where this arises from returning to a previously approved step (rather than from forward iteration within the current step), the explicit backtracking protocol in `AGENTS.md` §2.1 governs how the originating step is identified and how much prior work is reopened — except for findings produced by Step 7 (Spec Audit), which always follow the dedicated Step 7 Backtrack Protocol in `CLAUDE.md` §3.11 rather than the general patch-vs-reopen choice.
 -   **Strict Gated Execution:** The agent is explicitly forbidden from combining steps or bypassing gates. Every step's output must be presented for approval.
 
 ### 4.5. Requirement Quality Criteria
@@ -153,7 +153,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   Readiness Checklist items (`agents/DEVELOPMENT.md` §5.2.4, items 7–9 — Rollback
   Procedure, Operational Runbook, Monitoring/Observability Baseline) apply to this
   project, based on whether it has a release/deploy step and/or a running/deployed
-  service component. No file is produced here; this feeds Step 8's Final Phase task
+  service component. No file is produced here; this feeds Step 8's Final Task Group task
   generation (`PROD-007`–`PROD-009`, `agents/exemplars/development_plan_template.md` §8).
 - **Direct-Dependency License Check:** Each proposed **direct** dependency is checked
   against `agents/PREFERRED_DEPENDENCIES.md`'s License Compatibility Criterion
@@ -198,7 +198,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
     into a running, project-specific addendum to this project's own Tier A checklist (carried
     forward via the handoff note) — it is not rediscovered blind on every future pass. A Tier
     B finding does not require different handling from a Tier A one once found — both go
-    through the same Step 7 Backtrack Workflow below — but Tier B's role is to shrink over
+    through the same Step 7 Backtrack Protocol below — but Tier B's role is to shrink over
     successive passes as its findings accumulate into Tier A, not to remain an open-ended
     search each time.
 - **Content Continuity Check:** Verify no previously approved technical detail, diagrams, or requirements were elided or summarized; the process MUST be strictly additive unless deletion was explicitly requested; no section replaced with a "previous versions" reference.
@@ -215,7 +215,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   - **All findings Trivial, none Substantive:** fixed in place, same session, per §3.11;
     gate then proceeds normally — STOP, await approval to Step 8.
   - **Any Substantive finding (regardless of accompanying Trivial ones):** the normal
-    approval gate does not apply — the full Step 7 Backtrack Workflow (§3.11) governs
+    approval gate does not apply — the full Step 7 Backtrack Protocol (§3.11) governs
     instead: reopen the earliest originating step (1–6) and work forward, ending with a
     fresh package and handoff note for a brand-new Step 7 session (or the user's
     `POST AUDIT FIX` compressed alternative, same section) — repeating until a Step 7 run
@@ -224,14 +224,14 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 
 ### 5.8. Step 8: Development Plan & Checklist Generation
 - **Plan:** Create the dev plan files using `agents/exemplars/development_plan_template.md`.
-- **Environment/Configuration Elicitation:** Before drafting environment/config content (toolchain, local setup, CI — not addressed by Steps 1-7, which are about *what*, not *where/how built*): elicit concrete facts directly; for anything unspecified with a reasonable default, propose the default as a flagged assumption. Once per Plan, not once per phase. **Elicit the repository's GitHub org and repo name at this point** (needed to populate `[org]`/`[repo]` in the README's shields.io badge URLs, `agents/exemplars/README_template.md`) — do not leave these as unresolved placeholders in the generated README. **Tool install commands drafted here (`setup_env.sh`/`.bat`) prefer a prebuilt binary release over a source build wherever one exists for the target platform** (`agents/PREFERRED_TOOLS.md`'s Missing Tool Protocol), falling back to `cargo install --locked`/equivalent only when no binary release exists.
-- **Phase Sizing Mandate:** Each phase must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `CLAUDE.md` §3.4 (Step 8) for the complexity-scoring formula and current ceiling. **The computed score is a mandatory column in the Phase Index (§6.1) of `agents/exemplars/development_plan_template.md`, shown for every phase, never left blank or only implied by Task Count** — over-ceiling requires a recorded override note in the same cell, not a silent judgment call. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one phase regardless of phase size** — sizing governs how much fits comfortably in a session, not whether multiple phases may be attempted in one.
-- **Frontend Targeted Interleaving:** Where the project has a human-facing UI component, phase sequencing does not build the entire backend before any frontend work, nor push all frontend work into a single trailing phase. Instead, each screen/component's frontend implementation task is placed in the same phase as the real (non-mock) backend/data dependency it needs — never earlier (which would force a throwaway stub, contradicting the Anti-Stub Mandate) and never artificially deferred once its real dependency is available. See `agents/exemplars/development_plan_template.md` §6/§9.1 for the concrete sequencing mechanics this principle drives.
-- **Per-Task Design Refs, Submit Points, and Per-Phase Session Unit:** Populated at drafting
+- **Environment/Configuration Elicitation:** Before drafting environment/config content (toolchain, local setup, CI — not addressed by Steps 1-7, which are about *what*, not *where/how built*): elicit concrete facts directly; for anything unspecified with a reasonable default, propose the default as a flagged assumption. Once per Plan, not once per Task Group. **Elicit the repository's GitHub org and repo name at this point** (needed to populate `[org]`/`[repo]` in the README's shields.io badge URLs, `agents/exemplars/README_template.md`) — do not leave these as unresolved placeholders in the generated README. **Tool install commands drafted here (`setup_env.sh`/`.bat`) prefer a prebuilt binary release over a source build wherever one exists for the target platform** (`agents/PREFERRED_TOOLS.md`'s Missing Tool Protocol), falling back to `cargo install --locked`/equivalent only when no binary release exists.
+- **Task Group Sizing Mandate:** Each Task Group must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `CLAUDE.md` §3.4 (Step 8) for the complexity-scoring formula and current ceiling. **The computed score is a mandatory column in the Task Group Index (§6.1) of `agents/exemplars/development_plan_template.md`, shown for every Task Group, never left blank or only implied by Task Count** — over-ceiling requires a recorded override note in the same cell, not a silent judgment call. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one Task Group regardless of Task Group size** — sizing governs how much fits comfortably in a session, not whether multiple Task Groups may be attempted in one.
+- **Frontend Targeted Interleaving:** Where the project has a human-facing UI component, Task Group sequencing does not build the entire backend before any frontend work, nor push all frontend work into a single trailing Task Group. Instead, each screen/component's frontend implementation task is placed in the same Task Group as the real (non-mock) backend/data dependency it needs — never earlier (which would force a throwaway stub, contradicting the Anti-Stub Mandate) and never artificially deferred once its real dependency is available. See `agents/exemplars/development_plan_template.md` §6/§9.1 for the concrete sequencing mechanics this principle drives.
+- **Per-Task Design Refs, Submit Points, and Per-Task-Group Session Unit:** Populated at drafting
   time, not left as stubs (`CLAUDE.md` §3.4 Step 8) — each task's Design Refs cite the
   specific Architecture Spec file/section/item it derives from; the mandatory Code/Verify
   split (`agents/DEVELOPMENT.md` §5.1) is derived mechanically from each task's Verification
-  Method; each phase's Session Unit (`AGENTS.md` §2.8) is declared explicitly.
+  Method; each Task Group's Session Unit (`AGENTS.md` §2.8) is declared explicitly.
 - **Mandatory Pre-Submit Local Verification:** Every task-complete Submit Point drafted into
   the Plan MUST include, as its final DoD item before `Submitted` is checked, running the
   full local CI-equivalent sequence — Lint & Format, Build, Test, Coverage, Security Scan,
@@ -239,7 +239,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   not satisfied by the task's own narrower Verification Method check; it is a standing,
   additional gate on every Submit Point regardless of what that task otherwise verifies. A
   Submit Point drafted without this item is a Step 9 audit finding (§5.9).
-- **Checklist:** Generate a task-level checklist using `agents/exemplars/development_checklist_template.md` — every phase and every task written out in full, individually, in order; never a "repeat this block" placeholder or an ellipsis standing in for omitted phases/tasks (`AGENTS.md` §2.3 No Compressed Formats).
+- **Checklist:** Generate a task-level checklist using `agents/exemplars/development_checklist_template.md` — every Task Group and every task written out in full, individually, in order; never a "repeat this block" placeholder or an ellipsis standing in for omitted Task Groups/tasks (`AGENTS.md` §2.3 No Compressed Formats).
 - **Kickoff Prompt:** Generate the reusable development-agent kickoff prompt using `agents/exemplars/dev_prompt_template.md`, output as `[projectname]_dev_prompt.md`.
 - **Project README:** Generate the root `README.md` **using `agents/exemplars/README_template.md`
   as the mandatory structural basis — every section of that template (badges, License note,
@@ -252,12 +252,12 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   same non-negotiable template-adherence standard already applied to the Checklist, Dev
   Prompt, and every other `agents/exemplars/*_template.md` file at this step — an agent
   instance skipping or restructuring the README template is a Step 9 audit finding (§5.9),
-  not an acceptable stylistic variation. Development Phase's Phase 0 task then
+  not an acceptable stylistic variation. Development's Task Group 0 task then
   reviews/confirms/enhances this draft rather than authoring from scratch
   (`agents/DEVELOPMENT.md` §5.2.1).
 - **.gitignore:** Draft the root `.gitignore` per `agents/exemplars/development_plan_template.md`
   §3's mandatory skeleton — standard Rust and Trunk entries, matched at any depth, not just
-  repo root. Development Phase's Phase 0 then reviews/confirms/extends it with
+  repo root. Development's Task Group 0 then reviews/confirms/extends it with
   project-specific entries, mirroring the README convention (`agents/DEVELOPMENT.md`
   §5.2.1).
 - **CI Workflow:** Generate `.github/workflows/ci.yml` from `agents/CI.md`'s stage
@@ -273,7 +273,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   `ci.yml`, since
   `ci.yml`'s Stage 2/3/5/6 steps invoke them directly (`agents/PREFERRED_TOOLS.md`'s
   Canonical Commands table). These have no dependency-resolution prerequisite, so they can
-  be drafted at the same time as `ci.yml` rather than waiting for Phase 0's workspace
+  be drafted at the same time as `ci.yml` rather than waiting for Task Group 0's workspace
   scaffold.
 - **Project License:** Generate `LICENSE.md` from the project's chosen output license text
   (default: PolyForm Noncommercial 1.0.0, `https://polyformproject.org/licenses/noncommercial/1.0.0/`)
@@ -289,7 +289,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 - **Project Changelog:** Generate an initial `CHANGELOG.md` from
   `agents/exemplars/CHANGELOG_template.md`, with a first `[0.1.0]` entry recording the
   Design Phase scaffold (Spec, Plan, Checklist, Dev Prompt, README, CI workflow, `deny.toml`,
-  `LICENSE.md` drafted). Like `.gitignore`/README, Development Phase's Phase 0 then
+  `LICENSE.md` drafted). Like `.gitignore`/README, Development's Task Group 0 then
   reviews/confirms it against the repository as it starts to take shape rather than
   authoring from scratch.
 - **Development-Phase Risk Log:** Generate an initial, empty/skeleton
@@ -304,9 +304,9 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 - **Requirement Traceability Table Skeleton:** Generate
   `test/[projectname]_requirement_traceability.md` with one row per Core-status
   Requirement ID (Spec §3), test column empty. This is a skeleton only — Development
-  Phase updates it incrementally, phase by phase, as each phase's tasks add tests
+  Task Group updates it incrementally, Task Group by Task Group, as each Task Group's tasks add tests
   (`agents/DEVELOPMENT.md` §5.2.4 item 1).
-- **Productization Readiness Tasks:** Draft the Final Phase's task list to include one
+- **Productization Readiness Tasks:** Draft the Final Task Group's task list to include one
   `PROD-NNN` task per applicable Productization Readiness Checklist item
   (`agents/DEVELOPMENT.md` §5.2.4), using Step 5's Productization Applicability finding to
   determine whether `PROD-007`–`PROD-009` are included. Each follows the same Task
@@ -333,7 +333,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   confirmed the first time CI actually runs it; `THIRD_PARTY_LICENSES.md`'s correctness is
   confirmed at Development Phase 0's first `cargo deny check licenses` run and kept current
   by CI's Stage 5 drift check thereafter (`agents/CI.md`); the traceability table's
-  completeness is confirmed at Final Phase's `PROD-001` task (`agents/DEVELOPMENT.md`
+  completeness is confirmed at Final Task Group's `PROD-001` task (`agents/DEVELOPMENT.md`
   §5.2.4 item 1) — none of these are things Step 9
   can meaningfully verify itself.
 - **`ci.yml` gets two narrow, mechanical checks, not a full audit pass.** Unlike
@@ -361,13 +361,13 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
      practice (a generated README covering similar ground in a different structure,
      rather than the template's actual structure) and is now audited mechanically rather
      than assumed followed from §5.8's instruction alone.
-  5. A Final Phase missing any applicable Productization Readiness Checklist item
+  5. A Final Task Group missing any applicable Productization Readiness Checklist item
      (`agents/DEVELOPMENT.md` §5.2.4) as a corresponding `PROD-NNN` task — cross-checked
      against Step 5's Productization Applicability finding to confirm items 7–9 are
      included or excluded correctly — is a Trivial finding, fixed in place by inserting
      the missing task(s).
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
-- **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every phase has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Phase Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every phase's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling phase with no recorded override is a finding**. Additionally cross-checks phase-to-Build-Order mapping fidelity against Architecture Specification §9.2, that phase sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
+- **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every Task Group has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Task Group Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every Task Group's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling Task Group with no recorded override is a finding**. Additionally cross-checks Task-Group-to-Build-Order mapping fidelity against Architecture Specification §9.2, that Task Group sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
   standalone required file. On any finding, its content is embedded directly in the
   backtrack handoff note that reopens Step 8 (or the relevant Spec step), same convention
@@ -378,7 +378,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   - **All findings Trivial, none Substantive:** fixed in place, same session, per §3.11;
     the gate proceeds normally.
   - **Any Substantive finding:** the normal approval gate does not apply. Every Substantive finding is classified as it's found:
-    - **(A) Plan/Checklist-only defect** (bad phase sizing, a task missing a Verification Method, an orphan citation the Plan itself introduced, a Checklist/Plan drift) — reopen Step 8 alone in a new backtrack session, fix every Substantive and Trivial finding plus anything discovered incidentally along the way, re-package, and proceed to a fresh Step 9 session (`pass2`, `pass3`, ... per `CLAUDE.md` §3.10's naming convention) that re-audits independently from scratch.
+    - **(A) Plan/Checklist-only defect** (bad Task Group sizing, a task missing a Verification Method, an orphan citation the Plan itself introduced, a Checklist/Plan drift) — reopen Step 8 alone in a new backtrack session, fix every Substantive and Trivial finding plus anything discovered incidentally along the way, re-package, and proceed to a fresh Step 9 session (`pass2`, `pass3`, ... per `CLAUDE.md` §3.10's naming convention) that re-audits independently from scratch.
     - **(B) Spec-originating defect** (the Plan surfaces a genuinely missing or inconsistent requirement that Step 7 should have caught, or that was only discoverable once Plan-level task decomposition exposed it) — this is equivalent in severity to a re-architecting escalation (`agents/exemplars/development_plan_template.md` §13.1(B)). Reopen the relevant Architecture Specification step (1–6), then **re-run Step 7 to a clean or all-Trivial result** before returning to Step 8, rather than patching the Plan around a still-defective Spec.
   - **Backtrack entry, repeat-until-clean, Post-Audit Fix Pass, and circuit breaker all
     follow §3.11 exactly as in Step 7** (opening the session is itself the go-ahead; no

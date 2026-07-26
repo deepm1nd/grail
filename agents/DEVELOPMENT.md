@@ -9,7 +9,7 @@ See `CHANGELOG.md` for full version history.
 - [4. Phase-Specific Mandates](#4-phase-specific-mandates)
 - [5. Development Workflow](#5-development-workflow)
   - [5.1. Core Development Cycle](#51-core-development-cycle)
-  - [5.2. Phase-Driven Workflow](#52-phase-driven-workflow)
+  - [5.2. Task-Group-Driven Workflow](#52-task-group-driven-workflow)
   - [5.3. Completion of Development](#53-completion-of-development)
   - [5.4. Post-Development Remediation Cycle](#54-post-development-remediation-cycle)
 
@@ -28,7 +28,7 @@ The goal of this phase is to write, test, and build the software, following the 
 **MANDATE:** At the end of Design Phase Step 8, a re-invocable kickoff prompt file,
 `[projectname]_dev_prompt.md` (per `agents/exemplars/dev_prompt_template.md`),
 is produced once and reused verbatim at the start of every Development-Phase session. This
-prompt guides the agent through the development plan, using the checklist and Phase Summary
+prompt guides the agent through the development plan, using the checklist and Task Group Summary
 files to track progress. Per `AGENTS.md` §2.7, the agent uses this prompt file and the
 checklist file in place — it never copies, renames, or otherwise reproduces a one-off version
 of either.
@@ -58,7 +58,7 @@ of either.
     other item matching `agents/exemplars/development_plan_template.md` §13's Escalation
     Triggers — is **never** resolved by asking a question and continuing. Asking here would
     substitute the agent's own framing of the ambiguity for a proper Plan/Spec fix; §13
-    governs instead: stop the entire session, write the Phase Summary, and let a Design
+    governs instead: stop the entire session, write the Task Group Summary, and let a Design
     Phase session resolve and restructure. **When genuinely unsure which tier an uncertainty
     falls into, treat it as the Escalation Trigger tier** — the safer default, since a wrongly
     continued session risks building on an unresolved ambiguity, while a wrongly stopped one
@@ -74,16 +74,16 @@ of either.
 - **`[projectname]_dev_checklist.md` is the only `docs`/planning file a development-agent
   session is permitted to edit.** Every other file in the documentation set — the
   Architecture Specification files, the Development Plan files, the Dev Prompt, any
-  handoff note or Phase Summary from a prior Design or Development session — is
+  handoff note or Task Group Summary from a prior Design or Development session — is
   **read-only** to a development-agent session; none of them are ever modified, even to fix
   an apparent typo or inconsistency (that's an Escalation Trigger, Development Plan §13, not
   a same-session edit). Within the one file it may touch, a session's edits are further
   restricted to **marking DoD sub-items and tasks complete (`[ ]` → `[x]`, or `[D]` per the
   Checklist template's deferred-task convention) strictly within its own current, identified
-  Phase (§5.2 step 2)** — appending its own Session Log row (checklist template's Session Log
+  Task Group (§5.2 step 2)** — appending its own Session Log row (checklist template's Session Log
   table) is likewise permitted. A session never checks, unchecks, or otherwise alters a mark
-  belonging to any phase other than the one it is actively executing, and never edits the
-  checklist's structural content (phase/task text, Entry/Exit Criteria wording, DoD item
+  belonging to any Task Group other than the one it is actively executing, and never edits the
+  checklist's structural content (Task Group/task text, Entry/Exit Criteria wording, DoD item
   wording) — a genuine need to change checklist *content* (not just check a box) is the
   Plan-Change Escalation path above, never a same-session direct edit.
 - **Escalation Model — Stop, Summarize, Wait:** Follows `agents/exemplars/
@@ -92,16 +92,16 @@ of either.
   **Everything else the agent cannot resolve itself — a package/version conflict, an
   install that fails, a persistent test failure, an ambiguous spec question, an
   unverifiable Entry Criteria/DoR — stops the entire session immediately**: halt all task
-  work, write the Phase Summary with full diagnostic detail, leave the repository in its
+  work, write the Task Group Summary with full diagnostic detail, leave the repository in its
   last clean committed state, and stop — no PR, no partial continuation, no further
   troubleshooting. See Plan §13 for the full trigger list and its §13.1 A/B
   (Replanning/Re-architecting) classification for Design-Phase re-engagement.
 - **One Session Unit Per Session (`AGENTS.md` §2.8):** A Development Phase session completes
-  **at most one** declared Session Unit — a full Phase (default), a single Task, or one
-  Code/Verify sub-task, per the Plan's per-phase declaration
+  **at most one** declared Session Unit — a full Task Group (default), a single Task, or one
+  Code/Verify sub-task, per the Plan's per-Task Group declaration
   (`agents/exemplars/development_plan_template.md` §6.1). Even with session capacity
-  remaining after the unit's own exit condition is satisfied and its Phase Summary is
-  written (or updated, for a Task/Code+Verify unit within an in-progress phase), the agent
+  remaining after the unit's own exit condition is satisfied and its Task Group Summary is
+  written (or updated, for a Task/Code+Verify unit within an in-progress Task Group), the agent
   stops and awaits a new session rather than beginning the next unit. See §5.2 below for the
   concrete workflow this constrains.
 - **Infrastructure Services via Docker:** Any infrastructure service the project depends on
@@ -131,13 +131,13 @@ stated in the Plan — never a separate judgment call at execution time.
   loop lives — isolated in its own session/context per the Session Unit in force
   (`AGENTS.md` §2.8). DoD is the task's original DoD (tests pass, artifacts captured).
   Ends in its own Submit Point.
-- A split task counts as **two** tasks against the Phase Sizing complexity formula
+- A split task counts as **two** tasks against the Task Group Sizing complexity formula
   (`CLAUDE.md` §3.4 Step 8) — stated explicitly so Step 8 sizing doesn't silently overrun.
 
 **Submit Points.** Per `agents/exemplars/development_plan_template.md` §8, every task (or
 sub-task, for a split task) states its own Submit Point at drafting time. The agent submits
 at minimum at every declared Submit Point — never batching multiple tasks' completions into
-one end-of-phase submit. Where a task is flagged long/risky at drafting time, or where its
+one end-of-Task Group submit. Where a task is flagged long/risky at drafting time, or where its
 build-test-debug cycle is visibly not converging, the agent additionally issues a WIP
 Checkpoint submit mid-task per `AGENTS.md` §2.1. **After every `submit` call, the session
 stops; the user says "Continue" or "Proceed" to resume** (`agents/AGENT_TOOL_POLICY.md` §2)
@@ -158,13 +158,13 @@ Task completion is not determined by the agent's subjective assessment. For ever
 
 **Exception for Batched Tasks:** If several tasks are tightly interrelated and would be more efficient to implement at once, the agent MUST request permission from the user to batch these tasks into a single build cycle.
 
-### 5.2. Phase-Driven Workflow
-The workflow for a single Development Phase **session** is as follows. Per §4's One Phase
-Per Session mandate, this workflow covers exactly one phase per session — a session never
-advances into a second phase even if time/capacity remains.
+### 5.2. Task-Group-Driven Workflow
+The workflow for a single Development Phase **session** is as follows. Per §4's One Task Group
+Per Session mandate, this workflow covers exactly one Task Group per session — a session never
+advances into a second Task Group even if time/capacity remains.
 
-1.  **Run the Session-Start Sequence:** Per the Dev Prompt (`[projectname]_dev_prompt.md`): read the checklist, prior phase summaries, the current phase's plan section (§6.1 Phase Index + §8 current-phase tasks only), and the protocols file — in that order, using targeted extraction for the plan sections (`sed`/`grep`, never whole-file reads of large documents). Do **not** read all Architecture Specification files or all Development Plan files upfront; do **not** perform a broad repository scan. Architecture Specification and remaining plan sections are referenced on demand only, when a specific uncertainty arises during task work, using the reference table in the Dev Prompt. **Check out the current phase's Branch Name** (`agents/exemplars/development_plan_template.md` §6.1) — creating it from the default branch if it doesn't yet exist, or resuming it if a prior session already started the phase — before touching any code; never work the phase's tasks on the default branch. **Use the declared Branch Name exactly as written in Plan §6.1 — do not append, prepend, or otherwise modify it in any way**, including appending a numeric hash, timestamp, or session identifier (observed failure pattern: checking out `phase11b_hwaccel_benchmark_ladder-1251787334605801970` or `phase12b-4334437132416834814` instead of the Plan's actual declared name). `git checkout -b <exact_branch_name>` (or `git checkout <exact_branch_name>` to resume) verbatim, character-for-character. **Re-confirm this branch is still checked out before starting each subsequent task in the session**, not only at session start; a session that finds itself on the wrong branch mid-task stops and corrects it before any further code changes. Then run the environment check (pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above) and verify repository build/test state before touching any code.
-2.  **Identify Current Phase and Task State:** Determine the first phase in `[projectname]_dev_checklist.md` whose Exit Criteria is not yet checked. Verify its Entry Criteria are actually true against the current repository state, not assumed from the checklist alone. **Then, for the current phase's tasks, run the three-way task-state check** (mirrored in `[projectname]_dev_prompt.md`'s "find next unit" step) against each declared Submit Point, not raw git-log archaeology:
+1.  **Run the Session-Start Sequence:** Per the Dev Prompt (`[projectname]_dev_prompt.md`): read the checklist, prior Task Group summaries, the current Task Group's plan section (§6.1 Task Group Index + §8 current-Task Group tasks only), and the protocols file — in that order, using targeted extraction for the plan sections (`sed`/`grep`, never whole-file reads of large documents). Do **not** read all Architecture Specification files or all Development Plan files upfront; do **not** perform a broad repository scan. Architecture Specification and remaining plan sections are referenced on demand only, when a specific uncertainty arises during task work, using the reference table in the Dev Prompt. **Check out the current Task Group's Branch Name** (`agents/exemplars/development_plan_template.md` §6.1) — creating it from the default branch if it doesn't yet exist, or resuming it if a prior session already started the Task Group — before touching any code; never work the Task Group's tasks on the default branch. **Use the declared Branch Name exactly as written in Plan §6.1 — do not append, prepend, or otherwise modify it in any way**, including appending a numeric hash, timestamp, or session identifier (observed failure pattern: checking out `task_group11b_hwaccel_benchmark_ladder-1251787334605801970` or `task_group12b-4334437132416834814` instead of the Plan's actual declared name). `git checkout -b <exact_branch_name>` (or `git checkout <exact_branch_name>` to resume) verbatim, character-for-character. **Re-confirm this branch is still checked out before starting each subsequent task in the session**, not only at session start; a session that finds itself on the wrong branch mid-task stops and corrects it before any further code changes. Then run the environment check (pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above) and verify repository build/test state before touching any code.
+2.  **Identify Current Task Group and Task State:** Determine the first Task Group in `[projectname]_dev_checklist.md` whose Exit Criteria is not yet checked. Verify its Entry Criteria are actually true against the current repository state, not assumed from the checklist alone. **Then, for the current Task Group's tasks, run the three-way task-state check** (mirrored in `[projectname]_dev_prompt.md`'s "find next unit" step) against each declared Submit Point, not raw git-log archaeology:
     - **No submit exists for this task/sub-task** → not started; begin fresh.
     - **A WIP Checkpoint submit exists, no task-complete submit** → resume-in-place: check
       out the WIP state as the actual starting point (never redo from scratch, never
@@ -176,8 +176,8 @@ advances into a second phase even if time/capacity remains.
     A checklist box checked with no corresponding submit, or a submit with no corresponding
     checklist entry, is an inconsistency — an Escalation Trigger (§13's model below), never
     silently patched over.
-3.  **Implement the Current Session Unit** (`AGENTS.md` §2.8 — `Phase`, `Task`, or
-    `Code+Verify`, as declared for this phase): for each task within scope of the session's
+3.  **Implement the Current Session Unit** (`AGENTS.md` §2.8 — `Task Group`, `Task`, or
+    `Code+Verify`, as declared for this Task Group): for each task within scope of the session's
     declared unit, in order (respecting stated dependencies), the agent must follow the
     **Core Development Cycle** (§5.1), including the mandatory Code/Verify split and Submit
     Point cadence. **Tasks within the unit are worked in the exact order the Checklist lists
@@ -187,13 +187,13 @@ advances into a second phase even if time/capacity remains.
     task-level question (§4's Ask-on-Uncertainty) or an Escalation Trigger, never a silent
     skip. Once a task (or sub-task) is implemented and its DoD is fully satisfied,
     the agent, in this order: (a) appends that task's entry to
-    `test/[projectname]_phase_[N]_verification.md` and drops any screenshots/clips into
-    `test/phase_[N]/` per `agents/exemplars/development_plan_template.md` §11.4 (skip for
+    `test/[projectname]_task_group_[N]_verification.md` and drops any screenshots/clips into
+    `test/task_group_[N]/` per `agents/exemplars/development_plan_template.md` §11.4 (skip for
     tasks with no Verification Method beyond human review/approval); (b) updates the
-    checklist **continuously, in place** — not batched until end of phase, and never via a
+    checklist **continuously, in place** — not batched until end of Task Group, and never via a
     copy of the checklist (§4); (c) submits at that task's declared Submit Point
-    immediately, not deferred to end-of-phase, and before starting the next task.
-4.  **Phase Integration and System Test:** After all tasks in the phase are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome. **In addition to this build/test pass, every phase's Exit Criteria include running the full local CI-equivalent sequence** — Lint & Format, Build, Test, Coverage, Security Scan (`agents/CI.md`'s stage skeleton), the same sequence already mandated per-task at Submit Points (step 5, below) — **once more at the phase level, and resolving/fixing any bug or issue this run surfaces before the phase's Exit Criteria can be checked off.** A phase is not exited on the strength of its individual tasks' local Submit Point checks alone; the full sequence is re-run integrated, across the whole phase's combined changes, and any finding is fixed in this same phase, not deferred to the next one or left for CI's async pass to catch later.
+    immediately, not deferred to end-of-Task Group, and before starting the next task.
+4.  **Task Group Integration and System Test:** After all tasks in the Task Group are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome. **In addition to this build/test pass, every Task Group's Exit Criteria include running the full local CI-equivalent sequence** — Lint & Format, Build, Test, Coverage, Security Scan (`agents/CI.md`'s stage skeleton), the same sequence already mandated per-task at Submit Points (step 5, below) — **once more at the Task Group level, and resolving/fixing any bug or issue this run surfaces before the Task Group's Exit Criteria can be checked off.** A Task Group is not exited on the strength of its individual tasks' local Submit Point checks alone; the full sequence is re-run integrated, across the whole Task Group's combined changes, and any finding is fixed in this same Task Group, not deferred to the next one or left for CI's async pass to catch later.
 5.  **Pre-Commit Verification & Quality Assurance:**
     -   **Mandatory Pre-Submit Local Verification** (`agents/DESIGN.md` §5.8): before any
         task-complete Submit Point, run the full local CI-equivalent sequence — Lint &
@@ -207,42 +207,42 @@ advances into a second phase even if time/capacity remains.
         reviewed and committed by a human. A Development Phase session's role on a license
         finding is to report it and, per the project's own stated default, propose
         swapping the offending dependency — never to edit the disclosure file itself.
-    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first phase of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final phase, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **README badges are static and CI-written** (`agents/exemplars/README_template.md`'s Metrics & Badges section, `agents/CI.md` Stage 6) — there is no per-phase Branch-Name substitution for a Development session to perform; CI's Metrics Commit step rewrites the badge values on every push, from whichever branch it ran on. No Documentation-integrity DoD item exists for this any more.
-    -   **Assurance Review:** Perform a final, active review of all code and changes in the current phase. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists — checked continuously during the phase, not only here (`AGENTS.md` §2.3's Maximal Implementation mandate); this review is a final backstop, not the primary enforcement point.
-6.  **Write the Phase Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_phaseN_summary.md`.
-7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the phase-level wrap-up only: docs, README updates, and the Phase Summary itself, submitted together after the **Phase-End Quality Assurance** is complete. This is not the sole checkpoint for the phase's work (per-task submits already provide that); it closes out anything not itself task-scoped.
-8.  **Stop. Do Not Proceed to the Next Session Unit.** Per `AGENTS.md` §2.8, the session ends here regardless of remaining capacity, whether the declared Session Unit was a full Phase, a single Task, or one Code/Verify sub-task. Notify the user the unit is complete and await a new session to begin the next one. **Do not check the next Session Unit's Entry Criteria either** — a session verifies only its own Exit Criteria; the next Session Unit is always opened fresh, in a different session, which checks its own Entry Criteria itself at that time (same rule as `agents/MAINTENANCE.md` §10's Phase-boundary scope rule — reaching forward, even to glance, is out of this session's scope).
+    -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first Task Group of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final Task Group, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **README badges are static and CI-written** (`agents/exemplars/README_template.md`'s Metrics & Badges section, `agents/CI.md` Stage 6) — there is no per-Task Group Branch-Name substitution for a Development session to perform; CI's Metrics Commit step rewrites the badge values on every push, from whichever branch it ran on. No Documentation-integrity DoD item exists for this any more.
+    -   **Assurance Review:** Perform a final, active review of all code and changes in the current Task Group. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists — checked continuously during the Task Group, not only here (`AGENTS.md` §2.3's Maximal Implementation mandate); this review is a final backstop, not the primary enforcement point.
+6.  **Write the Task Group Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_task_groupN_summary.md`.
+7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the Task Group-level wrap-up only: docs, README updates, and the Task Group Summary itself, submitted together after the **Task-Group-End Quality Assurance** is complete. This is not the sole checkpoint for the Task Group's work (per-task submits already provide that); it closes out anything not itself task-scoped.
+8.  **Stop. Do Not Proceed to the Next Session Unit.** Per `AGENTS.md` §2.8, the session ends here regardless of remaining capacity, whether the declared Session Unit was a full Task Group, a single Task, or one Code/Verify sub-task. Notify the user the unit is complete and await a new session to begin the next one. **Do not check the next Session Unit's Entry Criteria either** — a session verifies only its own Exit Criteria; the next Session Unit is always opened fresh, in a different session, which checks its own Entry Criteria itself at that time (same rule as `agents/MAINTENANCE.md` §10's Task-Group-boundary scope rule — reaching forward, even to glance, is out of this session's scope).
 
 #### 5.2.1. Project README
 
 **The project's root `README.md` is now drafted during Design Phase, at Step 8**, alongside
 the Development Plan/Checklist/Dev Prompt (`agents/DESIGN.md` §5.8) — not authored from
 scratch by the Development agent. The first Development Phase session's task
-(Phase 0, per the Checklist template) is **review, confirmation, and enhancement** of that
+(Task Group 0, per the Checklist template) is **review, confirmation, and enhancement** of that
 already-drafted README against the actual repository as it starts to take shape — not
 initial scaffolding. It is revisited for a final accuracy/completeness review during the
-last phase, once the built system may have diverged in minor ways from the Design-time
-draft. Any phase that materially changes how the project is built, run, or used should
-update it as part of that phase's documentation-integrity check (§5.2 step 5).
+last Task Group, once the built system may have diverged in minor ways from the Design-time
+draft. Any Task Group that materially changes how the project is built, run, or used should
+update it as part of that Task Group's documentation-integrity check (§5.2 step 5).
 
 #### 5.2.2. CI Workflow
 
 **`.github/workflows/ci.yml` is drafted during Design Phase, at Step 8**, from
 `agents/CI.md`'s stage skeleton, using Step 5's CI Stage Applicability findings
-(`agents/DESIGN.md` §5.5/§5.8) — not authored from scratch here. Phase 0's task is
+(`agents/DESIGN.md` §5.5/§5.8) — not authored from scratch here. Task Group 0's task is
 **review, confirmation, and extension** of that draft against the repository as it starts
 to take shape, mirroring the README pattern above — most commonly confirming that the
 conditional stages Step 5 identified (WASM, Playwright/E2E, ESP32, infra services) are
 correctly present or correctly absent once the actual codebase makes that visible, and that
-Stage 0's `scripts/setup_env.sh` step matches whatever `setup_env.sh` content Phase 0
+Stage 0's `scripts/setup_env.sh` step matches whatever `setup_env.sh` content Task Group 0
 itself produces or extends.
 
 #### 5.2.3. Third-Party License Disclosure
 
 **`deny.toml` (with its `[licenses]` allow-list, `agents/PREFERRED_TOOLS.md`) is created
-during Phase 0**, not before — it has no content prerequisite of its own, but naturally
+during Task Group 0**, not before — it has no content prerequisite of its own, but naturally
 belongs alongside the workspace's `Cargo.toml`/`Cargo.lock`, which are themselves products
-of Phase 0's scaffolding, not something Design Phase produces. Create it as part of
+of Task Group 0's scaffolding, not something Design Phase produces. Create it as part of
 scaffolding, before running the check below.
 
 **`THIRD_PARTY_LICENSES.md` is drafted during Design Phase, at Step 8**, from the
@@ -253,43 +253,43 @@ the workspace is actually scaffolded, so Design Step 5's own license check
 **direct** dependencies only. **Format, both at this draft stage and at every later
 regeneration: a one-line description followed by a dependency/license table (crate name,
 version, license identifier) — no header/footer prose, no full license text bodies**
-(`agents/CI.md` Stage 5). Phase 0's reconciliation below is a table expansion to the full
+(`agents/CI.md` Stage 5). Task Group 0's reconciliation below is a table expansion to the full
 resolved tree, not a restructuring.
 
-**Phase 0 runs the first real `cargo deny check licenses`** against the actual resolved
+**Task Group 0 runs the first real `cargo deny check licenses`** against the actual resolved
 `Cargo.lock` — the earliest point a transitive-dependency license violation (a dependency's
 own dependency carrying an incompatible license, invisible at Design time) is genuinely
 catchable — and reconciles `THIRD_PARTY_LICENSES.md` against that result. Any violation
 found here is an Escalation Trigger (`agents/exemplars/development_plan_template.md` §13),
 not a silent fix: the agent cannot itself decide to swap a dependency or add a `[patch]`
-exception, per `PREFERRED_DEPENDENCIES.md`'s No Local Patching mandate. From Phase 0
+exception, per `PREFERRED_DEPENDENCIES.md`'s No Local Patching mandate. From Task Group 0
 onward, `agents/CI.md` Stage 5 re-runs this check on every push and fails (does not
 auto-commit) on any drift between the committed `THIRD_PARTY_LICENSES.md` and what the
 current dependency tree would actually produce.
 
 **`LICENSE.md`** (drafted at Step 8, static text) needs no reconciliation the way
-`THIRD_PARTY_LICENSES.md` does — Phase 0's review is a simple accuracy check (correct
+`THIRD_PARTY_LICENSES.md` does — Task Group 0's review is a simple accuracy check (correct
 license text, correct copyright holder/year), same tier as `.gitignore`'s review.
 
 #### 5.2.4. Productization Readiness Checklist
 
-**Every item below is a mandatory Exit Criterion of the Final Phase** (Development Plan
-§15), checked once, at the end of the project, in addition to that phase's own task-level
+**Every item below is a mandatory Exit Criterion of the Final Task Group** (Development Plan
+§15), checked once, at the end of the project, in addition to that Task Group's own task-level
 DoD items — not a substitute for them. This checklist is the single canonical definition
-referenced by both the Final Phase's Exit Criteria and, for Maintenance Phase work on an
+referenced by both the Final Task Group's Exit Criteria and, for Maintenance Phase work on an
 existing project, `agents/MAINTENANCE.md`'s Readiness Audit — defined once, here, not
 restated in either place. Applicability of items 7–9 (marked *conditional*, below) is
 determined at Design Step 5 (`agents/DESIGN.md` §5.5's Productization Applicability
 finding) and drives which of `PROD-007`–`PROD-009` (`agents/exemplars/
-development_plan_template.md` §8) are drafted into the Final Phase at Step 8.
+development_plan_template.md` §8) are drafted into the Final Task Group at Step 8.
 
 1. **Regression Scaffold:** every Core-status Requirement ID (Spec §3) traces to ≥1
    independently re-runnable test — re-runnable by name/tag, not merely "covered somewhere
-   in the Phase N verification run." The Requirement-to-Test traceability table exists as
+   in the Task Group N verification run." The Requirement-to-Test traceability table exists as
    a committed artifact, `test/[projectname]_requirement_traceability.md`, not something
    reconstructed ad hoc from memory or grep. This table is drafted as a skeleton (one row
    per Core Requirement ID, empty test column) at Design Step 8, then updated
-   incrementally every Development phase as that phase's own tasks add tests — it is a
+   incrementally every Development Task Group as that Task Group's own tasks add tests — it is a
    living artifact maintained continuously, not assembled for the first time here. **The
    concrete naming convention connecting a Test ID to an actual invocable test
    (`test_<nnnn>__description` for Rust, resolved via `cargo nextest run <id> --exact`; a
@@ -302,7 +302,7 @@ development_plan_template.md` §8) are drafted into the Final Phase at Step 8.
 3. **No Incomplete/Stubbed Work:** the Maximal Implementation / Anti-Stub mandate
    (`AGENTS.md` §2.3) is re-checked against the actual as-built repository at this point —
    not merely trusted from each task's own self-reported DoD — and the Open Items Register
-   contains no item that should already have been reached and resolved by this phase.
+   contains no item that should already have been reached and resolved by this Task Group.
 4. **User-Facing Docs:** `README.md` reflects the as-built system (this item is satisfied
    by, not separate from, the existing `DOC-FINAL` task, `agents/exemplars/
    development_plan_template.md` §8).
@@ -330,19 +330,19 @@ development_plan_template.md` §8) are drafted into the Final Phase at Step 8.
    build. No SLO/error-budget/alerting apparatus is required unless a specific project's
    own Architecture Specification explicitly scopes one in.
 
-A gap found in any of these nine items (or the applicable subset) at Final Phase is treated
-exactly like any other unmet Exit Criterion — it blocks Phase completion, it is not
+A gap found in any of these nine items (or the applicable subset) at Final Task Group is treated
+exactly like any other unmet Exit Criterion — it blocks Task Group completion, it is not
 deferred past this project's own Final Verification.
 
 ### 5.3. Completion of Development
-After all phases in the `Development Plan` are complete, the agent must notify the user and await instruction on next steps, which may include a post-development remediation cycle.
+After all Task Groups in the `Development Plan` are complete, the agent must notify the user and await instruction on next steps, which may include a post-development remediation cycle.
 
 ### 5.4. Post-Development Remediation Cycle
 This cycle begins only when the user explicitly requests it by saying "perform an audit".
 1.  **Audit and Create Remediation Plan:** The agent will perform a feature audit and create the necessary planning documents.
     -   **COMMIT POINT:** After creating all documents, the agent MUST commit them together and await further user instruction.
-2.  **Execute Remediation Checklist:** The agent will execute the remediation checklist using the phase-by-phase workflow in §5.2 (including the One Phase Per Session mandate).
-    -   **COMMIT POINT:** After each phase of the remediation checklist is complete and verified, the agent MUST commit the changes.
+2.  **Execute Remediation Checklist:** The agent will execute the remediation checklist using the Task-Group-by-Task-Group workflow in §5.2 (including the One Task Group Per Session mandate).
+    -   **COMMIT POINT:** After each Task Group of the remediation checklist is complete and verified, the agent MUST commit the changes.
     -   Upon completion, the agent MUST notify the user and await further instructions.
 
 ## 6. Phase Completion Criteria

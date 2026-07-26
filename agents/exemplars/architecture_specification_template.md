@@ -470,7 +470,7 @@ sub-letters for multiple fixes batched into the same release (`B.0.10.3a`, `B.0.
 > scope, rationale, and regression detail live in that release's maintenance batch file,
 > not here. Logs Tier 3 bug fixes and Future Feature promotions (Track B) that add,
 > modify, or supersede a Requirement — including a divergence discovered and resolved
-> during ordinary Development's Final Phase (`agents/DEVELOPMENT.md` §5.2.4 item 5), not
+> during ordinary Development's Final Task Group (`agents/DEVELOPMENT.md` §5.2.4 item 5), not
 > only during Maintenance Phase.
 
 Numbered by the release version each amendment ships in (`F.<version>`, e.g. `F.0.10.0`),

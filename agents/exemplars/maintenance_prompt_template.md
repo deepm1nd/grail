@@ -25,14 +25,14 @@ session, no memory of any prior one.
 **Code Review Policy** is governed by `AGENTS.md` §2.2. **Tool tiers and submit mechanics**
 are governed by `agents/AGENT_TOOL_POLICY.md`. **After every `submit`, stop and wait — the
 user will say "Continue" or "Proceed" to resume; this is normal, expected flow, not an
-error.** **Session Unit** for this session is one Maintenance Batch item (Checklist Phase)
+error.** **Session Unit** for this session is one Maintenance Batch item (Checklist Task Group)
 — work only within that scope, never beyond it, regardless of remaining capacity.
 
-**Phase-boundary scope rule (`agents/MAINTENANCE.md` §10) — read this before touching the
-Checklist:** you check **only your own Phase's Exit Criteria** when you finish your item.
-You do **not** check, confirm, or comment on the next Phase's Entry Criteria — that Phase
+**Task-Group-boundary scope rule (`agents/MAINTENANCE.md` §10) — read this before touching the
+Checklist:** you check **only your own Task Group's Exit Criteria** when you finish your item.
+You do **not** check, confirm, or comment on the next Task Group's Entry Criteria — that Task Group
 is always opened in a different, later session, and it checks its own Entry Criteria
-itself at that time. Reaching forward into the next Phase's section of the Checklist,
+itself at that time. Reaching forward into the next Task Group's section of the Checklist,
 even just to glance at it, is out of scope for this session.
 
 **Escape valve (`agents/MAINTENANCE.md` §9/§12):** if your item's actual scope, once
@@ -53,7 +53,7 @@ to resolve it yourself.
 **Read now (mandatory, in this order):**
 1. `[projectname]_v[N.NN.NN]_checklist.md` — your primary working document. **Edit in
    place only.** Never copy/rename/version it. This is the *only* doc file you may edit,
-   and only within your current, identified Phase (item) — every other file is read-only;
+   and only within your current, identified Task Group (item) — every other file is read-only;
    an apparent error is an Escalation Trigger, never a same-session fix.
 2. `[projectname]_[type]_v[N.NN.NN].md` — the current item's `§0–§3` content (Elicitation,
    Impact Triage, and — full-path items only — Requirements/Test/Verification,
@@ -110,7 +110,7 @@ docker compose -f deploy/docker-compose.dev.yml up -d
 Docker unavailable → treat as a missing prerequisite (step 4's rule).
 
 ### 6. Verify repository state before touching any code
-Run the project's actual build/test commands. **If the Checklist claims this item's Phase
+Run the project's actual build/test commands. **If the Checklist claims this item's Task Group
 is complete but either fails: stop the session now** — write the discrepancy into your
 session report (step 9) and stop. Do not silently fix and continue.
 
@@ -126,7 +126,7 @@ wider unilaterally (this prompt's Escape Valve note above; `agents/MAINTENANCE.m
 Same discipline as Development: no reordering, no skipping ahead, no omitting a DoD
 sub-item without explicit user permission this session. Check off DoD sub-items the
 moment each is satisfied. **The instant a task's DoD is satisfied:** if it has a real
-Verification Method, append its entry to `test/[projectname]_phase_[N]_verification.md`-
+Verification Method, append its entry to `test/[projectname]_task_group_[N]_verification.md`-
 equivalent evidence for this item (paste actual terminal output verbatim, never a
 paraphrase), plus any screenshots/clips per the project's existing evidence convention.
 **If the task involves adding or renaming a test per the Regression Scaffold naming
@@ -150,9 +150,9 @@ the end of the session** — no further progress. The user takes this report to 
 Verification session (`agents/MAINTENANCE.md` §10).
 
 ### 10. On normal completion only: final wrap-up submit and stop
-Confirm build/tests green. Notify the user this item's Checklist Phase is complete. **Do
+Confirm build/tests green. Notify the user this item's Checklist Task Group is complete. **Do
 not begin the next item**, regardless of remaining capacity — it starts in a new session.
-**Do not check the next item's Entry Criteria either** — per this prompt's Phase-Boundary
+**Do not check the next item's Entry Criteria either** — per this prompt's Task-Group-Boundary
 Scope Rule above, that belongs entirely to the session that opens it.
 
 ### 11. Session-End Checklist
@@ -171,10 +171,10 @@ Scope Rule above, that belongs entirely to the session that opens it.
 - [ ] No half-applied change left uncommitted.
 - [ ] `scripts/setup_env.sh`/`.bat` reflect any prerequisites self-installed this session.
 - [ ] You have not begun any task belonging to another item.
-- [ ] You checked only your own Phase's Exit Criteria — not the next Phase's Entry
+- [ ] You checked only your own Task Group's Exit Criteria — not the next Task Group's Entry
       Criteria.
 - [ ] The Checklist was the only doc file you edited, bracket-content-only, within your
-      current item's Phase only.
+      current item's Task Group only.
 - [ ] You did not perform a broad repository scan or read a large file in full without a
       targeted-extraction justification.
 - [ ] Every task/sub-task you completed has a matching `submit` and its Checklist

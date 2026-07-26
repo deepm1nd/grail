@@ -81,9 +81,9 @@ and proceeds directly to the Jules Checklist/Prompt.)*
 
 ### §4 — Task Decomposition (M4) — *full path only*
 Tasks for this item live in `[projectname]_v[N.NN.NN]_checklist.md` (this item's own
-`## Phase [ID]` block) — not duplicated here. **Self-check:** every task has a
+`## Task Group [ID]` block) — not duplicated here. **Self-check:** every task has a
 Verification Method and DoD (confirmed in the Checklist file itself). *(A lightweight-path
-item's Checklist Phase is generated directly from §1's exit, with no separate M4 pass.)*
+item's Checklist Task Group is generated directly from §1's exit, with no separate M4 pass.)*
 
 ### Verification (filled in after Jules reports back)
 - Matches briefed content (§0–§3, or §0–§1 for a lightweight item): Y/N — [note if N]

@@ -80,7 +80,7 @@ explicitly designed to allow sublicensing under different, more restrictive term
   - **Design Step 5** checks only the project's proposed **direct** dependencies against this
     criterion, as an extension of the existing Preferred/Forbidden/Requires-Approval match —
     no `Cargo.lock` exists yet, so transitive dependencies are not yet knowable at all.
-  - **Development Phase 0** runs the first real `cargo deny check licenses` against the
+  - **Development Task Group 0** runs the first real `cargo deny check licenses` against the
     actual resolved `Cargo.lock` — the earliest point a transitive violation is genuinely
     catchable — and CI's Stage 5 (`agents/CI.md`) re-runs it on every subsequent push.
 

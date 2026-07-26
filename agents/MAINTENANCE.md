@@ -82,7 +82,7 @@ report reads **"traceability file missing entirely"** rather than merely incompl
 **In-flight project** (Development Plan not yet at Final Verification): finishes its own
 Plan first — an urgent bug uses the existing Escalation Trigger mechanism
 (`development_plan_template.md` §13), not early Maintenance entry. If it predates v0.9.4,
-it runs the same Readiness Audit (Appendix G) once it reaches its own Final Phase, rather
+it runs the same Readiness Audit (Appendix G) once it reaches its own Final Task Group, rather
 than a separate untracked retrofit.
 
 ## 4. Routing: Every Item Starts With Claude
@@ -199,11 +199,11 @@ Verification Method, DoD, Submit Point — `development_plan_template.md` §8's 
 reused directly). **Self-check after M4:** every task has a Verification Method and DoD —
 mechanical completeness check, not a gated audit. **Complexity Score
 (`development_plan_template.md` §8's formula, reused unmodified) applied across the
-batch's full task list** determines Phase count in the generated Checklist — one batch is
-at least one Phase, more if the ceiling requires a split, exactly as an over-ceiling
-Development phase already gets split.
+batch's full task list** determines Task Group count in the generated Checklist — one batch is
+at least one Task Group, more if the ceiling requires a split, exactly as an over-ceiling
+Development Task Group already gets split.
 
-**One item = one Phase** in the generated `maintenance_checklist_template.md` output —
+**One item = one Task Group** in the generated `maintenance_checklist_template.md` output —
 Entry Criteria from M0/M2's preconditions (or, on the lightweight path, from M1's exit
 directly), Exit Criteria = Verified (§10 below), tasks from M4 (full path) or directly
 from M1's exit (lightweight path), identical Task/DoD/Submit-Point/Session-Log shape as
@@ -211,7 +211,7 @@ Development's own Checklist.
 
 **Jules artifacts — always generated, one prompt + one checklist per batch**, regardless
 of how many items in the batch took the lightweight path versus the full path. Each
-item's own Phase within these shared files reflects only the depth its own path actually
+item's own Task Group within these shared files reflects only the depth its own path actually
 produced.
 
 ## 6a. Regression Scaffold — Definition, Naming Convention, and Retrofit Policy
@@ -375,15 +375,15 @@ Escalation Trigger already covers it.
 A Claude session reviews Jules's result against the item's M0–M3 content (or, for a
 lightweight-path item, its M1 exit statement) and Checklist: does it match root
 cause/scope, was the stated regression scope actually run, does anything suggest the scope
-was too narrow. Marks the Phase's Exit Criteria met in the Checklist. Flags — does not
+was too narrow. Marks the Task Group's Exit Criteria met in the Checklist. Flags — does not
 silently fix — anything inconsistent. Does not submit/merge/tag; that stays user-directed.
 
-**Phase-boundary scope rule:** a session verifying/closing Phase N's Exit Criteria checks
-**only Phase N's own Exit Criteria** — it never also checks, confirms, or comments on
-Phase N+1's Entry Criteria. Phase N+1 is always opened in a fresh session, and that
+**Task-Group-boundary scope rule:** a session verifying/closing Task Group N's Exit Criteria checks
+**only Task Group N's own Exit Criteria** — it never also checks, confirms, or comments on
+Task Group N+1's Entry Criteria. Task Group N+1 is always opened in a fresh session, and that
 session checks its own Entry Criteria itself, at that time — this is not a redundant
 re-check, it is the correct and only place that check belongs. A session that reaches
-forward into the next Phase's Checklist section, however trivial the look-ahead seems, is
+forward into the next Task Group's Checklist section, however trivial the look-ahead seems, is
 out of its own scope.
 
 ## 11. Release Checklist and Versioning
@@ -400,7 +400,7 @@ out of its own scope.
   what a future multi-line model would need — adding one later is additive.
 
 **Every release (patch baseline):**
-- [ ] Every item's Checklist Phase is Exit-Criteria-met (Verified), or explicitly carried
+- [ ] Every item's Checklist Task Group is Exit-Criteria-met (Verified), or explicitly carried
       over to the next batch (noted, not silently dropped)
 - [ ] SemVer bump re-confirmed against the batch-open roll-up (§8/§11); any mid-batch
       correction (§8's sole exception) accounted for
