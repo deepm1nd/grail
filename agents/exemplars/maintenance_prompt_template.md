@@ -2,7 +2,7 @@
 
 > Produced once per batch, at the end of the batch's Claude-side work (M1 exit for a
 > lightweight-only batch, or M4 for a batch containing full-path items), saved as
-> `maintenance/[projectname]_v[N.NN.NN]_prompt.md` — the real target version from the moment the
+> `[projectname]_v[N.NN.NN]_prompt.md` — the real target version from the moment the
 > batch opens (`agents/MAINTENANCE.md` §5/§8/§11); no `_open` placeholder stage, no
 > release-time rename, except a rare escalation-driven mid-batch correction. Reused
 > verbatim at the start of every session working this batch — not regenerated per
@@ -51,15 +51,15 @@ to resolve it yourself.
   'START,ENDp' file` for line ranges; `grep -n "pattern" -A N file` for sections.
 
 **Read now (mandatory, in this order):**
-1. `maintenance/[projectname]_v[N.NN.NN]_checklist.md` — your primary working document. **Edit in
+1. `[projectname]_v[N.NN.NN]_checklist.md` — your primary working document. **Edit in
    place only.** Never copy/rename/version it. This is the *only* doc file you may edit,
    and only within your current, identified Task Group (item) — every other file is read-only;
    an apparent error is an Escalation Trigger, never a same-session fix.
-2. `maintenance/[projectname]_[type]_v[N.NN.NN].md` — the current item's `§0–§3` content (Elicitation,
+2. `[projectname]_[type]_v[N.NN.NN].md` — the current item's `§0–§3` content (Elicitation,
    Impact Triage, and — full-path items only — Requirements/Test/Verification,
    Classification/Architecture Synthesis/Impact Assessment). A **lightweight-path** item's
    record ends at §1 — there is no §2/§3 to read for it. Extract with:
-   `awk '/^## Item [ID]/,/^## Item /' maintenance/[projectname]_[type]_v[N.NN.NN].md` (replace `[ID]`
+   `awk '/^## Item [ID]/,/^## Item /' [projectname]_[type]_v[N.NN.NN].md` (replace `[ID]`
    with the actual item ID from the Checklist).
 3. If a UI/media asset is involved: verify the item's Asset Manifest (batch file §3,
    full-path items only) is satisfied by `assets/{html,images,audio,video}/`. A missing
@@ -72,7 +72,7 @@ missing clarity — stop, extract only the named section, resolve it, then conti
 
 | Uncertainty type | File | Section | Extraction method |
 |---|---|---|---|
-| Requirement wording, this item's classification | `maintenance/[projectname]_[type]_v[N.NN.NN].md` | This item's `§2`/`§3` (full path) or `§1` (lightweight) | `awk '/^## Item [ID]/,/^## Item /' FILE` |
+| Requirement wording, this item's classification | `[projectname]_[type]_v[N.NN.NN].md` | This item's `§2`/`§3` (full path) or `§1` (lightweight) | `awk '/^## Item [ID]/,/^## Item /' FILE` |
 | Existing Requirement text, unrelated to this item | Architecture Specification (as-built) | §3 (Requirements) | `grep -n "REQ-ID" FILE -A 10` |
 | Test-to-requirement traceability, naming convention | `test/[projectname]_requirement_traceability.md`, `agents/MAINTENANCE.md` §6a | — | `grep -n "REQ-ID" FILE -A 5`; `awk '/^## 6a\./,/^## 7\./' agents/MAINTENANCE.md` |
 | Regression scope guidance by project type | `agents/MAINTENANCE.md` | §7 | `awk '/^## 7\./,/^## 8\./' FILE` |

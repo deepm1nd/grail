@@ -30,7 +30,7 @@ Stack & Dependencies · 7. Constraints & Assumptions · 8. Risks & Technical Deb
 1.5 **Definitions, Acronyms, Abbreviations** — local to this doc; durable terms go in §11.1.
 1.6 **References** — originating concept statement, prior spec if any, governing process
 docs, external standards cited elsewhere (ISO 42010, RFCs).
-1.7 **Open Items Register** (`CLAUDE.md` §3.11) — the running, project-wide log of every
+1.7 **Open Items Register** (`CLAUDE.md` §3.12) — the running, project-wide log of every
 item that has ever entered RATS, one row per item, updated at every Step's gate from Step 1
 onward: ID, originating Step, one-line description, and outcome (`Resolved` /
 `Deferred to Step N` / `Future Feature` / `Rejected` — never left blank past the gate that
@@ -129,7 +129,7 @@ Originating ID if one was reserved, and removes it from this section at that poi
 | 9 | Traceable | No stable ID / no link to origin |
 
 ### 3.2. Test Case Catalog
-Every Test Case referenced anywhere (§2.3/§2.4 Verification Protocols, §3.3) is defined
+Every Test Case referenced anywhere (§2.3/§2.4 Verification Protocols, §3.4) is defined
 here first — an undefined `TEST-[NNN]` reference is a Traceable-criterion failure. Unique
 ID `TEST-[NNN]`, traces to ≥1 Req ID, states type, states the DoD this test enforces.
 
@@ -138,7 +138,7 @@ ID `TEST-[NNN]`, traces to ≥1 Req ID, states type, states the DoD this test en
 Type declared here is mechanically bound, at Development time, to the implementing test's
 own function name (`test_<type>_<nnnn>__description`) and, for Integration/System/
 Acceptance types, to the actual crates/binary that test compiles into — checked
-mechanically at Step 9 (`agents/DESIGN.md` §5.9). Declaring a Type here is a real, checkable
+mechanically at Step 9 (`CLAUDE.md` §3.4). Declaring a Type here is a real, checkable
 commitment about how the eventual test will be built, not free-text intent that can
 silently diverge from what gets implemented.
 
@@ -157,7 +157,7 @@ Per `agents/RUST_PREFERENCES.md` §2.
 | Unbounded "and so on" enumeration | Exhaustive `match` needs every variant named | Enumerate fully, or flag as needing `#[non_exhaustive]` |
 | Implicit shared-mutable-state w/o ownership | Needs an explicit owner/concurrency answer | Resolve ownership/concurrency, or flag as §4.7/§4.9 pending |
 
-### 3.3. Traceability Matrix
+### 3.4. Traceability Matrix
 Master cross-reference; Step 7 checks completeness.
 
 **Doc Note** column *(optional)*: which Diátaxis quadrant(s), if any, this Req ID maps to
@@ -170,7 +170,7 @@ forward via `development_plan_template.md` §8's Design Refs field, not re-deriv
 | Req ID | Component / Unit | Test ID | Verification Artifact | Doc Note |
 |---|---|---|---|---|
 
-### 3.4. Acceptance Criteria Detail
+### 3.5. Acceptance Criteria Detail
 Per requirement needing more than a one-line Verification Protocol: preconditions, steps,
 postconditions, edge cases. One subsection per Req ID.
 
@@ -290,7 +290,7 @@ For any human-facing interface: information architecture, key flows (cross-ref �
 accessibility, framework/crate + architectural implication for Rust/WASM UI. State
 explicitly if no human-facing interface exists.
 
-**Every logged mockup gets a prose description here** (`CLAUDE.md` §3.6) — information
+**Every logged mockup gets a prose description here** (`CLAUDE.md` §3.7) — information
 architecture, key flows, structural detail — not just a Manifest row. Where a later step
 introduces a feature implying a UI change (new page/view/setting/structural change) not yet
 in the mockup, that gap is flagged (§3.1) and noted here pending an updated mockup.
@@ -300,7 +300,7 @@ If authorization (roles/permissions): the actual page/setting/admin surface wher
 **assigned, permissioned, and revoked** — cross-ref §4.8's Security Architecture, which owns
 the underlying threat/permission model.
 
-**Asset Manifest.** Per `CLAUDE.md` §2.2/§3.6. Columns: `Filename | Type (html/image/audio/
+**Asset Manifest.** Per `CLAUDE.md` §2.2/§3.7. Columns: `Filename | Type (html/image/audio/
 video) | Repository Target Path | Authoritative/Informative For | Authority Level (mockups:
 Authoritative / Authoritative-with-changes / Conceptual / Firm-layout-content-forthcoming /
 other user-stated label) | Provided At (Step)`. Filenames immutable once logged; target
@@ -308,7 +308,7 @@ paths fixed (`assets/html/`, `assets/images/`, `assets/audio/`, `assets/video/`)
 presumptively authoritative for structure/behavior absent a stated Authority Level; images
 source Design System content. Every logged asset referenced substantively somewhere in this
 section, not manifest-only. **Assets themselves are never carried in Design-Phase handoff
-notes** (`CLAUDE.md` §3.6/§3.9) — referenced by filename only; actual files are a
+notes** (`CLAUDE.md` §3.7/§3.10) — referenced by filename only; actual files are a
 Development-Phase input.
 
 | Filename | Type | Repository Target Path | Authoritative/Informative For | Authority Level | Provided At (Step) |

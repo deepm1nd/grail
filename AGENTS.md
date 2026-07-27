@@ -37,7 +37,7 @@ Agents without direct execution capabilities (such as conversational AI assistan
 **No cross-session memory. Every Design Phase step runs in its own, separate session.** A
 phase guide's individual steps (or a repeated Step such as a Step 7 or Step 9 re-run) each
 run in a separate chat session with zero memory of any prior session — this is not merely
-permitted but a hard rule (see `agents/DESIGN.md` §5 and `CLAUDE.md` §1/§3.3). Anything a
+permitted but a hard rule (see `agents/DESIGN.md` §5 and `CLAUDE.md` §1/§3.4). Anything a
 later session needs to resume, review, or approve — including any handoff note — MUST be
 delivered as an actual file in the session that produces it, never left only as chat text
 the user would have to copy out manually; the
@@ -50,8 +50,8 @@ checks what's actually been provided directly against that note's own file list 
 mechanical comparison, not independent judgment of what the step "should" need — and asks
 for anything the list names but wasn't provided. Delivered files are versioned to avoid name
 collisions across steps/sessions, and every file touched in a session is checked for changes
-and re-presented before handoff, not left as a partial subset. See `CLAUDE.md` §3.9 for the
-concrete requirement, and §3.10 for the Step 7 Backtrack Protocol specifically.
+and re-presented before handoff, not left as a partial subset. See `CLAUDE.md` §3.10 for the
+concrete requirement, and §3.11 for the Step 7 Backtrack Protocol specifically.
 
 ### 1.5.3. Standard Procedure (No Autonomy Toggle)
 A phase guide defines its own fixed content-generation procedure — for this repository's
@@ -133,7 +133,7 @@ for which steps, if any, are exempt from its standard procedure.
     - Is never treated by a resuming session as evidence any task is complete — only the
       Task Group's own Final Wrap-Up Submit closes it out.
 -   **Stable Identifier Assignment:** Any property requiring a unique ID under a phase guide's schema (a requirement, user story, test case, task, decision record, threat, or equivalent) MUST receive that ID **at first draft**, not deferred to a later "finalization" pass. IDs are never renumbered or reused once assigned, even if a later correction round rejects or merges the item the ID was assigned to — a rejected or merged item's ID is retired (recorded as superseded), never reassigned to a different item. This preserves the traceability links other documents may already have written against that ID.
--   **Explicit Backtracking:** A phase guide may permit the user to return to a previously approved step to refine it. When a later step reveals that an earlier step's content — flagged assumption or not — was incorrect, the agent MUST: (1) name the originating step and the specific content at issue, rather than silently patching the current step's output around the problem; (2) present the user with the choice between a local patch at the current step versus formally re-opening the earlier step, rather than deciding unilaterally which is warranted, since this determines how much already-approved work needs re-approval; (3) if the earlier step is re-opened, preserve all already-approved content from steps after it, revisiting that later content only as needed once the earlier step is re-approved — this is governed by the same additive-only, no-silent-elision rules as the rest of this section, not a license to discard later work wholesale; (4) treat the correction as a "Major Change" per the relevant phase guide's notification mandate whenever it materially changes scope, requirements, or architecture. **Exception: findings from Step 7 (Spec Audit) or Step 9 are never handled via the local-patch-vs-reopen choice above — they always require reopening the originating step, via the full multi-session workflow or the Post-Audit Fix Pass (`CLAUDE.md` §3.5.1) — a compressed single-session alternative available only on the user's explicit `POST AUDIT FIX` instruction, which fixes every finding (plus anything discovered incidentally along the way, never left flagged-but-unfixed) and still mandatorily ends in a fresh Step 7/9 audit session. See `CLAUDE.md` §3.10 for the concrete, mandatory Step 7 Backtrack Protocol, including its Trivial/Substantive severity tiering.**
+-   **Explicit Backtracking:** A phase guide may permit the user to return to a previously approved step to refine it. When a later step reveals that an earlier step's content — flagged assumption or not — was incorrect, the agent MUST: (1) name the originating step and the specific content at issue, rather than silently patching the current step's output around the problem; (2) present the user with the choice between a local patch at the current step versus formally re-opening the earlier step, rather than deciding unilaterally which is warranted, since this determines how much already-approved work needs re-approval; (3) if the earlier step is re-opened, preserve all already-approved content from steps after it, revisiting that later content only as needed once the earlier step is re-approved — this is governed by the same additive-only, no-silent-elision rules as the rest of this section, not a license to discard later work wholesale; (4) treat the correction as a "Major Change" per the relevant phase guide's notification mandate whenever it materially changes scope, requirements, or architecture. **Exception: findings from Step 7 (Spec Audit) or Step 9 are never handled via the local-patch-vs-reopen choice above — they always require reopening the originating step, via the full multi-session workflow or the Post-Audit Fix Pass (`CLAUDE.md` §3.6.1) — a compressed single-session alternative available only on the user's explicit `POST AUDIT FIX` instruction, which fixes every finding (plus anything discovered incidentally along the way, never left flagged-but-unfixed) and still mandatorily ends in a fresh Step 7/9 audit session. See `CLAUDE.md` §3.11 for the concrete, mandatory Step 7 Backtrack Protocol, including its Trivial/Substantive severity tiering.**
 
 ### 2.2. Mandate for Protocol Adherence
 **MANDATE: The agent MUST strictly adhere to all protocols and rules defined in the `agents/` directory.**
@@ -285,7 +285,7 @@ session. See `agents/DEVELOPMENT.md` §5.2 for the concrete workflow this constr
 **"APPROVED" — exact, all-uppercase, standalone — is the only token that satisfies an
 approval requirement.** "Continue," "Proceed," "Go ahead," and any other phrasing are
 **not** accepted substitutes, for a Step Approval Gate, a Minor Change, a Major Change,
-or preparation of a handoff package/file bump (`CLAUDE.md` §3.9) — all four require
+or preparation of a handoff package/file bump (`CLAUDE.md` §3.10) — all four require
 exact `APPROVED`.
 1.  **Propose with ID and Wait:** state the proposal, assign a unique ID (e.g.
     `PLAN-20251010-0001`), wait for exact `APPROVED`.
@@ -302,7 +302,7 @@ exact `APPROVED` before proceeding; no lighter-weight phrasing substitutes.
 
 **Other exact-phrase decision tokens** exist for specific, narrower mechanisms and are
 distinct from `APPROVED` — each is its own token, not a synonym or substitute for it:
-`BACKTRACK APPROVED` and `POST AUDIT FIX` (`CLAUDE.md` §3.5.1, choosing between a
+`BACKTRACK APPROVED` and `POST AUDIT FIX` (`CLAUDE.md` §3.6.1, choosing between a
 full backtrack and a compressed single-session fix pass).
 
 ### 3.2. Responding to User Questions

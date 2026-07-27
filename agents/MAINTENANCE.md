@@ -18,32 +18,6 @@ own files — `development_plan_template.md`, `development_checklist_template.md
 `dev_prompt_template.md` are never modified or shared to serve this process, to keep the
 proven Development pipeline's own files and outputs unaffected.
 
-**Directory: top-level `maintenance/`, never `docs/`.** All three of this phase's generated
-artifacts (batch file, checklist, Jules prompt — table below) live under a dedicated
-top-level `maintenance/` directory — mirroring `agents/RELEASE.md` §5's `web/` precedent,
-not nested inside project-root `docs/`, which is reserved for `docs/[project]_dev_risks.md`
-and unrelated to Maintenance Phase process artifacts. `test/` (Development's own
-verification-artifact convention) is the same pattern applied a third time: one top-level,
-purpose-named directory per distinct generated-artifact category, rather than subdividing
-`docs/` by purpose.
-
----
-
-## Reading Table — Which Grail Files Each M-Stage Needs
-
-**For a Claude session (Advisory Mode, `CLAUDE.md` §1):** always read `AGENTS.md` and this
-file regardless of M-stage. Beyond that, fetch only the row below matching the M-stage this
-session is running. Uncertain relevance → read it anyway (`CLAUDE.md` §1's escape valve). A
-repeated/re-triaged item re-reads whatever the original pass read.
-
-| M-Stage | Additional grail files needed |
-|---|---|
-| M0 — Item Intake | None beyond the invariant set (project's own `03_requirements`/`04_test_strategy` files, not grail files). |
-| M1 — Impact Triage | None beyond the invariant set, unless Question 5 (new dependency/infra service) is plausibly in play — then `PREFERRED_DEPENDENCIES.md`/`PREFERRED_SERVICES.md`. |
-| M2 — Requirements, Test, Verification *(full path only)* | None beyond the invariant set (the 9 Requirement Quality Criteria / Requirement Smell catalog referenced here is `agents/DESIGN.md` §4.5). |
-| M3 — Classification, Architecture Synthesis, Impact Assessment *(full path only)* | None beyond the invariant set. |
-| M4 — Task Decomposition *(full path only)* | `agents/exemplars/development_plan_template.md` §8 (Task Template shape, Complexity Score formula). |
-
 ---
 
 ## 1. Relationship to Design and Development
@@ -223,7 +197,7 @@ path.** Determines Tier, Type, and SemVer recommendation for the item:
   10% performance gain and a 2x one are the same *kind* of change with different
   *magnitude*, and magnitude — not category — drives the recommendation.
 - **Asset Manifest** (feature/enhancement items with visual/media content only): same
-  mechanics as `CLAUDE.md` §3.6 — table (Filename, Type, Repository Target Path,
+  mechanics as `CLAUDE.md` §3.7 — table (Filename, Type, Repository Target Path,
   Authoritative/Informative For, Authority Level, Provided At), fixed paths
   (`assets/html|images|audio|video/`), never re-attached at a session boundary, only
   referenced by filename.
@@ -290,7 +264,7 @@ covering multiple Test IDs of the **same** Type names as
 `test_<type>_0042_0043__description()` (description still 3–5 words), and nextest
 substring match on either ID still resolves it. **A single test cannot legitimately cover
 multiple Test IDs of different Types** — that is exactly the Conjoined-Twins mislabeling
-risk `agents/DESIGN.md` §5.9 Step 9's sample-audit checks for; if two cited Test IDs genuinely
+risk `CLAUDE.md` §3.4 Step 9's sample-audit checks for; if two cited Test IDs genuinely
 have different Types, they need separate implementing tests, not one test wearing two
 labels.
 
@@ -314,7 +288,7 @@ nature; the token is still stated explicitly rather than assumed, since an isola
 component-level Playwright test (a single-page unit-style check) is a legitimate case too.
 
 **Test ID → Requirement ID mapping** stays exactly where it already lives — the Test Case
-Catalog (Spec §3.2) and Traceability Matrix (Spec §3.3), which already support
+Catalog (Spec §3.2) and Traceability Matrix (Spec §3.4), which already support
 many-to-many. The naming convention above only fixes the previously-missing link: Test ID
 → actual runnable name, plus (new) Test ID → actual exercised Type.
 
@@ -341,7 +315,7 @@ finished workflow). **Required behavior:**
   the resolved test binary genuinely links more than one project crate** (via `cargo
   metadata`/nextest binary listing) — a Type-labeled-Integration citation resolving to a
   test compiled into a single-crate binary is flagged as a **Type/Reality Mismatch**, the
-  mechanical check `agents/DESIGN.md` §5.9 Step 9 relies on to run this exhaustively rather than by
+  mechanical check `CLAUDE.md` §3.4 Step 9 relies on to run this exhaustively rather than by
   sample.
 - Flags, as distinct categories: **orphan Requirement IDs** (a Core Requirement ID with no
   traceability row at all — requires the Architecture Specification's Requirement list to
@@ -420,9 +394,9 @@ no placeholder/`_open` staging name, no rename step at release:
 
 | Content | Template | Filename (assigned at batch-open) |
 |---|---|---|
-| Spec-equivalent (M0–M3, per item) | `maintenance_batch_template.md` | `maintenance/[projectname]_[type]_v[N.NN.NN].md` |
-| Checklist (M4 output, or M1 exit on the lightweight path) | `maintenance_checklist_template.md` | `maintenance/[projectname]_v[N.NN.NN]_checklist.md` |
-| Jules hand-off prompt | `maintenance_prompt_template.md` | `maintenance/[projectname]_v[N.NN.NN]_prompt.md` |
+| Spec-equivalent (M0–M3, per item) | `maintenance_batch_template.md` | `[projectname]_[type]_v[N.NN.NN].md` |
+| Checklist (M4 output, or M1 exit on the lightweight path) | `maintenance_checklist_template.md` | `[projectname]_v[N.NN.NN]_checklist.md` |
+| Jules hand-off prompt | `maintenance_prompt_template.md` | `[projectname]_v[N.NN.NN]_prompt.md` |
 
 Because batch composition is fixed at open time (§5) — no drip-feed — the target version
 is computed **once, at batch-open**, as the roll-up across every item already known to be

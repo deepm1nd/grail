@@ -1,7 +1,7 @@
 # Maintenance Checklist: [projectname]_v[N.NN.NN]_checklist — Batch Variant
 
 > Companion to `maintenance_batch_template.md` and `agents/MAINTENANCE.md`. **Named
-> `maintenance/[projectname]_v[N.NN.NN]_checklist.md` from the moment the batch opens** — batch
+> `[projectname]_v[N.NN.NN]_checklist.md` from the moment the batch opens** — batch
 > composition is fixed at open time (`agents/MAINTENANCE.md` §5), so the target version is
 > known immediately and there is no `_open` placeholder stage or release-time rename
 > (`agents/MAINTENANCE.md` §8/§11), except a rare escalation-driven mid-batch correction.

@@ -205,7 +205,7 @@ UI assets.
    RELEASE's own 9 Steps (Elicitation → Scaffold → Terminology/Concept Spine → Tutorials/
    How-To Guides/Explanation → Reference-Sync → Finalize → Consistency Audit), producing a
    Diátaxis-organized, mdBook-built docs site under `web/site/docs/` — then hands off to
-   Jules via `release/[projectname]_release_v[N.NN.NN]_prompt.md` for the mechanical build/test/
+   Jules via `[projectname]_release_v[N.NN.NN]_prompt.md` for the mechanical build/test/
    publish pipeline. Repeat for every subsequent release.
 
 ## Standards Enforced
@@ -307,7 +307,7 @@ Development's Final Verification, first release only):
 Output is a Diátaxis-organized, mdBook-built docs site under `web/site/docs/`, versioned per
 the release's own SemVer tier (patch: update `latest` in place; minor/major: new
 version-path snapshot; major: required migration guidance), then handed to Jules via
-`release/[projectname]_release_v[N.NN.NN]_prompt.md` for the mechanical build/test/publish pipeline
+`[projectname]_release_v[N.NN.NN]_prompt.md` for the mechanical build/test/publish pipeline
 — see `agents/RELEASE.md` for full detail.
 
 ## Metrics & Badges (Generated Projects)

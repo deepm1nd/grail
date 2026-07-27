@@ -92,7 +92,7 @@ Mutation testing: deliberately injects small bugs (flips a comparison operator, 
 return value) and confirms the existing suite actually fails. A suite with high line
 coverage but a low mutation-kill rate is exactly the "coverage that isn't validation"
 failure `agents/DEVELOPMENT.md` §5.2 step 4 describes, and is the concrete spot-check tool
-for any component Step 9's sample-audit (`agents/DESIGN.md` §5.9) flags as suspicious — a
+for any component Step 9's sample-audit (`CLAUDE.md` §3.4) flags as suspicious — a
 "line hitter," "Mockery," or "Conjoined Twins" candidate.
 Install: `cargo install cargo-mutants --locked` (or `taiki-e/install-action` in CI, faster
 than a source build).

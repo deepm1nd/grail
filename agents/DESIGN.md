@@ -3,7 +3,6 @@
 See `CHANGELOG.md` for full version history.
 
 ## Table of Contents
-- [Reading Table — Which Grail Files Each Step Needs](#reading-table--which-grail-files-each-step-needs)
 - [1. Introduction](#1-introduction)
 - [2. Goal](#2-goal)
   - [2.1. Multi-File Packaging (Scale-Dependent)](#21-multi-file-packaging-scale-dependent)
@@ -14,30 +13,7 @@ See `CHANGELOG.md` for full version history.
 
 ---
 
-## Reading Table — Which Grail Files Each Step Needs
-
-**For a Claude session (Advisory Mode, `CLAUDE.md` §1):** always read `AGENTS.md` and this
-file regardless of Step. Beyond that, fetch only the row below matching the Step this session
-is running — not the full grail set every session. Uncertain relevance → read it anyway
-(`CLAUDE.md` §1's escape valve). A repeated run of a Step (backtrack, extra pass) re-reads
-whatever the original run read.
-
-| Step | Additional grail files needed |
-|---|---|
-| 1 — Concept Intake & Context Mapping | None beyond the invariant set. |
-| 2 — User Story Elicitation | None beyond the invariant set. |
-| 3 — Requirement Decomposition | None beyond the invariant set (Requirement Smell catalog is inline, §4.5 below). |
-| 4 — Test Identification | None beyond the invariant set (9-criteria table and Requirement Smell catalog are inline, §4.5 below). |
-| 5 — Verification Feasibility | `PREFERRED_DEPENDENCIES.md`, `PREFERRED_TOOLS.md`, `PREFERRED_SERVICES.md`, `RUST_PREFERENCES.md` §0 (MSRV). Conditionally, if the project has an ESP32/ESP-IDF component: `ESP32_ESPIDF_RUST_BUILD_GUIDE.md`. Also needed here: `CI.md` (for CI Stage Applicability) and `DEVELOPMENT.md` §5.2.4 (for Productization Applicability). |
-| 6 — Final Architecture Synthesis (ISO 42010) | None beyond the invariant set. |
-| 7 — Spec Audit & Phase-End QA | None beyond the invariant set. |
-| 8 — Development Plan & Checklist | All four `agents/exemplars/*.md` templates (`architecture_specification_template.md`, `development_plan_template.md`, `development_checklist_template.md`, `dev_prompt_template.md`); `CI.md` (`ci.yml` generation); `DEVELOPMENT.md` §5.2.2/§5.2.3 (README/CI/license-disclosure reconciliation this Step's drafts feed). |
-| 9 — Plan & Checklist Audit | `agents/exemplars/development_plan_template.md` §15 only (run directly as the audit checklist). |
-
----
-
 ## 1. Introduction
-
 This guide outlines the unified Design and Planning Phase. This is the most critical phase for ensuring a project's success. All session-level rules are defined in `AGENTS.md` and all script and command rules are in `agents/SCRIPT_RULES.md`. Both MUST be adhered to at all times.
 
 **Scope:** per `AGENTS.md`, this guide governs Rust projects only. The exemplar templates
@@ -77,7 +53,7 @@ The final documentation set MUST adhere to the following principles:
 ## 4. Agent Responsibilities
 -   **Sole Responsibility:** The agent is solely responsible for the technical quality, completeness, and rigor of the design.
 -   **Proactive Elicitation:** If information is insufficient, the agent MUST ask well-formed questions to elicit the required detail.
--   **Major Change Notification:** The agent MUST notify the user if any iteration causes a "Major Change" to the architecture. Where this arises from returning to a previously approved step (rather than from forward iteration within the current step), the explicit backtracking protocol in `AGENTS.md` §2.1 governs how the originating step is identified and how much prior work is reopened — except for findings produced by Step 7 (Spec Audit), which always follow the dedicated Step 7 Backtrack Protocol in `CLAUDE.md` §3.10 rather than the general patch-vs-reopen choice.
+-   **Major Change Notification:** The agent MUST notify the user if any iteration causes a "Major Change" to the architecture. Where this arises from returning to a previously approved step (rather than from forward iteration within the current step), the explicit backtracking protocol in `AGENTS.md` §2.1 governs how the originating step is identified and how much prior work is reopened — except for findings produced by Step 7 (Spec Audit), which always follow the dedicated Step 7 Backtrack Protocol in `CLAUDE.md` §3.11 rather than the general patch-vs-reopen choice.
 -   **Strict Gated Execution:** The agent is explicitly forbidden from combining steps or bypassing gates. Every step's output must be presented for approval.
 
 ### 4.5. Requirement Quality Criteria
@@ -100,7 +76,7 @@ user-requested per §5's "another pass" mechanism or an automatically-triggered 
 as a Step 7 re-audit) — runs in its own, separate agent session, with no memory of any prior
 session.** This is a hard rule, not a default; see `CLAUDE.md` §1 for the Advisory Mode
 consequence (every Step Approval Gate packages a complete file set and handoff note for the
-next session, not just the step's headline deliverable) and `CLAUDE.md` §3.9 for the
+next session, not just the step's headline deliverable) and `CLAUDE.md` §3.10 for the
 concrete file-delivery mechanics.
 
 **Standard procedure, every step except 7 and 9 (`CLAUDE.md` §3.1-3.3 for full mechanics):**
@@ -122,8 +98,8 @@ eligible step. Step 2 (User Stories) always runs in full, regardless of project 
 - **Input:** User provides a concept statement or references repository documents.
 - **Process:** Map the "Problem Space" and identify system boundaries per the standard RCD/RATS procedure (§5's shared mechanism) — actual scope and real boundaries are the highest-cost content in the workflow for an unflagged wrong assumption, since every later step inherits it. Always attempts deep web research and competitive analysis (how comparable systems solve the same problem), aiming at best-in-class/competitive-advantage/novel-capability framing — an honest "no meaningful competitive landscape" is an acceptable reported outcome, not a fabricated comparison. Actively solicits screen mockups, reference HTML, brand/image assets, and (if relevant)
 audio/video assets, and — if auth/authorization exists — a sign-in/sign-up mockup, per
-`CLAUDE.md` §3.6's persistent per-step ask (repeats every step until satisfied, never a
-gate). §3.6 also owns: Asset Manifest tracking, Authority Levels, proactive UI-impact
+`CLAUDE.md` §3.7's persistent per-step ask (repeats every step until satisfied, never a
+gate). §3.7 also owns: Asset Manifest tracking, Authority Levels, proactive UI-impact
 flagging as later steps introduce features, HTML's presumptive structural authority, and the
 handoff exclusion (assets referenced by filename only, never repackaged as files).
 - **Output:** Architecture Specification file `_01_introduction` (Draft) — see `CLAUDE.md`
@@ -207,7 +183,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
     deliverable file's name conforms to the naming convention in `CLAUDE.md` §4; **the Open
     Items Register contains only valid, not-yet-reached Deferred items** — any
     Resolved/Future Feature/Rejected entry still sitting on the Register, or any item with no
-    terminal outcome at all, is itself a finding (`CLAUDE.md` §3.11); **no inline prose
+    terminal outcome at all, is itself a finding (`CLAUDE.md` §3.12); **no inline prose
     citation to another file includes a version number** — `File N vM` form is itself a
     finding, correct to `File N §section` (`CLAUDE.md` §4.3); the Content Continuity
     Check and Anti-Stub Mandate below; **Data-Dictionary-vs-Requirement completeness pass**
@@ -230,30 +206,30 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 - **Notification:** Notify the user of any "Major Changes" from iterations.
 - **Output:** Final Deficiency Audit Report — presented in chat at the gate; not a
   standalone required file. On any finding, its content is embedded directly in the
-  backtrack handoff note (`CLAUDE.md` §3.9/§3.10) rather than delivered separately.
-- **GATE behavior follows `CLAUDE.md` §3.10's Trivial/Substantive mechanics exactly,
+  backtrack handoff note (`CLAUDE.md` §3.10/§3.11) rather than delivered separately.
+- **GATE behavior follows `CLAUDE.md` §3.11's Trivial/Substantive mechanics exactly,
   applied to this Spec audit — see that section for the full workflow, circuit-breaker,
   and Post-Audit Fix Pass detail; only the Step-7-specific outcomes are restated here:**
   - **Zero findings:** gate behaves normally — STOP, present the clean Audit Report,
     await User Approval to proceed to Step 8.
-  - **All findings Trivial, none Substantive:** fixed in place, same session, per §3.10;
+  - **All findings Trivial, none Substantive:** fixed in place, same session, per §3.11;
     gate then proceeds normally — STOP, await approval to Step 8.
   - **Any Substantive finding (regardless of accompanying Trivial ones):** the normal
-    approval gate does not apply — the full Step 7 Backtrack Protocol (§3.10) governs
+    approval gate does not apply — the full Step 7 Backtrack Protocol (§3.11) governs
     instead: reopen the earliest originating step (1–6) and work forward, ending with a
     fresh package and handoff note for a brand-new Step 7 session (or the user's
     `POST AUDIT FIX` compressed alternative, same section) — repeating until a Step 7 run
-    produces zero or all-Trivial findings, subject to §3.10's circuit breaker on repeated
+    produces zero or all-Trivial findings, subject to §3.11's circuit breaker on repeated
     non-clean passes.
 
 ### 5.8. Step 8: Development Plan & Checklist Generation
 - **Plan:** Create the dev plan files using `agents/exemplars/development_plan_template.md`.
 - **Environment/Configuration Elicitation:** Before drafting environment/config content (toolchain, local setup, CI — not addressed by Steps 1-7, which are about *what*, not *where/how built*): elicit concrete facts directly; for anything unspecified with a reasonable default, propose the default as a flagged assumption. Once per Plan, not once per Task Group. **Elicit the repository's GitHub org and repo name at this point** (needed to populate `[org]`/`[repo]` in the README's shields.io badge URLs, `agents/exemplars/README_template.md`) — do not leave these as unresolved placeholders in the generated README. **Tool install commands drafted here (`setup_env.sh`/`.bat`) prefer a prebuilt binary release over a source build wherever one exists for the target platform** (`agents/PREFERRED_TOOLS.md`'s Missing Tool Protocol), falling back to `cargo install --locked`/equivalent only when no binary release exists.
-- **Task Group Sizing Mandate:** Each Task Group must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `agents/exemplars/development_plan_template.md` §6 for the complexity-scoring formula and current ceiling, including the `first_integration_risk` term. **The computed score is a mandatory column in the Task Group Index (§6.1) of `agents/exemplars/development_plan_template.md`, shown for every Task Group, never left blank or only implied by Task Count** — over-ceiling requires a recorded override note in the same cell, not a silent judgment call. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one Task Group regardless of Task Group size** — sizing governs how much fits comfortably in a session, not whether multiple Task Groups may be attempted in one.
+- **Task Group Sizing Mandate:** Each Task Group must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `CLAUDE.md` §3.4 (Step 8) for the complexity-scoring formula and current ceiling, including the `first_integration_risk` term. **The computed score is a mandatory column in the Task Group Index (§6.1) of `agents/exemplars/development_plan_template.md`, shown for every Task Group, never left blank or only implied by Task Count** — over-ceiling requires a recorded override note in the same cell, not a silent judgment call. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one Task Group regardless of Task Group size** — sizing governs how much fits comfortably in a session, not whether multiple Task Groups may be attempted in one.
 - **Walking Skeleton Milestone and Maturity-Triggered Component Integration (`agents/exemplars/development_plan_template.md` §6):** applied at Build Order sequencing time, not left implicit. For any Build Order with more than ~3 components that must eventually run together, an early, explicitly-named Task Group with genuine cross-crate Exit Criteria is placed before the bulk of per-component work — an architecture-risk-reduction milestone, explicitly distinct from MVP/product-scope decisions already made at Steps 1–2 and never bundled into that scoping conversation. Independently, each component gets a minimal integration test the moment it reaches functional maturity, sized into that same Task Group or, where it integrates with many others, its own dedicated following Task Group — never deferred to a single late capstone sized as if 11 prior phases had already produced a working integration when none had (the confirmed failure pattern in `lessons_learned_grail_gap.md`).
 - **Frontend Targeted Interleaving:** Where the project has a human-facing UI component, Task Group sequencing does not build the entire backend before any frontend work, nor push all frontend work into a single trailing Task Group. Instead, each screen/component's frontend implementation task is placed in the same Task Group as the real (non-mock) backend/data dependency it needs — never earlier (which would force a throwaway stub, contradicting the Anti-Stub Mandate) and never artificially deferred once its real dependency is available. See `agents/exemplars/development_plan_template.md` §6/§9.1 for the concrete sequencing mechanics this principle drives.
 - **Per-Task Design Refs, WIP-Checkpoint Field, and Per-Task-Group Session Unit:** Populated at drafting
-  time, not left as stubs (this Step) — each task's Design Refs cite the
+  time, not left as stubs (`CLAUDE.md` §3.4 Step 8) — each task's Design Refs cite the
   specific Architecture Spec file/section/item it derives from; the mandatory Code/Verify
   split (`agents/DEVELOPMENT.md` §5.1) is derived mechanically from each task's Verification
   Method; each Task Group's Session Unit (`AGENTS.md` §2.8) is declared explicitly; each
@@ -400,7 +376,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
      included or excluded correctly — is a Trivial finding, fixed in place by inserting
      the missing task(s).
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
-- **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every Task Group has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Task Group Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every Task Group's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling Task Group with no recorded override is a finding**. Additionally cross-checks Task-Group-to-Build-Order mapping fidelity against Architecture Specification §9.2, that Task Group sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.11), re-verified here in case anything slipped through since.
+- **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every Task Group has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Task Group Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every Task Group's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling Task Group with no recorded override is a finding**. Additionally cross-checks Task-Group-to-Build-Order mapping fidelity against Architecture Specification §9.2, that Task Group sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
   - **Build Order integration check:** confirms the Build Order contains at least one Task
     Group whose Exit Criteria genuinely requires multi-crate/cross-boundary execution (the
     Walking Skeleton milestone, `agents/exemplars/development_plan_template.md` §6) —
@@ -432,17 +408,17 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
   standalone required file. On any finding, its content is embedded directly in the
   backtrack handoff note that reopens Step 8 (or the relevant Spec step), same convention
-  as Step 7 (`CLAUDE.md` §3.9/§3.10).
-- **GATE behavior follows `CLAUDE.md` §3.10's Trivial/Substantive mechanics, same as Step
+  as Step 7 (`CLAUDE.md` §3.10/§3.11).
+- **GATE behavior follows `CLAUDE.md` §3.11's Trivial/Substantive mechanics, same as Step
   7 — only what's specific to Step 9 (the A/B defect classification below) is restated:**
   - **Zero findings:** the gate behaves normally — STOP, present the clean report, await User Approval. This closes the Design Phase (§6).
-  - **All findings Trivial, none Substantive:** fixed in place, same session, per §3.10;
+  - **All findings Trivial, none Substantive:** fixed in place, same session, per §3.11;
     the gate proceeds normally.
   - **Any Substantive finding:** the normal approval gate does not apply. Every Substantive finding is classified as it's found:
-    - **(A) Plan/Checklist-only defect** (bad Task Group sizing, a task missing a Verification Method, an orphan citation the Plan itself introduced, a Checklist/Plan drift) — reopen Step 8 alone in a new backtrack session, fix every Substantive and Trivial finding plus anything discovered incidentally along the way, re-package, and proceed to a fresh Step 9 session (`pass2`, `pass3`, ... per `CLAUDE.md` §3.9's naming convention) that re-audits independently from scratch.
+    - **(A) Plan/Checklist-only defect** (bad Task Group sizing, a task missing a Verification Method, an orphan citation the Plan itself introduced, a Checklist/Plan drift) — reopen Step 8 alone in a new backtrack session, fix every Substantive and Trivial finding plus anything discovered incidentally along the way, re-package, and proceed to a fresh Step 9 session (`pass2`, `pass3`, ... per `CLAUDE.md` §3.10's naming convention) that re-audits independently from scratch.
     - **(B) Spec-originating defect** (the Plan surfaces a genuinely missing or inconsistent requirement that Step 7 should have caught, or that was only discoverable once Plan-level task decomposition exposed it) — this is equivalent in severity to a re-architecting escalation (`agents/exemplars/development_plan_template.md` §13.1(B)). Reopen the relevant Architecture Specification step (1–6), then **re-run Step 7 to a clean or all-Trivial result** before returning to Step 8, rather than patching the Plan around a still-defective Spec.
   - **Backtrack entry, repeat-until-clean, Post-Audit Fix Pass, and circuit breaker all
-    follow §3.10 exactly as in Step 7** (opening the session is itself the go-ahead; no
+    follow §3.11 exactly as in Step 7** (opening the session is itself the go-ahead; no
     defect is left flagged-but-unfixed; a second consecutive non-clean pass triggers the
     Convergence Diagnostic and explicit choice). One Step 9-specific note: for path (B),
     the Post-Audit Fix Pass's compressed single-session work still runs forward through

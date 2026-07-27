@@ -1,7 +1,7 @@
 # Release-Agent Prompt — Template
 
 > Produced once per release, at the end of Step 9 (Consistency Audit), saved as
-> `release/[projectname]_release_v[N.NN.NN]_prompt.md` — the real target version from the moment
+> `[projectname]_release_v[N.NN.NN]_prompt.md` — the real target version from the moment
 > it's produced. Reused verbatim for the Jules session executing this release's mechanical
 > build/test/publish pipeline. Mirrors `maintenance_prompt_template.md`'s shape; that file
 > is never modified or reused to serve this purpose.
@@ -21,11 +21,11 @@ content.** If anything looks incomplete or wrong, that is an Escalation Trigger
 (`RELEASE.md` §11) — stop and report, do not fix it yourself.
 
 ### 1. Read first
-- `release/[projectname]_release_v[N.NN.NN]_checklist.md` — confirm every Step's Exit Criteria is
+- `[projectname]_release_v[N.NN.NN]_checklist.md` — confirm every Step's Exit Criteria is
   checked before proceeding. If Step 7 (Reference-Sync) or Step 9 (Consistency Audit) is
   not marked complete, **stop now** — this pipeline does not run against unaudited content.
 - `RELEASE.md` §7 (Versioning UX) — confirm this release's SemVer tier (patch/minor/major,
-  from `release/[projectname]_release_v[N.NN.NN]_plan.md`'s header) to determine which of the
+  from `[projectname]_release_v[N.NN.NN]_plan.md`'s header) to determine which of the
   publish behaviors below applies.
 
 ### 2. Rustdoc/doctest extraction (Reference quadrant)

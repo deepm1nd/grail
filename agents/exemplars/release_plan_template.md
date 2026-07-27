@@ -1,6 +1,6 @@
 # Release Plan: [projectname]_release_v[N.NN.NN]_plan
 
-> Companion to `RELEASE.md`. Named `release/[projectname]_release_v[N.NN.NN]_plan.md` — the real
+> Companion to `RELEASE.md`. Named `[projectname]_release_v[N.NN.NN]_plan.md` — the real
 > target version from the moment this release's RELEASE work opens (mirrors
 > `MAINTENANCE.md`'s own batch-open convention: no `_open` placeholder, no rename at
 > publish time, except a rare escalation-driven correction). Edited in place across this

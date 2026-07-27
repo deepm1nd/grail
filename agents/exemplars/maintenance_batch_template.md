@@ -73,14 +73,14 @@ and proceeds directly to the Jules Checklist/Prompt.)*
 - **Impact assessment:** [what changed, concretely] → **Recommended bump:** patch | minor | major
   **Rationale:**
 - **Asset Manifest** (feature/enhancement items with visual/media content only — mirrors
-  `CLAUDE.md` §3.6):
+  `CLAUDE.md` §3.7):
 
   | Filename | Type | Repository Target Path | Authoritative/Informative For | Authority Level | Provided At |
   |---|---|---|---|---|---|
   | | | | | | |
 
 ### §4 — Task Decomposition (M4) — *full path only*
-Tasks for this item live in `maintenance/[projectname]_v[N.NN.NN]_checklist.md` (this item's own
+Tasks for this item live in `[projectname]_v[N.NN.NN]_checklist.md` (this item's own
 `## Task Group [ID]` block) — not duplicated here. **Self-check:** every task has a
 Verification Method and DoD (confirmed in the Checklist file itself). *(A lightweight-path
 item's Checklist Task Group is generated directly from §1's exit, with no separate M4 pass.)*

@@ -26,7 +26,7 @@ Appendix R Version History
 | [Architecture Specification, all parts] | Authoritative source of all technical decisions |
 
 Traceability source: Architecture Spec §3, physically split per `CLAUDE.md` §4.1 across
-`_04_test_strategy` (§3.1–3.3) and `_05_verified_traceability` (§3.3–3.4). No separate
+`_04_test_strategy` (§3.1–3.3) and `_05_verified_traceability` (§3.4–3.5). No separate
 Requirements & Traceability document exists. **Precedence:** the Spec wins on conflict; this
 Plan is corrected, not the reverse (§14). Not final until Design Step 9 (Plan & Checklist
 Audit) clears — independent, adversarial, distinct from the drafting that produced it.
@@ -177,7 +177,7 @@ regardless of remaining capacity (`AGENTS.md` §2.8).
 task is placed in the **same Task Group** as the real (non-mock) backend/data source it depends
 on — never earlier (forces a stub) and never batched into a trailing frontend-only Task Group.
 Each such task's Design Refs (§8) cite the mockup's prose description (Spec §4.13) and its
-logged Authority Level (`CLAUDE.md` §3.6) — a Conceptual-level mockup leaves more to the
+logged Authority Level (`CLAUDE.md` §3.7) — a Conceptual-level mockup leaves more to the
 task's own judgment than an Authoritative one, stated explicitly rather than left implicit.
 A task introducing a page/view/setting not in the mockup traces back to the Design-Phase
 Proactive UI-Impact flag that justified it.
@@ -298,7 +298,7 @@ cross-component contract a later Task Group depends on.
   `tests/` directory, which by Rust's own compilation model only ever sees that one
   crate's public API). The task's DoD line states which crates/binary the test actually
   wires together — not merely that "Test Case ID verified" — since this is exactly the
-  fact a Step 9 audit (`agents/DESIGN.md` §5.9) mechanically checks via `cargo metadata`/nextest
+  fact a Step 9 audit (`CLAUDE.md` §3.4) mechanically checks via `cargo metadata`/nextest
   binary listing against the naming convention above. A task claiming an
   Integration/System/Acceptance-type Test Case backed by a test compiled into a
   single-crate binary does not satisfy this DoD item, regardless of the test's name.

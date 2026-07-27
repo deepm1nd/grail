@@ -2,33 +2,10 @@
 
 > Peer phase to `DESIGN.md`, `DEVELOPMENT.md`, and `MAINTENANCE.md` — governs polished,
 > user/developer-facing documentation and docs-site collateral: the tier of VS Code's docs,
-> ffmpeg.org, and Dioxus/Angular's docs sites. **For a Claude session (Advisory Mode,
-> `CLAUDE.md` §1), read `AGENTS.md` and this file, then fetch only the additional grail
-> files the Reading Table below names for the Step this session is running** — not the
-> full grail set by default, per `CLAUDE.md` §1's file-level selective-reading policy.
+> ffmpeg.org, and Dioxus/Angular's docs sites. Read `AGENTS.md`, `CLAUDE.md`, `DESIGN.md`,
+> `DEVELOPMENT.md`, and `MAINTENANCE.md` in full before starting, if not already familiar.
 >
 > See `CHANGELOG.md` for version history.
-
----
-
-## Reading Table — Which Grail Files Each Step Needs
-
-**For a Claude session (Advisory Mode, `CLAUDE.md` §1):** always read `AGENTS.md` and this
-file regardless of Step. Beyond that, fetch only the row below matching the Step this session
-is running. Uncertain relevance → read it anyway (`CLAUDE.md` §1's escape valve). A repeated
-run of a Step re-reads whatever the original run read.
-
-| Step | Additional grail files needed |
-|---|---|
-| 1 — Elicitation | None beyond the invariant set (Architecture Spec §2.2/§2.3 fields and `CHANGELOG.md` entries are project files, not grail files). |
-| 2 — Scaffold | None beyond the invariant set. |
-| 3 — Terminology/Concept Spine | None beyond the invariant set (Architecture Spec §1.5 is a project file). |
-| 4 — Tutorials | None beyond the invariant set. |
-| 5 — How-To Guides | None beyond the invariant set. |
-| 6 — Explanation | None beyond the invariant set. |
-| 7 — Reference-Sync | `AGENTS.md` §2.3 (already invariant) governs the upstream guarantee this Step relies on; `agents/CI.md` Stage 1b (`metrics/docs_coverage.toml`) if verifying that guarantee actually held for a specific crate before treating this Step as pure extraction. |
-| 8 — Finalize | None beyond the invariant set. |
-| 9 — Consistency Audit | None beyond the invariant set. |
 
 ---
 
@@ -102,13 +79,6 @@ RELEASE's output lives under a dedicated top-level `web/` directory — never in
 project-root `docs/` (reserved for Development-Phase risk logs, `docs/[project]_dev_risks.md`,
 and unrelated to RELEASE) — and never using mdBook's own default `src/` name at project
 root (would collide with the project's actual Rust source).
-
-**`web/` is the deliverable content only.** RELEASE's own *process* artifacts — the plan,
-checklist, and Jules handoff prompt this phase generates to run itself (§10 below) — live
-under a separate top-level `release/` directory, not inside `web/` and not inside `docs/`.
-Same pattern as `agents/MAINTENANCE.md`'s own `maintenance/` directory and Development's
-`test/`: one top-level, purpose-named directory per distinct generated-artifact category,
-kept apart from the content those artifacts happen to be *about*.
 
 ```
 web/
@@ -227,17 +197,15 @@ Verified, SemVer bump re-confirmed — or, for a project's first release, `DEVEL
 own **Final Verification** state. This is the same signal already computed elsewhere in the
 framework; RELEASE does not invent an independent readiness signal.
 
-**Process:** Because of the continuous-documentation discipline (`AGENTS.md` §2.3,
-`agents/CI.md` Stage 1b — implemented; originally proposed in
-`grail_continuous_documentation_proposal_v1.md`), rustdoc comments and `# Examples`
-doctests should already exist, current and CI-verified, on every `pub` item touched since
-the last release, by the time this gate fires. Reference-Sync is therefore **extraction,
-not authorship**: Jules pulls this already-correct, already-tested content into the
-Reference quadrant (or links out to a generated rustdoc/docs.rs-style page). For a project
-predating this discipline's adoption, or where `metrics/docs_coverage.toml` shows a crate
-still short of 100% (`AGENTS.md` §2.3's incremental backfill), this Step reverts to genuine
-authorship for the gap and should be flagged as a scope/timeline risk, not silently
-absorbed.
+**Process:** Because of the continuous-documentation discipline (a separate, standalone
+proposal — see `grail_continuous_documentation_proposal_v1.md`, pending its own
+implementation session), rustdoc comments and `# Examples` doctests should already exist,
+current and CI-verified, on every `pub` item touched since the last release, by the time
+this gate fires. Reference-Sync is therefore **extraction, not authorship**: Jules pulls
+this already-correct, already-tested content into the Reference quadrant (or links out to a
+generated rustdoc/docs.rs-style page). If that upstream discipline has not yet been
+implemented for a given project, this Step reverts to genuine authorship and should be
+flagged as a scope/timeline risk, not silently absorbed.
 
 **Output:** A complete, as-built-accurate Reference quadrant.
 
@@ -317,7 +285,7 @@ nobody can reach isn't done.
 **Single handoff point, after Step 9 (Consistency Audit) closes** — mirroring
 `MAINTENANCE.md`'s existing Claude-drafts/Jules-executes, file-relay pattern
 (`AGENT_TOOL_POLICY.md` — no direct API integration). Claude produces a **release prompt
-file** (`release_prompt_template.md` → `release/[projectname]_release_v[N.NN.NN]_prompt.md`)
+file** (`release_prompt_template.md` → `[projectname]_release_v[N.NN.NN]_prompt.md`)
 directing Jules to run the mechanical pipeline against the now-finalized, audited content:
 
 - `mdbook build`
@@ -346,11 +314,11 @@ restriction, per §8's note — not a determination this guide makes unilaterall
 
 | File | Produced at | Purpose |
 |---|---|---|
-| `release_plan_template.md` → `release/[projectname]_release_v[N.NN.NN]_plan.md` | Start of a release's RELEASE work | The 9-Step plan for this specific release, Entry/Exit criteria per Step |
-| `release_checklist_template.md` → `release/[projectname]_release_v[N.NN.NN]_checklist.md` | Alongside the plan | Companion checklist, edited in place across the release's RELEASE work |
-| `release_prompt_template.md` → `release/[projectname]_release_v[N.NN.NN]_prompt.md` | End of Step 9 | The Jules handoff prompt (§10) |
+| `release_plan_template.md` → `[projectname]_release_v[N.NN.NN]_plan.md` | Start of a release's RELEASE work | The 9-Step plan for this specific release, Entry/Exit criteria per Step |
+| `release_checklist_template.md` → `[projectname]_release_v[N.NN.NN]_checklist.md` | Alongside the plan | Companion checklist, edited in place across the release's RELEASE work |
+| `release_prompt_template.md` → `[projectname]_release_v[N.NN.NN]_prompt.md` | End of Step 9 | The Jules handoff prompt (§10) |
 
 **Naming note:** the `release` tag precedes the version (`_release_v[N.NN.NN]_`), mirroring
-`maintenance_batch_template.md`'s own `maintenance/[projectname]_[type]_v[N.NN.NN].md` pattern — this
+`maintenance_batch_template.md`'s own `[projectname]_[type]_v[N.NN.NN].md` pattern — this
 avoids an exact-filename collision with `MAINTENANCE.md`'s own
-`maintenance/[projectname]_v[N.NN.NN]_checklist.md`/`_prompt.md` for the same version.
+`[projectname]_v[N.NN.NN]_checklist.md`/`_prompt.md` for the same version.
