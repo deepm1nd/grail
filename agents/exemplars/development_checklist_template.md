@@ -43,13 +43,22 @@
   unchecked-but-passed-over to move on — without the user's explicit permission given that
   session. An apparently unnecessary or already-satisfied task/item is a question or
   Escalation Trigger, never a silent skip.
-- **Submitted** checkbox — every task/sub-task carries its own, checked only when its
-  declared Submit Point (Plan §8) has actually fired via `submit`, not when DoD items are
-  merely satisfied locally. A task with all DoD items checked but `Submitted` unchecked is
-  an inconsistency, not a completed task.
+- **`Submitted` checkbox — Task Group level only, not per-task/per-sub-task.** Per
+  `AGENTS.md` §2.1, individual tasks and sub-tasks no longer carry their own Submit Point;
+  the Task Group's own Exit Criteria line carries the single `Submitted` checkbox, checked
+  only when the Task Group's Final Wrap-Up Submit (`agents/DEVELOPMENT.md` §5.2 step 7) has
+  actually fired. A Task Group with all task DoD items checked but its Exit Criteria's
+  `Submitted` box unchecked is an inconsistency, not a completed Task Group. A checked
+  individual task DoD box, on its own, is never treated as evidence of a save point.
+- **WIP-Checkpoint entries:** where a task's Plan §8 entry states a concrete `WIP-Checkpoint`
+  point (not `None`), a `[ ] WIP-Checkpoint reached (if applicable)` line appears under that
+  task, checked only once that specific point is actually reached and checkpointed — this is
+  the sole mid-Task-Group save-point indicator; a task with `WIP-Checkpoint: None` in the Plan
+  carries no such line at all.
 - **Code/Verify split tasks (Plan §8):** rendered as two adjacent `### Task:` sub-sections,
-  `[DOMAIN]-[NNN]a` (Code) and `[DOMAIN]-[NNN]b` (Verify), each with its own DoD checkboxes
-  and its own `Submitted` checkbox — never merged into one task block.
+  `[DOMAIN]-[NNN]a` (Code) and `[DOMAIN]-[NNN]b` (Verify), each with its own DoD checkboxes —
+  neither carries its own `Submitted` checkbox any more; both are covered by the Task Group's
+  single Exit-Criteria-level `Submitted` box.
 
 ---
 
@@ -97,15 +106,16 @@
 
 ### Task: [DOMAIN-002a] (Code)
 - [ ] Code implemented and hermetically builds (`[command]`)
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
 ### Task: [DOMAIN-002b] (Verify)
 - [ ] Verification Method checks pass (`[command]`)
 - [ ] Test Case [ID] verified
 - [ ] Required artifact captured: [artifact]
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
-**Exit Criteria:** [ ] [copied verbatim from Plan §6.1]
+**Exit Criteria:** [ ] [copied verbatim from Plan §6.1] · [ ] **Submitted** (Task Group's
+sole Final Wrap-Up Submit, `AGENTS.md` §2.1 — the only Submit Point for this Task Group)
 
 ---
 
@@ -120,7 +130,15 @@
 - [ ] Test Case [ID] verified
 - [ ] Required artifact captured: [artifact]
 
-**Exit Criteria:** [ ] [...]
+**Exit Criteria:**
+- [ ] [copied verbatim from Plan §6.1]
+- [ ] Full local CI-equivalent sequence run and clean at Task Group level (`agents/DEVELOPMENT.md`
+  §5.2 step 4): [ ] Lint & Format · [ ] Build · [ ] Test · [ ] Coverage · [ ] Security Scan
+- [ ] Security Scan's license check: no license violation found (a violation found blocks this
+  Exit Criteria — Escalation Trigger, not a same-Task-Group fix)
+- [ ] New-crate/dependency drift since Task Group start (if any) listed inline in the Task
+  Group Summary — name/version/license — notification only, does not block this Exit Criteria
+- [ ] **Submitted** (Task Group's sole Final Wrap-Up Submit, `AGENTS.md` §2.1)
 
 ---
 
@@ -146,23 +164,25 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 ### Task: PROD-001 — Regression Traceability
 - [ ] Every Core Requirement ID (Spec §3) has a row in
   `test/[projectname]_requirement_traceability.md`
-- [ ] Every test named per the convention in `agents/MAINTENANCE.md` §6a
-  (`test_<nnnn>__description` for Rust; `TEST-<nnnn>: description` title for Playwright)
+- [ ] Every test named per the convention in `agents/exemplars/development_plan_template.md`
+  §8's Test-Type-to-Naming Binding (`test_<type>_<nnnn>__description` for Rust — supersedes
+  the bare `test_<nnnn>__description` form previously in `agents/MAINTENANCE.md` §6a, pending
+  that file's own matching update; `TEST-<nnnn>: description` title for Playwright)
 - [ ] Every listed test confirmed independently invocable by name/tag via
   `scripts/verify_traceability.js` (actually run, not assumed present)
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
 ### Task: PROD-002 — Versioning
 - [ ] Repository tagged at the current version
 - [ ] `CHANGELOG.md`'s `[Unreleased]` section empty; tag matches latest entry
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
 ### Task: PROD-003 — Anti-Stub Final Sweep
 - [ ] Maximal Implementation / Anti-Stub check (`AGENTS.md` §2.3) re-run against as-built
   repository; no unresolved stub/TODO markers found
 - [ ] Open Items Register reviewed; no item that should already have been reached remains
   unresolved
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
 ### Task: PROD-005 — Spec/Dev-Risks Currency
 > `PROD-004` is satisfied by `DOC-FINAL` above — not a separate task.
@@ -170,29 +190,35 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
   logged as an Appendix F Spec Amendment
 - [ ] Every Open entry in `docs/[project_name]_dev_risks.md` re-evaluated against its own
   Re-evaluation Trigger
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
 ### Task: PROD-006 — License/Dependency Drift
 - [ ] `cargo deny check licenses` run clean against current `Cargo.lock`
 - [ ] `THIRD_PARTY_LICENSES.md` confirmed to match
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
+
+### Task: PROD-010 — Documentation Coverage Sweep
+- [ ] `cargo doc`'s missing-docs check re-run against as-built repository
+  (`metrics/docs_coverage.toml`, `agents/CI.md` Stage 1b); any crate below 100% backfilled
+- [ ] Every crate's `#![deny(missing_docs)]` passes clean
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
 ### Task: PROD-007 — Rollback Procedure (if applicable — release/deploy step present)
 - [ ] Rollback-to-previous-tag procedure documented
 - [ ] Procedure actually executed once, in a non-production environment
 - [ ] Migration reversibility confirmed, if the project owns a schema
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
 ### Task: PROD-008 — Operational Runbook (if applicable — running/deployed service present)
 - [ ] Start/stop/restart procedure documented
 - [ ] Common failure symptoms and remediation documented
 - [ ] Backup/restore procedure documented, if the service holds persistent data
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
 ### Task: PROD-009 — Monitoring Baseline (if applicable — running/deployed service present)
 - [ ] Structured logging confirmed emitted at runtime
 - [ ] Log output confirmed to include a version identifier
-- [ ] **Submitted** (task-complete Submit Point per Plan §8)
+- [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 
 ### Task: [DOMAIN-NNN]
 - [ ] Code implemented and hermetically builds (`[command]`)
@@ -200,7 +226,15 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 - [ ] Test Case [ID] verified
 - [ ] Required artifact captured: [artifact]
 
-**Exit Criteria:** [ ] [...]
+**Exit Criteria:**
+- [ ] [copied verbatim from Plan §6.1]
+- [ ] Full local CI-equivalent sequence run and clean at Task Group level (`agents/DEVELOPMENT.md`
+  §5.2 step 4): [ ] Lint & Format · [ ] Build · [ ] Test · [ ] Coverage · [ ] Security Scan
+- [ ] Security Scan's license check: no license violation found (a violation found blocks this
+  Exit Criteria — Escalation Trigger, not a same-Task-Group fix)
+- [ ] New-crate/dependency drift since Task Group start (if any) listed inline in the Task
+  Group Summary — name/version/license — notification only, does not block this Exit Criteria
+- [ ] **Submitted** (Task Group's sole Final Wrap-Up Submit, `AGENTS.md` §2.1)
 
 ---
 
@@ -212,6 +246,13 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 - [ ] Full workspace build is hermetic and green: `[command(s)]`.
 - [ ] Full test suite is green: `[command(s)]`.
 - [ ] Every filename conforms to `CLAUDE.md` §4.
+- [ ] Build Order contained at least one genuine multi-crate/cross-boundary Walking Skeleton
+  Task Group (`development_plan_template.md` §6) — confirmed present, not merely assumed.
+- [ ] Every Integration/System/Acceptance-type Test Case citation resolves to a
+  `test_<type>_<nnnn>__description`-named test in a genuinely multi-crate binary (§8's
+  Test-Type-to-Naming Binding) — not left unverified at project completion.
+- [ ] No task in the completed Plan retains a per-task/per-sub-task Submit Point — Submitted
+  is checked only at Task Group Exit Criteria, per `AGENTS.md` §2.1.
 
 > **Note:** the checks above are local, session-run confirmations — not the same as a
 > green CI run. CI (`agents/CI.md`) is an async, human-reviewed backstop; it is not a

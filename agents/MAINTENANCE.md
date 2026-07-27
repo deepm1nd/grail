@@ -157,6 +157,15 @@ User Story, no M2, no M3, no M4. **The first file presented to the user, for a l
 item, is the Jules prompt + checklist entry itself** — nothing is drafted or shown before
 that.
 
+**Lightweight items and existing rustdoc content:** an all-no outcome means this item
+doesn't touch a Requirement ID or public interface — so the rustdoc DoD mandate
+(`AGENTS.md` §2.3) is typically moot for it, same as it would be for any task that
+introduces no new/modified `pub` item. The one exception: if this item's fix happens to
+touch existing, already-shipped rustdoc content (a doc comment that was simply wrong),
+correcting it is part of this task's DoD regardless of path — reusing the existing
+task-DoD mechanics (`development_plan_template.md` §8), not a new M1 question or a
+parallel mechanism.
+
 **Any "yes" → full path.** Claude generates the User Story/Stories from M0's discussion
 now, in the project's real `US-[DOMAIN]-NNN` numbering (appended to `02_user_stories`,
 not a separate Maintenance-specific ID scheme — a story is a story regardless of which
@@ -196,7 +205,12 @@ path.** Determines Tier, Type, and SemVer recommendation for the item:
 ### M4 — Task Decomposition *(full path only)*
 Generates this item's tasks, following the standard Task Template shape (Design Refs,
 Verification Method, DoD, Submit Point — `development_plan_template.md` §8's shape,
-reused directly). **Self-check after M4:** every task has a Verification Method and DoD —
+reused directly). **The rustdoc DoD checkbox (`AGENTS.md` §2.3) is inherited
+automatically by this reuse** — any Question 2 item (new external interface, data-model/
+schema field, or component/module boundary) that reaches M4 generates tasks touching
+`pub` items, and those tasks carry the same DoD item any Development task would; no
+separate M1 question or parallel Maintenance-specific doc-mandate is needed. **Self-check
+after M4:** every task has a Verification Method and DoD —
 mechanical completeness check, not a gated audit. **Complexity Score
 (`development_plan_template.md` §8's formula, reused unmodified) applied across the
 batch's full task list** determines Task Group count in the generated Checklist — one batch is
@@ -223,38 +237,60 @@ by Appendix G's gap report, and by Phase Final+1b's hard gate — defined once, 
 (`test/[projectname]_requirement_traceability.md`) asserting a test is "independently
 re-runnable by name/tag" is meaningless without a concrete mechanism connecting an
 abstract `TEST-[NNN]` catalog ID (Architecture Spec §3.2) to an actual, invocable test in
-source. The naming conventions below are that mechanism.
+source. **It is equally meaningless if that link exists but says nothing about whether the
+test actually exercises what its Design-time Type (Spec §3.2) claims** — the naming
+convention below carries both: which test, and what kind of test it actually is.
 
 **Rust tests:**
 ```rust
 #[test]
-fn test_<nnn>__<snake_case_description>() { /* ... */ }
+fn test_<type>_<nnn>__<snake_case_description>() { /* ... */ }
 ```
-e.g. `TEST-0042` → `fn test_0042__login_rejects_invalid_password()`. Underscore-only (no
+where `<type>` is exactly the cited Test Case's own Design-time `Type` (Architecture Spec
+§3.2), lowercased — `unit`, `integration`, `system`, or `acceptance` — e.g. `TEST-0042`,
+Type `Integration` → `fn test_integration_0042__login_rejects_invalid_password()`. This
+supersedes the prior bare `test_<nnn>__description` form (pre-v0.9.5 projects); see the
+Retrofit Policy below for migrating existing tests. Underscore-only (no
 dashes — `PREFERRED_DEPENDENCIES.md`'s identifier rule / `RUST_PREFERENCES.md`), the
 Test ID's numeric portion left-padded to 4 digits, a fixed double-underscore separating
 the ID segment from the free-text description so parsing is unambiguous. **The
 description segment is 3–5 words, no more** — enough to identify the test at a glance in
 `cargo nextest` output, not a restatement of its full assertion (that belongs in the Test
 Case Catalog, Spec §3.2, not the function name). Resolves via
-`cargo nextest run test_0042` (substring match) or `cargo nextest run test_0042 --exact`
-(exact match) — no new tooling, no tag plugin. One `TEST-[NNN]` = one canonical test
-function by default; a test legitimately covering multiple Test IDs names as
-`test_0042_0043__description()` (description still 3–5 words), and nextest substring
-match on either ID still resolves it.
+`cargo nextest run test_integration_0042` (substring match) or
+`cargo nextest run test_integration_0042 --exact` (exact match) — no new tooling, no tag
+plugin. One `TEST-[NNN]` = one canonical test function by default; a test legitimately
+covering multiple Test IDs of the **same** Type names as
+`test_<type>_0042_0043__description()` (description still 3–5 words), and nextest
+substring match on either ID still resolves it. **A single test cannot legitimately cover
+multiple Test IDs of different Types** — that is exactly the Conjoined-Twins mislabeling
+risk `CLAUDE.md` §3.4 Step 9's sample-audit checks for; if two cited Test IDs genuinely
+have different Types, they need separate implementing tests, not one test wearing two
+labels.
+
+For **Integration/System/Acceptance-type** tests specifically, the naming convention alone
+is necessary but not sufficient — per
+`agents/exemplars/development_plan_template.md` §8's Test-Type-to-Naming Binding, the named
+test must also be compiled into a binary that genuinely links the claimed
+crates/components (a dedicated sibling test crate, never a single domain crate's own
+`tests/` directory). The name is the mechanically-checkable signal; the binary/crate
+membership is the substance that name is a proxy for.
 
 **Non-Rust tests (Playwright/E2E):**
 ```javascript
-test('TEST-0042: login rejects invalid password', async ({ page }) => { /* ... */ });
+test('TEST-0042 system: login rejects invalid password', async ({ page }) => { /* ... */ });
 ```
-Same **3–5 word** limit on the description following the colon. Resolves via
+Same `<type>` token (lowercased Design-time Type) immediately after the Test ID, same
+**3–5 word** limit on the description following the colon. Resolves via
 `npx playwright test -g "TEST-0042"` — Playwright's own native title-filter mechanism, no
-new tooling.
+new tooling. Playwright/E2E tests are most commonly System- or Acceptance-type by their
+nature; the token is still stated explicitly rather than assumed, since an isolated
+component-level Playwright test (a single-page unit-style check) is a legitimate case too.
 
 **Test ID → Requirement ID mapping** stays exactly where it already lives — the Test Case
 Catalog (Spec §3.2) and Traceability Matrix (Spec §3.4), which already support
 many-to-many. The naming convention above only fixes the previously-missing link: Test ID
-→ actual runnable name.
+→ actual runnable name, plus (new) Test ID → actual exercised Type.
 
 **Verification script** (`scripts/verify_traceability.js` — a project-specific script
 authored during Development Phase, not a grail-supplied file; grail specifies its
@@ -263,18 +299,33 @@ finished workflow). **Required behavior:**
 - Parses every row of `test/[projectname]_requirement_traceability.md`; tolerant of
   column order, locating the Requirement ID and Test ID columns by header name rather
   than fixed position.
-- For each cited Test ID, confirms a matching `test_<nnnn>__*` Rust function or
-  `TEST-<nnnn>: ...` Playwright title actually exists in source — not merely that the
+- For each cited Test ID, confirms a matching `test_<type>_<nnnn>__*` Rust function or
+  `TEST-<nnnn> <type>: ...` Playwright title actually exists in source — not merely that the
   traceability row names one.
 - **Actually runs** the corresponding test (`cargo nextest run <id> --exact` for Rust,
   `npx playwright test -g "TEST-<nnnn>"` for Playwright/E2E) and confirms it resolves to
   **exactly one** test and passes — never assumes a name's correctness from static
   inspection alone.
+- **Cross-checks the `<type>` token against the Test Case's own Design-time Type**
+  (Architecture Spec §3.2) — a mismatch (e.g. a citation whose Spec Type is Integration
+  but whose implementing test is named `test_unit_0042__...`) is flagged as its own
+  category, distinct from a naming-convention violation, since the name is well-formed but
+  asserts something false.
+- For any Test ID whose Type is Integration, System, or Acceptance, **additionally confirms
+  the resolved test binary genuinely links more than one project crate** (via `cargo
+  metadata`/nextest binary listing) — a Type-labeled-Integration citation resolving to a
+  test compiled into a single-crate binary is flagged as a **Type/Reality Mismatch**, the
+  mechanical check `CLAUDE.md` §3.4 Step 9 relies on to run this exhaustively rather than by
+  sample.
 - Flags, as distinct categories: **orphan Requirement IDs** (a Core Requirement ID with no
   traceability row at all — requires the Architecture Specification's Requirement list to
   cross-check against), **dangling rows** (a traceability row citing a Test ID with no
-  matching test found in source), and **naming-convention violations** (a test found but
-  not matching the `test_<nnnn>__description` / `TEST-<nnnn>: description` shape).
+  matching test found in source), **naming-convention violations** (a test found but
+  not matching the `test_<type>_<nnnn>__description` / `TEST-<nnnn> <type>: description`
+  shape), **Type-label mismatches** (name well-formed, but its `<type>` token disagrees
+  with the Spec's own declared Type for that Test ID), and **Type/Reality Mismatches**
+  (name and Spec Type agree, but the resolved test's actual crate/binary membership doesn't
+  substantiate an Integration/System/Acceptance claim).
 - Exits non-zero if any row fails any of the above checks, so it can be wired into CI or
   used as the Readiness Audit / Remediation hard-gate signal (§3 above) rather than relying
   on a human eyeballing output.
@@ -283,7 +334,7 @@ finished workflow). **Required behavior:**
   present)" — a mechanical check rather than a manual trust-fall.
 
 **Retrofit policy (pre-v0.9.4 projects, or any project whose traceability table is
-partial or absent):**
+partial or absent; pre-v0.9.5 projects additionally need the type-token migration below):**
 1. **A missing `test/[projectname]_requirement_traceability.md` file is the same gap as
    an incomplete one, at maximal size** — "0 of N Core Requirement IDs have a traceability
    row" rather than "M of N." The remediation process is identical either way; only the
@@ -294,17 +345,25 @@ partial or absent):**
 3. For each, locate the existing test(s) covering it — manual matching against existing
    test names/bodies, since no naming convention existed before this policy. This step is
    real archaeology, not automatable by the verification script above.
-4. **Default: rename the existing test function in place** to the `test_<nnnn>__desc`
-   convention once a Test ID is assigned to it. A Rust `#[test]` rename is safe — no
-   external callers by construction.
+4. **Default: rename the existing test function in place** to the `test_<type>_<nnnn>__desc`
+   convention once a Test ID is assigned to it — determining `<type>` from the Test Case's
+   own Design-time Type (Spec §3.2), not from a guess based on the existing test's current
+   shape. A Rust `#[test]` rename is safe — no external callers by construction. **A
+   pre-v0.9.5 project whose tests already follow the bare `test_<nnnn>__desc` form needs
+   this same rename pass** — inserting the `<type>` token is not optional or grandfathered;
+   an untyped legacy name is itself a naming-convention violation under this policy.
 5. **Exception, not default:** if the existing test's name genuinely cannot be changed
    (e.g. proc-macro-generated test names, a framework that derives the name mechanically),
-   add a thin wrapper (`fn test_<nnnn>__desc() { existing_test_fn_or_call() }`) instead —
-   logged as a named exception in `docs/[project_name]_dev_risks.md`
+   add a thin wrapper (`fn test_<type>_<nnnn>__desc() { existing_test_fn_or_call() }`)
+   instead — logged as a named exception in `docs/[project_name]_dev_risks.md`
    (`dev_risks_template.md`), same tier as any other Development-Phase-discovered standing
    deviation. This is a logged exception, not a silently-accepted default.
 6. Any Core Requirement ID with **no** existing corresponding test is itself a gap this
    phase must close by writing a new test — never deferred, since this is the hard gate.
+   Where the located existing test is a single-crate test standing in for a
+   Design-time-Integration/System/Acceptance-Type citation, closing this gap means writing
+   a genuine cross-crate test (`agents/exemplars/development_plan_template.md` §8), not
+   merely renaming the existing single-crate one to look compliant.
 
 ## 7. Regression Scope by Project Type
 

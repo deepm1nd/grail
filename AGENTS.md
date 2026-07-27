@@ -74,28 +74,53 @@ for which steps, if any, are exempt from its standard procedure.
 -   **No Self-Referential Elision:** The agent is **ABSOLUTELY FORBIDDEN** from replacing document sections with references to "previous versions" or "Section X of version Y." Since older versions are not persistently available for reference, every document MUST remain self-contained and fully detailed.
 -   **No Unauthorized Copying or Duplication of Working Documents:** The agent is explicitly forbidden from copying, cloning, or replicating any file or directory from this repository to any other location (e.g., local scratch folders, other repositories, or external services) unless specifically instructed by the user for a valid technical reason (e.g., a deployment task). This extends specifically to project working documents during the Development Phase: the agent MUST edit the Development Checklist and other shared, in-place documents directly, never create a copy, rename, "v2," or otherwise reproduce a one-off version of any input file it has been given to work from. See `agents/DEVELOPMENT.md` §4 for the concrete rule.
 -   **Mandatory Artifact Preservation:** The agent MUST commit all non-reproducible evidence artifacts to the repository under `test/` — the concise per-Task-Group Verification file (`test/[projectname]_task_group_[N]_verification.md`) and each Task Group's screenshots/clips in `test/task_group_[N]/` — per `agents/exemplars/development_plan_template.md` §11.4. These cannot be recreated after a session crash and are critical for maintaining state across sessions. Raw build/test logs are not retained beyond the Verification file's own summary line. **Reproducible build outputs are explicitly excluded from this mandate and MUST be gitignored, not committed** — committing them causes enormous diffs, breaks standard tooling, and provides no state-preservation benefit since they can be recreated from source. The required `.gitignore` entries are specified in `agents/exemplars/development_plan_template.md` §3.
--   **Task-Level Submit Cadence (the core work-preservation mechanism):** A Development Phase
-    session's only real save point is a `submit` call (`agents/AGENT_TOOL_POLICY.md`) — nothing
-    is safe from a session crash until submitted. Per `agents/DEVELOPMENT.md` §5.1/§5.2, the
-    agent submits **at every declared Submit Point**, which — per
-    `agents/exemplars/development_plan_template.md` §8 — occurs at minimum at the end of every
-    task (or every sub-task, for a Code/Verify-split task), never batched until end-of-Task-Group.
-    **The moment a task's (or sub-task's) DoD is fully satisfied and its Checklist boxes are
-    flipped, the agent MUST submit before doing anything else** — before reading ahead into the
-    next task, before any cleanup pass, before continuing to work "while it's fresh." A
-    task's work is not actually finished until it is submitted; treat "DoD satisfied but not
-    yet submitted" as an incomplete task, not a completed one paused for later bookkeeping.
-    This bounds crash blast-radius to the single task or sub-task in flight, not the whole
-    Task Group. Never call `reset_all()` or `restore_file()` to discard a submitted or
-    WIP-checkpointed state without explicit user approval — this is the same additive-only
-    prohibition as above, and is what makes the submit cadence below actually safe to rely on;
-    see `agents/AGENT_TOOL_POLICY.md` for the full tool-tier treatment of both.
--   **WIP Checkpoint (safety net for work that is not yet DoD-complete):** Where a task is
-    flagged at drafting time as long/risky (per `development_plan_template.md` §8), or where a
-    task's own build-test-debug cycle is visibly not converging, the agent submits an
-    intermediate **WIP checkpoint** — a `submit` call that does **not** claim the task's DoD is
-    satisfied and is **explicitly exempt from the Error-Free Builds mandate**
-    (`agents/DEVELOPMENT.md` §4) for this one purpose only. A WIP checkpoint:
+-   **Task-Group-Level Submit Cadence (the core work-preservation mechanism):** A Development
+    Phase session's only real save point is a `submit` call (`agents/AGENT_TOOL_POLICY.md`) —
+    nothing is safe from a session crash until submitted. Per `agents/DEVELOPMENT.md` §5.1/§5.2,
+    the agent submits **once, at the declared Session Unit's own completion** — for the default
+    `Task Group` Session Unit, this is the Task Group's Final Wrap-Up Submit
+    (`agents/DEVELOPMENT.md` §5.2 step 7), after every task in the Task Group is implemented,
+    verified, and its Checklist boxes flipped; for a `Task` or `Code+Verify` Session Unit, at
+    that unit's own completion instead. **There is no longer a per-task or per-sub-task
+    task-complete Submit Point** — individual task/sub-task completion is tracked via the
+    Checklist and the Task Group's Verification File (`development_plan_template.md` §11.4),
+    not via an intermediate `submit` call. A Code/Verify-split task's two sub-tasks (`a`/`b`)
+    likewise no longer each carry their own Submit Point; both collapse into the same
+    Task-Group-end submit. Work within a Task Group is not "finished" piecemeal from a
+    save-point perspective — the Task Group's Final Wrap-Up Submit is the point at which the
+    whole Task Group's work becomes safe. **The only mid-Task-Group save point is a WIP
+    Checkpoint (below), and only where Design specified one** — a Task Group with no
+    Design-specified checkpoint has no save point until its own end; this is a known,
+    accepted tradeoff (see WIP Checkpoint bullet), not an oversight. Never call `reset_all()`
+    or `restore_file()` to discard a submitted or WIP-checkpointed state without explicit user
+    approval — this is the same additive-only prohibition as above, and is what makes this
+    submit cadence actually safe to rely on; see `agents/AGENT_TOOL_POLICY.md` for the full
+    tool-tier treatment of both.
+-   **WIP Checkpoint (the sole mid-Task-Group save point — Design-specified only, no runtime
+    trigger):** Now that task-complete submits no longer provide per-task save points, WIP
+    Checkpoint is the only mechanism that can save in-progress work before a Task Group's own
+    end, and it exists **only where the Design Phase placed one.** At Step 8
+    (`development_plan_template.md` §8), for any task judged long/risky, the Design agent
+    states a concrete checkpoint point — a real sub-milestone in that task's own work (e.g.
+    "core parsing logic implemented and unit-tested, before wiring to the RPC layer"), or, if
+    no natural sub-milestone exists, an invented one roughly halfway through the task's
+    expected work. **There is no drafting-time "eligible: yes/no" flag with the location left
+    open** — Design either names a specific point or the task gets no checkpoint at all.
+    A Development Phase session's role is purely mechanical recognition: once the
+    Design-specified point is reached, checkpoint immediately; it never decides on its own
+    whether or where to checkpoint.
+    - **There is no runtime/non-convergence trigger of any kind.** A task whose build-test-debug
+      cycle is visibly not converging is **not**, on that basis alone, a trigger for a WIP
+      Checkpoint — this was deliberately removed rather than bounded by any mechanical
+      threshold, since neither a predicted iteration count nor the executing agent's own
+      judgment of "is this converging" was trusted to catch it reliably. **This is an
+      explicit operator-vigilance gap, not a process control:** a task stuck in a way Design
+      didn't anticipate, with no Design-specified checkpoint yet reached, has no save point
+      until either that checkpoint or the Task Group's own end — the expectation is the user
+      is watching and will intervene manually, not that the methodology will catch it.
+    - A WIP checkpoint submit does **not** claim any task's DoD is satisfied and is
+      **explicitly exempt from the Error-Free Builds mandate** (`agents/DEVELOPMENT.md` §4)
+      for this one purpose only.
     - Always bypasses code review (`agents/AGENT_TOOL_POLICY.md`), regardless of the Code
       Review Policy setting in §2.2 below, since it never claims finished work.
     - Uses the commit title/description prefix `[WIP-CHECKPOINT]`.
@@ -105,8 +130,8 @@ for which steps, if any, are exempt from its standard procedure.
       §5.2 step 2's three-way task-state check) depends entirely on this description to know
       where to pick up; a WIP checkpoint description this vague is itself a defect to correct
       before ending the session.
-    - Is never treated by a resuming session as evidence the task is complete — only a
-      subsequent task-complete submit (satisfying the real DoD) closes a task.
+    - Is never treated by a resuming session as evidence any task is complete — only the
+      Task Group's own Final Wrap-Up Submit closes it out.
 -   **Stable Identifier Assignment:** Any property requiring a unique ID under a phase guide's schema (a requirement, user story, test case, task, decision record, threat, or equivalent) MUST receive that ID **at first draft**, not deferred to a later "finalization" pass. IDs are never renumbered or reused once assigned, even if a later correction round rejects or merges the item the ID was assigned to — a rejected or merged item's ID is retired (recorded as superseded), never reassigned to a different item. This preserves the traceability links other documents may already have written against that ID.
 -   **Explicit Backtracking:** A phase guide may permit the user to return to a previously approved step to refine it. When a later step reveals that an earlier step's content — flagged assumption or not — was incorrect, the agent MUST: (1) name the originating step and the specific content at issue, rather than silently patching the current step's output around the problem; (2) present the user with the choice between a local patch at the current step versus formally re-opening the earlier step, rather than deciding unilaterally which is warranted, since this determines how much already-approved work needs re-approval; (3) if the earlier step is re-opened, preserve all already-approved content from steps after it, revisiting that later content only as needed once the earlier step is re-approved — this is governed by the same additive-only, no-silent-elision rules as the rest of this section, not a license to discard later work wholesale; (4) treat the correction as a "Major Change" per the relevant phase guide's notification mandate whenever it materially changes scope, requirements, or architecture. **Exception: findings from Step 7 (Spec Audit) or Step 9 are never handled via the local-patch-vs-reopen choice above — they always require reopening the originating step, via the full multi-session workflow or the Post-Audit Fix Pass (`CLAUDE.md` §3.6.1) — a compressed single-session alternative available only on the user's explicit `POST AUDIT FIX` instruction, which fixes every finding (plus anything discovered incidentally along the way, never left flagged-but-unfixed) and still mandatorily ends in a fresh Step 7/9 audit session. See `CLAUDE.md` §3.11 for the concrete, mandatory Step 7 Backtrack Protocol, including its Trivial/Substantive severity tiering.**
 
@@ -120,11 +145,13 @@ for which steps, if any, are exempt from its standard procedure.
     freely usable, require approval, or require the two-step "propose, then `ARE YOU SURE?`"
     confirmation ritual.
 -   **Code Review Policy: BYPASSED.** The agent MUST NOT call `request_code_review` for any
-    submit — WIP checkpoint, Code-only task, or task-complete/Verify task. This methodology's
-    own DoD and Verification Method (`agents/DEVELOPMENT.md` §5.1) are the sole quality gate
-    for Development Phase work. **To re-enable code review:** delete this bullet — a WIP
-    checkpoint and a Code-only submit still always bypass regardless, since neither claims
-    finished work; only a task-complete/Verify submit would then go through normal review.
+    submit — a WIP Checkpoint or a Task Group's Final Wrap-Up Submit (the only two submit
+    types that exist per `AGENTS.md` §2.1; there is no separate per-task or Code/Verify
+    sub-task submit any more). This methodology's own DoD and Verification Method
+    (`agents/DEVELOPMENT.md` §5.1) are the sole quality gate for Development Phase work. **To
+    re-enable code review:** delete this bullet — a WIP Checkpoint still always bypasses
+    regardless, since it never claims finished work; only the Task Group's Final Wrap-Up
+    Submit would then go through normal review.
 -   **Hermetic Environment Mandate:** The agent MUST ensure that the development environment is hermetic and reproducible using `scripts/setup_env.sh` (Linux) and `scripts/setup_env.bat` (Windows).
 -   **Evidence-Based Completion Mandate:** The agent is forbidden from claiming task or requirement completion without presenting the Required Artifacts (Logs, Screenshots, etc.) defined in the planning phase.
 -   **Mandatory Screenshot Approval:** Any and all screenshots captured by the agent MUST be explicitly shown to the user and approved by the user before the corresponding task or requirement is marked as complete.
@@ -141,7 +168,8 @@ for which steps, if any, are exempt from its standard procedure.
     `unimplemented!()`, a function body that returns a hardcoded/placeholder value, a
     partial branch that handles only the easy case, or any other incomplete construct as an
     intermediate step to "come back to later" — even within a single work session, even if
-    the plan is to finish it before that task's own Submit Point. If a task cannot be fully,
+    the plan is to finish it before the current Session Unit's own Submit Point (or, if one
+    is stated for this task, before its Design-specified WIP Checkpoint). If a task cannot be fully,
     robustly implemented in the current session for a genuine reason (missing tool,
     ambiguous spec, blocked dependency), that is an Escalation Trigger or a clarifying
     question (`agents/DEVELOPMENT.md` §4) at the moment the gap is discovered — not a stub
@@ -149,6 +177,29 @@ for which steps, if any, are exempt from its standard procedure.
     which exists as a final backstop, not the primary enforcement mechanism.
 -   **No Compressed Formats in Delivered Content:** Every Task Group, task, section, list item, or repeated structure in a delivered file (Architecture Spec, Development Plan, Development Checklist, or any other deliverable) MUST be written out in full, individually — never collapsed into a placeholder like `(repeat one block per Task Group)`, `... (similar for remaining tasks)`, an ellipsis run standing in for omitted items, or any other compressed/templated shorthand. This applies everywhere such content appears, not only in the Checklist. A template file's own illustrative placeholder (e.g. `agents/exemplars/development_checklist_template.md`'s single example `## Task Group N` block) is the sole exception — it exists to be filled in, not delivered as-is; the actual generated deliverable for a real project always expands every Task Group and task explicitly, with no "repeat" instruction left in the delivered content.
 -   **Pre-Commit Documentation Integrity:** No commit shall be made until all relevant documentation, including checklists and handoff files, is verifiably up-to-date.
+-   **Continuous Documentation of `pub` Items — MANDATORY, project-wide, no exceptions.**
+    Every `pub` item (function, struct, enum, trait, module) MUST carry a rustdoc comment,
+    including an `# Examples` section (plural, even for a single example) and errors
+    documented in prose under `# Errors` where applicable — the same Rust stdlib
+    convention `cargo test --doc` (`agents/CI.md` Stage 3a) already exercises. This is not
+    scoped to consumer-facing/publishable crates: it is the baseline for every crate in
+    every project, published or not (`agents/architecture_specification_template.md`
+    §10.3). Target lint state is `#![deny(missing_docs)]` for every crate — no
+    `publish = false`-tied exemption, no per-item `#[allow(missing_docs)]` escape hatch.
+    **Continuous, not batched:** documenting a `pub` item is part of the DoD of the task
+    that creates or modifies it (`agents/exemplars/development_plan_template.md` §8), the
+    same way a test is — never a separate, deferred documentation task.
+    **Backfill of pre-existing undocumented `pub` items is incremental, boy-scout-rule:**
+    a session that touches a file backfills that file's own undocumented `pub` items as
+    part of the same task's DoD, tracked via a per-crate coverage metric
+    (`metrics/docs_coverage.toml`, `agents/CI.md` Stage 1b) rather than left to a single
+    flag-day rewrite. A crate's lint level flips from `#![warn(missing_docs)]` to
+    `#![deny(missing_docs)]` the moment its own tracked coverage reaches 100% — mirroring
+    how `#![deny(missing_docs)]` rollouts are done in practice on projects with pre-existing
+    undocumented surface. The Development Phase's Productization Readiness Checklist
+    (`agents/DEVELOPMENT.md` §5.2.4) carries a dedicated sweep task, the same Anti-Stub
+    Final Sweep shape as `PROD-003`, as a phase-end backstop — not the primary enforcement
+    mechanism, which remains per-task DoD.
 
 ### 2.4. Mandate for Behavioral Caution and Simplicity
 **MANDATE: The agent MUST prioritize caution and simplicity over speed.**
@@ -200,8 +251,11 @@ Escalation Trigger, never a same-session fix.
 
 **Within the Checklist itself, edits are bracket-content-only.** The agent may change only
 the mark inside an existing `[ ]` — to `[x]` (done) or, only where the Plan itself already
-marked that specific task as deferred, `[D]` — and may check the per-task/per-sub-task
-`Submitted` box once that Submit Point has actually fired. It may append its own Session Log
+marked that specific task as deferred, `[D]` — may check a task's `WIP-Checkpoint reached`
+box only once that Design-specified point has actually been reached, and may check the
+Task-Group-level `Submitted` box in the Exit Criteria line once the Task Group's Final
+Wrap-Up Submit has actually fired (`AGENTS.md` §2.1 — there is no per-task/per-sub-task
+`Submitted` box any more). It may append its own Session Log
 row (`agents/exemplars/development_checklist_template.md`'s table, a new row only — never
 editing a prior row's content). **Nothing else in the file is writable by a Development Phase
 session:** no rewording a task or DoD line, no adding notes/commentary/explanation next to a

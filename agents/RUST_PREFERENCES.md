@@ -63,6 +63,13 @@ See `CHANGELOG.md` for version history.
   `agents/PREFERRED_TOOLS.md`) — it uses a stable compiler flag rather than hooking compiler
   internals, and is materially more robust across Rust version upgrades than alternatives
   that have historically broken on point releases.
+- **`cargo test --doc` and the `missing_docs` lint (`AGENTS.md` §2.3) confirmed
+  MSRV-insensitive:** both are long-stable rustc/cargo mechanisms (the `missing_docs`
+  lint predates any MSRV floor this grail would plausibly set; doctest execution via
+  `cargo test --doc` likewise) — no dual-MSRV or consumer-toolchain interaction to design
+  around, unlike `cargo-nextest`'s build-MSRV case above. Confirmed directly rather than
+  assumed, per the same standard this section already applies to every other toolchain
+  fact.
 - **ESP32/ESP-IDF projects:** see `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md` for the full
   toolchain, `.cargo/config.toml`, and `tokio`-on-ESP-IDF configuration this policy assumes
   for any embedded component on that stack.

@@ -81,6 +81,34 @@ Preferred test runner. Install: `cargo install cargo-nextest --locked`. Run:
 Preferred coverage tool (stable `-C instrument-coverage`, robust across Rust upgrades).
 Install: `cargo install cargo-llvm-cov --locked`. Requires `llvm-tools-preview`.
 
+**Coverage-green is not evidence of integration.** Line/branch coverage measures execution,
+not validation — an isolated unit test satisfies this gate identically to a genuine
+cross-crate test (`agents/DEVELOPMENT.md` §5.2 step 4). `cargo-mutants` below is the
+recommended tool for the different question coverage can't answer: whether the suite's
+assertions are actually meaningful.
+
+### cargo-mutants (recommended, advisory/spot-check — never a merge-blocking gate)
+Mutation testing: deliberately injects small bugs (flips a comparison operator, swaps a
+return value) and confirms the existing suite actually fails. A suite with high line
+coverage but a low mutation-kill rate is exactly the "coverage that isn't validation"
+failure `agents/DEVELOPMENT.md` §5.2 step 4 describes, and is the concrete spot-check tool
+for any component Step 9's sample-audit (`CLAUDE.md` §3.4) flags as suspicious — a
+"line hitter," "Mockery," or "Conjoined Twins" candidate.
+Install: `cargo install cargo-mutants --locked` (or `taiki-e/install-action` in CI, faster
+than a source build).
+- **CI posture: scheduled, non-blocking, never a merge gate.** Wire `cargo mutants --in-diff`
+  (PR-scoped, fast — tests only code changed in that PR) as its own CI job, informational
+  only: results post as an artifact/comment, the job never fails the build or blocks a
+  merge. This is the current tool-recommended usage — mutation testing is slower and
+  noisier than coverage and needs deterministic, non-flaky tests to be useful, so it is
+  advisory rather than gating for now. Revisit graduating it to a real gate only once a
+  project has runtime/flakiness data justifying that step; that decision is never made
+  silently by an executing session, it's a Plan-Change Escalation (§13/§14) like any other
+  standing-process change.
+- A full-tree/`--in-place` run is reserved for a scheduled (not per-PR) job on the default
+  branch, per the same reasoning — full-tree runs are the product of viable-mutant-count ×
+  test-suite-runtime and can be materially slower than a single PR's `--in-diff` run.
+
 ---
 
 ## Frontend Visual Testing (Playwright)
@@ -367,6 +395,8 @@ a failing CI run.
 | Tool | Canonical CI command | Feeds |
 |---|---|---|
 | cargo-nextest | `cargo nextest run --workspace --message-format libtest-json` | `metrics/tests.toml` |
+| cargo test --doc | `cargo test --doc --workspace` | Stage 3a's `test_docs` pass/fail — validates every rustdoc `# Examples` block actually compiles/runs (`AGENTS.md` §2.3) |
+| cargo doc (missing-docs) | `RUSTDOCFLAGS="-W missing_docs" cargo doc --workspace --no-deps --message-format=json` | `metrics/docs_coverage.toml` (`agents/CI.md` Stage 1b) — coverage tracking; the actual `#![deny(missing_docs)]` gate is enforced by `cargo build` itself, per-crate, once that crate reaches 100% |
 | cargo-llvm-cov | `cargo llvm-cov --workspace --json --output-path target/llvm-cov.json` | `metrics/coverage.toml` |
 | cargo-deny | `cargo deny --format json check` | `metrics/deny.toml`, and feeds the `THIRD_PARTY_LICENSES.md` regeneration/drift-check (`agents/CI.md` Stage 5) |
 | cargo-audit | `cargo audit --json` | `metrics/audit.toml` |

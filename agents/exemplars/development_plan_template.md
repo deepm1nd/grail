@@ -160,8 +160,15 @@ requirement is itself an Escalation Trigger (§13).
 
 **Each Task Group must fit one agent session** (assume an agent less capable than the one
 drafting this Plan). Complexity score: `(task_count × 1) + (new_public_interfaces × 2) +
-(cross_file_tasks × 2) + (cross_task_dependencies × 1.5)`; default ceiling **15**,
-project-tunable. Score above ceiling → split further, unless the user explicitly approves
+(cross_file_tasks × 2) + (cross_task_dependencies × 1.5) + (first_integration_risk × 5)`;
+default ceiling **15**, project-tunable. **`first_integration_risk`** is `1` if this Task
+Group's own Exit Criteria requires genuine cross-crate/cross-boundary execution that no
+earlier Task Group's Exit Criteria already required, else `0` — this is the term Confirmed
+Finding 7 (`lessons_learned_grail_gap.md`) identifies as missing: without it, a Build Order
+Step whose Exit Criteria silently assumes prior integration that was never actually
+achieved scores as if it were ordinary internal task complexity, when first-time assembly
+of previously-isolated components is a qualitatively different, higher-risk kind of work.
+Score above ceiling → split further, unless the user explicitly approves
 a recorded override (§6.1's Complexity Score column carries the override note inline —
 never a silent exception). **Independent of sizing: a session completes at most one Task Group**,
 regardless of remaining capacity (`AGENTS.md` §2.8).
@@ -174,6 +181,36 @@ logged Authority Level (`CLAUDE.md` §3.7) — a Conceptual-level mockup leaves 
 task's own judgment than an Authoritative one, stated explicitly rather than left implicit.
 A task introducing a page/view/setting not in the mockup traces back to the Design-Phase
 Proactive UI-Impact flag that justified it.
+
+**Walking Skeleton Milestone (architecture-risk reduction — distinct from MVP/product
+scoping, never conflated with it):** for any Build Order with more than ~3 components that
+must eventually run together, the Build Order MUST include an early, explicitly-named
+Task Group — before the bulk of per-component work — whose Exit Criteria is a tiny,
+real, end-to-end slice that actually links the main architectural components together
+(stub/minimal pieces are fine; a thrown-away prototype is not — this is production code the
+system continues to grow from). Its Verification Method requires a genuine cross-crate test
+(§8's Test-Type-to-Naming Binding), living in a dedicated sibling test crate — its own
+`Cargo.toml` depending on the real domain crates as ordinary dependencies — never a single
+domain crate's own `tests/` directory, which by Rust's own compilation model only ever sees
+that one crate's public API. This Task Group's own `first_integration_risk` term above is
+always `1`. Deferring all integration to a single late capstone Task Group sized as if it's
+trivial (the gap `lessons_learned_grail_gap.md` documents) is exactly what this milestone
+exists to prevent — it does not replace a later, fuller integration/system-test Task Group,
+it establishes early that the architecture actually composes.
+
+**Maturity-Triggered Component Integration:** independent of the Walking Skeleton
+milestone above, any individual component — not just the architecture as a whole — gets
+its own minimal integration test **the moment it reaches minimum functional maturity**
+(i.e. the point its own unit-level Exit Criteria would otherwise be satisfied), not
+deferred to a later, larger integration effort. Concretely: the Task Group in which a
+component's core functionality is completed also includes a task exercising that
+component against at least one real (non-mock) counterpart it's designed to integrate
+with — sized as an ordinary task within that same Task Group for a component with few
+integration points, or, where a component integrates with many others (a genuine
+many-to-many boundary, not just one adjacent counterpart), as its own dedicated Task Group
+immediately following, rather than folded in as an afterthought. This is a standing
+per-component rule, applied at Task Group sequencing time (§6.1), not left to a Step 9
+audit to catch after the fact.
 
 ### 6.1. Task Group Index
 
@@ -239,7 +276,32 @@ cross-component contract a later Task Group depends on.
   left to the executing agent's judgment.
 - **Commands**
 - **DoD:** code builds (`command`) · verification passes (`command(s)`) · Test Case ID
-  verified · Required Artifacts captured
+  verified · Required Artifacts captured · **any new or modified `pub` item carries a
+  rustdoc comment** (`AGENTS.md` §2.3 — mandatory, not a separate documentation task;
+  includes backfilling any pre-existing undocumented `pub` item this task's own File(s)
+  touched field already lists, boy-scout-rule)
+
+  **Test-Type-to-Naming Binding (mandatory, all Test Case Types):** every test function
+  implementing a Test Case cited in this task's Traceability field is named
+  `test_<type>_<nnnn>__description`, where `<type>` is exactly the Test Case's own
+  Design-time `Type` (Architecture Specification §3.2) lowercased —
+  `test_unit_<nnnn>__description`, `test_integration_<nnnn>__description`,
+  `test_system_<nnnn>__description`, `test_acceptance_<nnnn>__description`. This
+  supersedes the bare `test_<nnnn>__description` convention referenced elsewhere
+  (`agents/MAINTENANCE.md` §6a — that file's own naming-convention section requires a
+  matching update; flagged here as a pending follow-up since it wasn't available to edit
+  in this session) with the type-qualified form. **For any Test Case whose Type is
+  Integration, System, or Acceptance, the DoD is not satisfied by the naming convention
+  alone** — the implementing test MUST also be compiled into a binary that genuinely links
+  the multiple crates/components the Type claims to exercise (e.g. a dedicated sibling
+  test crate per §6's Walking Skeleton convention, never a single domain crate's own
+  `tests/` directory, which by Rust's own compilation model only ever sees that one
+  crate's public API). The task's DoD line states which crates/binary the test actually
+  wires together — not merely that "Test Case ID verified" — since this is exactly the
+  fact a Step 9 audit (`CLAUDE.md` §3.4) mechanically checks via `cargo metadata`/nextest
+  binary listing against the naming convention above. A task claiming an
+  Integration/System/Acceptance-type Test Case backed by a test compiled into a
+  single-crate binary does not satisfy this DoD item, regardless of the test's name.
 - **Traceability:** REQ-XXX-NNN[, ...] — every task cites at least one requirement
 - **Design Refs** (mandatory, every task, no exceptions): the specific Architecture Spec
   file + section + item-level ID/name this task's content derives from — e.g. `_06_viewpoints
@@ -249,13 +311,33 @@ cross-component contract a later Task Group depends on.
   no external refs needed") rather than omitting the field. This is the drafting-time
   counterpart to `dev_prompt_template.md`'s on-demand reference table: known dependencies are
   pre-resolved here; the on-demand table remains the fallback for anything unanticipated.
-- **Submit Point:** where in this task's execution a `submit` fires (`AGENTS.md` §2.1,
-  `agents/AGENT_TOOL_POLICY.md`). At minimum, every task (or sub-task, if split below) has
-  exactly one task-complete Submit Point at its own DoD satisfaction. Additionally flag
-  **WIP-Checkpoint-Eligible: Yes/No** — Yes for any task identified at drafting time as
-  long/risky (e.g. initial scaffolding, a large multi-file refactor) where a mid-task
-  crash-safety submit is worth pre-declaring; the WIP checkpoint itself still fires only if
-  actually needed during execution (§5.1 mechanics in `agents/DEVELOPMENT.md`).
+  **The rustdoc DoD item above is mechanical and global** (`AGENTS.md` §2.3 — applies to
+  every task touching a `pub` item, stated once, not repeated per-task here); **what the
+  doc content should actually say remains this field's own per-task judgment call** —
+  Design still cites, in Design Refs, whichever Spec §2.2/§2.3 User-Facing Description or
+  Diátaxis Destination content (if any) this task's rustdoc should draw on. The global
+  rule doesn't relieve Design of thinking about doc content; it only removes the need to
+  restate "rustdoc required" on every task.
+- **WIP-Checkpoint:** `None`, or a **stated, concrete checkpoint point** for any task judged
+  at drafting time to be long/risky (e.g. initial scaffolding, a large multi-file refactor) —
+  a real sub-milestone within that task's own work (e.g. "core parsing logic implemented and
+  unit-tested, before wiring to the RPC layer"), or, where no natural sub-milestone exists,
+  an invented point roughly halfway through the task's expected work (e.g. "roughly halfway
+  — initial struct/trait definitions compiling, before implementation logic begins"). This
+  is the **only** save point that can occur before the task's own DoD is satisfied
+  (`AGENTS.md` §2.1) — there is no runtime/non-convergence trigger, so a task with `None`
+  here has no mid-task save point at all, by design; the executing agent recognizes and
+  fires the checkpoint mechanically once the stated point is reached, it never decides
+  independently whether or where to checkpoint. **This field is populated at drafting time
+  for every task, never left as a bare eligibility flag** — a task judged risky enough to
+  need a checkpoint but drafted with no stated location is a Plan drafting defect (§15 DoD),
+  not something left to the executing session's judgment.
+- **Submit Point:** individual tasks no longer carry their own task-complete Submit Point
+  (`AGENTS.md` §2.1) — the Session Unit's Submit Point occurs once, at the unit's own
+  completion (the Task Group's Final Wrap-Up Submit, for the default `Task Group` Session
+  Unit). This field is retained only to state, where relevant, any task-specific note about
+  how that task's completion feeds the unit's eventual Submit Point (e.g. a task whose
+  artifacts the Wrap-Up Submit depends on) — it is not itself a per-task save point.
 - **Context for executing agent:** the one or two sentences resolving the likeliest
   ambiguity a lower-context agent would get wrong
 
@@ -264,25 +346,30 @@ Method is **Build+Test** or **Hybrid** is split into two sub-tasks at the same T
 suffixed `a` (Code) and `b` (Verify) — e.g. `DOMAIN-005a`, `DOMAIN-005b`. Neither suffix is
 ever renumbered once assigned (stable-ID rule, `AGENTS.md` §2.1). Exempt only for pure
 Visual/Behavioral tasks (no build-test-debug cycle exists to isolate).
-- **`005a` (Code):** DoD is a clean build only — no test execution required to close it. Own
-  Submit Point at its own DoD.
-- **`005b` (Verify):** DoR is `005a`'s Submit Point reached. DoD is the task's original DoD
-  (tests pass, artifacts captured) — this is where the build-test-debug loop lives, isolated
-  from `005a`'s own session/context. Own Submit Point at its own DoD.
+- **`005a` (Code):** DoD is a clean build only — no test execution required to close it. No
+  longer has its own Submit Point — DoD satisfaction and a flipped Checklist box are
+  sufficient to move to `005b`; both sub-tasks' work is saved together at the Task Group's
+  single Final Wrap-Up Submit (`AGENTS.md` §2.1). May carry its own WIP-Checkpoint field
+  (above) if judged long/risky on its own.
+- **`005b` (Verify):** DoR is `005a`'s DoD satisfied. DoD is the task's original DoD (tests
+  pass, artifacts captured) — this is where the build-test-debug loop lives, isolated from
+  `005a`'s own session/context. Likewise no Submit Point of its own; may carry its own
+  WIP-Checkpoint field if judged long/risky on its own.
 - **Counts as two tasks** against the §6 Task Group Sizing complexity formula — stated explicitly
   so sizing doesn't silently overrun once splits are applied.
 
 **README task (final Task Group):** `DOC-FINAL` — review the Design-drafted `README.md` against
 the as-built system, correct any divergence, get user approval. **DoD:** N/A build command;
 DoD is content review and user approval. **Design Refs:** N/A — sourced from the as-built
-repository, not an Architecture Spec section. **Submit Point:** at DoD satisfaction; not
-split (Visual/Behavioral-equivalent, no build-test-debug cycle).
+repository, not an Architecture Spec section. **WIP-Checkpoint:** `None` — not
+split (Visual/Behavioral-equivalent, no build-test-debug cycle); saved with the rest of the
+Task Group at its Final Wrap-Up Submit.
 
 **Productization Readiness tasks (final Task Group):** one `PROD-NNN` task per applicable item
 of the Productization Readiness Checklist (`agents/DEVELOPMENT.md` §5.2.4) — applicability
 of `PROD-007`–`PROD-009` determined by Design Step 5's Productization Applicability
 finding. Each follows the standard Task Template above (Design Refs, Verification Method,
-DoD, Submit Point); none are split (Code/Verify), being Visual/Behavioral-equivalent or
+DoD, WIP-Checkpoint); none are split (Code/Verify), being Visual/Behavioral-equivalent or
 Hybrid review-and-confirm tasks rather than a build-test-debug cycle.
 
 - **`PROD-001` — Regression Traceability:** confirm every Core Requirement ID (Spec §3)
@@ -311,6 +398,14 @@ Hybrid review-and-confirm tasks rather than a build-test-debug cycle.
   current `Cargo.lock`; confirm `THIRD_PARTY_LICENSES.md` matches. **Verification Method:**
   Build+Test. **DoD:** `cargo deny check licenses` clean, disclosure file matches. **Design
   Refs:** `agents/PREFERRED_DEPENDENCIES.md`.
+- **`PROD-010` — Documentation Coverage Sweep:** re-run `cargo doc`'s missing-docs check
+  (`metrics/docs_coverage.toml`, `agents/CI.md` Stage 1b) against the as-built repository;
+  any crate not yet at 100% coverage is backfilled now rather than left standing — this is
+  the phase-end backstop for the per-task boy-scout backfill rule (`AGENTS.md` §2.3), the
+  same Anti-Stub-Final-Sweep shape as `PROD-003` applied to doc coverage instead of stub
+  markers. **Verification Method:** Build+Test. **DoD:** every crate's
+  `#![deny(missing_docs)]` passes clean, `metrics/docs_coverage.toml` shows 100% across the
+  workspace. **Design Refs:** `AGENTS.md` §2.3.
 - **`PROD-007` — Rollback Procedure** *(conditional — release/deploy step present)*:
   document and actually execute, once, in a non-production environment, the procedure for
   reverting to the previous tagged version; confirm migration reversibility if the project
@@ -342,11 +437,13 @@ never copied) and identify the first Task Group with any unchecked task; (3) run
 current build/test commands and confirm the result matches what the Checklist claims — a
 discrepancy is itself an escalation, not something silently fixed; (4) confirm the Task Group's
 Entry Criteria by inspecting repo state directly; (5) **for the identified Task Group's tasks,
-run the three-way task-state check against declared Submit Points**
-(`agents/DEVELOPMENT.md` §5.2 step 2): no submit → not started; a WIP-Checkpoint submit only
-→ resume in place from that checkpoint's own description, never redo from scratch; a
-task-complete submit → done. A checklist mark with no matching submit, or vice versa, is an
-Escalation Trigger (§13), never silently patched over. (6) work only within the identified
+run the task-state check against the Checklist and any WIP Checkpoint**
+(`agents/DEVELOPMENT.md` §5.2 step 2 — there is no per-task submit any more, per `AGENTS.md`
+§2.1): no Checklist box checked and no WIP Checkpoint → not started; a WIP Checkpoint exists
+(only possible where Design specified one, §8) → resume in place from that checkpoint's own
+description, never redo from scratch; Checklist box checked → done. A checked box with no
+corresponding Verification File entry where one is required is an Escalation Trigger (§13),
+never silently patched over. (6) work only within the identified
 Task Group and the session's declared Session Unit (`AGENTS.md` §2.8) — never begin work outside
 that scope, even with capacity remaining.
 
@@ -411,6 +508,16 @@ timing as the Checklist), each entry no more than a few lines:
 - Each entry cites the artifact by filename, pointing into that Task Group's detail folder
   (below) — e.g. `Task AUTH_003: cargo nextest ... 6 passed. Screenshot:
   AUTH_003_login_success.png`.
+- **Integration/System/Acceptance-type citations carry one additional clause, inline in the
+  same entry, never a separate line:** which crates/components the implementing test
+  actually wires together — e.g. `Task SIM_014: cargo nextest run test_integration_0031...
+  1 passed. Wires: sim_core + sensors_adapter (via test_gt_actuation_integration binary,
+  crate: tests/gt_actuation)`. This is the mechanical evidence trail Fix 3's Step 9 audit
+  checks against the Test Case's own Design-time Type (Architecture Specification §3.2) and
+  the Task Template's Test-Type-to-Naming Binding (§8) — a citation to an Integration-type
+  Test Case backed by a single-crate test is then visible in the evidence trail itself, not
+  only discoverable via a forensic extract after the fact. Still evidence-line format, not
+  prose — this addition is a few words, not a paragraph.
 
 **Detail folder — `test/task_group_[N]/`:** holds the actual screenshots/clips named
 `[TASK_ID]_[short_description].[ext]` (e.g. `AUTH_003_login_success.png`,
@@ -424,11 +531,17 @@ gitignored (§3 above).
 Treat a task/Task Group as aborted (not silently reworked) when: the chosen approach is found to
 violate an Architecture Spec constraint; a DoR turns out false; completing as specified
 would require modifying a file/contract outside its stated scope. **On abort:** revert
-uncommitted changes for that task to its **last submitted state** (its most recent
-task-complete submit, or its most recent WIP checkpoint if no task-complete submit exists,
-or a clean pre-task state if neither exists) — never to a Task-Group-level checkpoint, since
-per-task Submit Points (§8) mean sibling tasks' completed work is never at risk from this
-task's abort; do not mark it complete; record the abort and cause in the Task Group Summary.
+uncommitted changes for that task to its **last saved state** — its most recent
+Design-specified WIP Checkpoint if one was reached for this task (`AGENTS.md` §2.1), or the
+Task Group's own starting state (its last Final Wrap-Up Submit, or session start if this is
+the Task Group's first session) if no WIP Checkpoint exists. **Note the changed blast
+radius under the Task-Group-level submit cadence:** since individual tasks no longer have
+their own Submit Point, an abort with no WIP Checkpoint to fall back to reverts to the whole
+Task Group's last saved state, not just the aborted task — sibling tasks already completed
+earlier in this same, not-yet-submitted Task Group are at risk from this task's abort in a
+way they were not under the prior per-task cadence. This is a known, accepted consequence of
+lifting the submit cadence (`AGENTS.md` §2.1), not an oversight; do not mark the aborted task
+complete; record the abort, cause, and actual revert scope in the Task Group Summary.
 **Per §13, an abort the agent cannot resolve itself now stops the entire session** — it does
 not continue with other unaffected tasks in the Task Group. Rollback never crosses a Task Group
 boundary except when root cause is a defect in already-completed earlier-Task Group work — that's
@@ -497,9 +610,13 @@ happens to be compatible.
 - [ ] Every filename conforms to `CLAUDE.md` §4 (`[projectname]_dev_plan_NN_topic_v[N].md`,
   `[projectname]_dev_checklist.md`, `[projectname]_dev_prompt.md`).
 - [ ] Every task (§8) has a non-empty Design Refs entry (or an explicit "trivial — no
-  external refs needed" statement) and a stated Submit Point.
+  external refs needed" statement) and a stated `WIP-Checkpoint` value (`None` or a concrete
+  point) — never a per-task Submit Point, which no longer exists (`AGENTS.md` §2.1).
 - [ ] Every task whose Verification Method is Build+Test or Hybrid is split into `a`/`b`
   sub-tasks per §8's mandatory Code/Verify split rule; no such task remains unsplit.
+- [ ] Every task whose DoD/File(s)-touched involves a new or modified `pub` item includes
+  the rustdoc DoD checkbox (`AGENTS.md` §2.3) — no task drafted as touching a `pub` item
+  with that checkbox silently omitted.
 - [ ] Every Task Group (§6.1) has a stated Session Unit, consistent with its task composition
   (e.g. `Code+Verify` only where the Task Group is dominated by split tasks).
 - [ ] Every Task Group (§6.1) shows a computed Complexity Score, recomputable from its own listed
@@ -510,6 +627,30 @@ happens to be compatible.
 - [ ] Every Task Group (§6.1)'s Exit Criteria include running the full local CI-equivalent
   sequence and resolving/fixing any finding it surfaces (`agents/DEVELOPMENT.md` §5.2
   step 4), cited by reference, not restated in full per Task Group.
+- [ ] Every Task Group (§6.1)'s Exit Criteria distinguish a license violation (stop-and-alert,
+  blocks Exit) from new-crate/dependency drift since Task Group start (notification only,
+  listed inline) per `agents/DEVELOPMENT.md` §5.2 step 4 — not merged into one undifferentiated
+  Security Scan line item.
+- [ ] Every task whose implementing test cites an Integration/System/Acceptance-type Test Case
+  (Architecture Spec §3.2) states, in its DoD, which crates/components that test actually
+  wires together, and the test's own name follows the `test_<type>_<nnnn>__description`
+  convention (§8's Test-Type-to-Naming Binding) — no such task left to satisfy this DoD item
+  by naming convention alone without the cross-crate/component claim also stated.
+- [ ] The Build Order (§6) contains at least one Task Group whose Exit Criteria requires
+  genuine multi-crate/cross-boundary execution (the Walking Skeleton milestone) — not deferred
+  entirely to a single late capstone Task Group.
+- [ ] Every component identified in the Architecture Specification has a Task Group in which
+  it receives a minimal integration test at the point it reaches functional maturity (§6's
+  Maturity-Triggered Component Integration), sized into that Task Group or, where it
+  integrates with many others, its own dedicated following Task Group.
+- [ ] Every task (§8) states a `WIP-Checkpoint` value — `None`, or a concrete stated
+  checkpoint point — never a bare eligibility flag with the location left open; any task
+  judged long/risky at drafting time has a stated point, not `None`.
+- [ ] No task (§8) states its own per-task/per-sub-task Submit Point as a save point — the
+  Session Unit's Submit Point occurs once, at the unit's own completion, per `AGENTS.md` §2.1.
+- [ ] Every 5th Task Group by index (`agents/DEVELOPMENT.md` §5.2.5) is identified as an
+  Integration-Reality Check point in the Task Group Index or Dependency Graph, so a Development
+  Phase session can recognize it without cross-referencing the raw index count itself.
 
 ## Appendix G — Glossary
 

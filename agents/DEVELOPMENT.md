@@ -34,7 +34,7 @@ checklist file in place — it never copies, renames, or otherwise reproduces a 
 of either.
 
 ## 4. Phase-Specific Mandates
-- **Error-Free Builds:** All code submitted to the repository MUST build without errors. Code that fails to build is considered a critical failure and must be rectified immediately. Strive to eliminate warnings as well. **The sole exception is a WIP Checkpoint** (`AGENTS.md` §2.1) — a `submit` explicitly not claiming task DoD, prefixed `[WIP-CHECKPOINT]`, used only as a crash-safety net during a long/risky or not-yet-converging task. This exception is scoped to WIP checkpoints alone and never extends to a task-complete or Code-only submit, both of which must still build and (per their own DoD) pass verification.
+- **Error-Free Builds:** All code submitted to the repository MUST build without errors. Code that fails to build is considered a critical failure and must be rectified immediately. Strive to eliminate warnings as well. **The sole exception is a WIP Checkpoint** (`AGENTS.md` §2.1) — a `submit` explicitly not claiming task DoD, prefixed `[WIP-CHECKPOINT]`, used only as a crash-safety net at a Design-specified checkpoint point within a long/risky task. This exception is scoped to WIP Checkpoints alone and never extends to a Task Group's Final Wrap-Up Submit, which must still build and, per every included task's own DoD, pass verification.
 - **Surgical Changes:** The agent MUST touch only what is necessary.
     - **No "Drive-by" Improvements:** Do not "improve" adjacent code, comments, or formatting that is unrelated to the task.
     - **Style Matching:** Match the existing style of the file, even if it differs from the agent's preference.
@@ -125,24 +125,33 @@ Verification Method is pure **Visual/Behavioral** (no build-test-debug cycle) is
 stays a single task. This is mechanical, derived from the Verification Method already
 stated in the Plan — never a separate judgment call at execution time.
 - **`a` (Code):** implement the code; DoD is satisfied by a clean build alone
-  (`cargo build` or equivalent) — no test execution required to close it. Ends in its own
-  Submit Point (task-complete submit for the `a` half).
-- **`b` (Verify):** DoR is `a` complete and submitted. This is where the build-test-debug
-  loop lives — isolated in its own session/context per the Session Unit in force
-  (`AGENTS.md` §2.8). DoD is the task's original DoD (tests pass, artifacts captured).
-  Ends in its own Submit Point.
+  (`cargo build` or equivalent) — no test execution required to close it. No longer has its
+  own Submit Point — closing its DoD and flipping its Checklist box is sufficient to move to
+  `b`; both sub-tasks' work is saved together at the Task Group's single Final Wrap-Up
+  Submit (`AGENTS.md` §2.1).
+- **`b` (Verify):** DoR is `a`'s DoD satisfied (no longer "submitted," since there is no
+  intermediate submit to wait on). This is where the build-test-debug loop lives — isolated
+  in its own session/context per the Session Unit in force (`AGENTS.md` §2.8). DoD is the
+  task's original DoD (tests pass, artifacts captured). Like `a`, has no Submit Point of its
+  own; if either half is long/risky enough to warrant a mid-task save point, that is a
+  Design-specified WIP Checkpoint (`AGENTS.md` §2.1), not a sub-task-boundary submit.
 - A split task counts as **two** tasks against the Task Group Sizing complexity formula
   (`CLAUDE.md` §3.4 Step 8) — stated explicitly so Step 8 sizing doesn't silently overrun.
 
-**Submit Points.** Per `agents/exemplars/development_plan_template.md` §8, every task (or
-sub-task, for a split task) states its own Submit Point at drafting time. The agent submits
-at minimum at every declared Submit Point — never batching multiple tasks' completions into
-one end-of-Task Group submit. Where a task is flagged long/risky at drafting time, or where its
-build-test-debug cycle is visibly not converging, the agent additionally issues a WIP
-Checkpoint submit mid-task per `AGENTS.md` §2.1. **After every `submit` call, the session
-stops; the user says "Continue" or "Proceed" to resume** (`agents/AGENT_TOOL_POLICY.md` §2)
-— this is expected, normal flow at every declared Submit Point, not a stopping condition or
-an Escalation Trigger in itself.
+**Submit Points.** Per `AGENTS.md` §2.1, the Session Unit's Submit Point now occurs once, at
+the unit's own completion — the Task Group's Final Wrap-Up Submit (§5.2 step 7) for the
+default `Task Group` Session Unit, or the equivalent completion point for a `Task` or
+`Code+Verify` unit. Individual task/sub-task completions within the unit are tracked via the
+Checklist and Verification File, not via an intermediate `submit`. **The only mid-unit save
+point is a WIP Checkpoint, and only at the specific location Design specified for that task
+at drafting time** (`agents/exemplars/development_plan_template.md` §8, `AGENTS.md` §2.1) —
+there is no runtime trigger (e.g. a non-converging build-test-debug cycle) that authorizes an
+agent-initiated WIP Checkpoint; that judgment call was deliberately removed rather than
+bounded, and a task stuck in an unanticipated way has no save point until its Design-specified
+checkpoint (if any) or the unit's own end. **After every `submit` call, the session stops; the
+user says "Continue" or "Proceed" to resume** (`agents/AGENT_TOOL_POLICY.md` §2) — this is
+expected, normal flow at every Submit Point, not a stopping condition or an Escalation Trigger
+in itself.
 
 **MANDATE: Goal-Driven Execution**
 The agent MUST transform every task into a verifiable goal.
@@ -163,42 +172,77 @@ The workflow for a single Development Phase **session** is as follows. Per §4's
 Per Session mandate, this workflow covers exactly one Task Group per session — a session never
 advances into a second Task Group even if time/capacity remains.
 
-1.  **Run the Session-Start Sequence:** Per the Dev Prompt (`[projectname]_dev_prompt.md`): read the checklist, prior Task Group summaries, the current Task Group's plan section (§6.1 Task Group Index + §8 current-Task Group tasks only), and the protocols file — in that order, using targeted extraction for the plan sections (`sed`/`grep`, never whole-file reads of large documents). Do **not** read all Architecture Specification files or all Development Plan files upfront; do **not** perform a broad repository scan. Architecture Specification and remaining plan sections are referenced on demand only, when a specific uncertainty arises during task work, using the reference table in the Dev Prompt. **Check out the current Task Group's Branch Name** (`agents/exemplars/development_plan_template.md` §6.1) — creating it from the default branch if it doesn't yet exist, or resuming it if a prior session already started the Task Group — before touching any code; never work the Task Group's tasks on the default branch. **Use the declared Branch Name exactly as written in Plan §6.1 — do not append, prepend, or otherwise modify it in any way**, including appending a numeric hash, timestamp, or session identifier (observed failure pattern: checking out `task_group11b_hwaccel_benchmark_ladder-1251787334605801970` or `task_group12b-4334437132416834814` instead of the Plan's actual declared name). `git checkout -b <exact_branch_name>` (or `git checkout <exact_branch_name>` to resume) verbatim, character-for-character. **Re-confirm this branch is still checked out before starting each subsequent task in the session**, not only at session start; a session that finds itself on the wrong branch mid-task stops and corrects it before any further code changes. Then run the environment check (pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above) and verify repository build/test state before touching any code.
-2.  **Identify Current Task Group and Task State:** Determine the first Task Group in `[projectname]_dev_checklist.md` whose Exit Criteria is not yet checked. Verify its Entry Criteria are actually true against the current repository state, not assumed from the checklist alone. **Then, for the current Task Group's tasks, run the three-way task-state check** (mirrored in `[projectname]_dev_prompt.md`'s "find next unit" step) against each declared Submit Point, not raw git-log archaeology:
-    - **No submit exists for this task/sub-task** → not started; begin fresh.
-    - **A WIP Checkpoint submit exists, no task-complete submit** → resume-in-place: check
-      out the WIP state as the actual starting point (never redo from scratch, never
-      discard it), and continue from exactly what its `[WIP-CHECKPOINT]` description states
-      was attempted, confirmed working, and known incomplete (`AGENTS.md` §2.1). A WIP
-      checkpoint whose description doesn't support this — too vague to resume from — is
-      corrected before further work continues, not worked around.
-    - **A task-complete submit exists** → done; move to the next task/sub-task.
-    A checklist box checked with no corresponding submit, or a submit with no corresponding
-    checklist entry, is an inconsistency — an Escalation Trigger (§13's model below), never
-    silently patched over.
+1.  **Run the Session-Start Sequence:** Per the Dev Prompt (`[projectname]_dev_prompt.md`): read the checklist, prior Task Group summaries, the current Task Group's plan section (§6.1 Task Group Index + §8 current-Task Group tasks only), and the protocols file — in that order, using targeted extraction for the plan sections (`sed`/`grep`, never whole-file reads of large documents). Do **not** read all Architecture Specification files or all Development Plan files upfront; do **not** perform a broad repository scan. Architecture Specification and remaining plan sections are referenced on demand only, when a specific uncertainty arises during task work, using the reference table in the Dev Prompt. **Check out the current Task Group's Branch Name** (`agents/exemplars/development_plan_template.md` §6.1) — creating it from the default branch if it doesn't yet exist, or resuming it if a prior session already started the Task Group — before touching any code; never work the Task Group's tasks on the default branch. **Use the declared Branch Name exactly as written in Plan §6.1 — do not append, prepend, or otherwise modify it in any way**, including appending a numeric hash, timestamp, or session identifier (observed failure pattern: checking out `task_group11b_hwaccel_benchmark_ladder-1251787334605801970` or `task_group12b-4334437132416834814` instead of the Plan's actual declared name). `git checkout -b <exact_branch_name>` (or `git checkout <exact_branch_name>` to resume) verbatim, character-for-character. **Re-confirm this branch is still checked out before starting each subsequent task in the session**, not only at session start; a session that finds itself on the wrong branch mid-task stops and corrects it before any further code changes. Then run the environment check (pre-flight version sanity check per `agents/PREFERRED_TOOLS.md`, self-installing and recording any missing prerequisite per §4 above) and verify repository build/test state before touching any code. **Capture the current resolved `Cargo.lock` dependency set as this Task Group's starting baseline** — this is the diff basis step 4's crate-drift notification compares against at Task Group end.
+2.  **Identify Current Task Group and Task State:** Determine the first Task Group in `[projectname]_dev_checklist.md` whose Exit Criteria is not yet checked. Verify its Entry Criteria are actually true against the current repository state, not assumed from the checklist alone. **Then, for the current Task Group's tasks, run the task-state check** (mirrored in `[projectname]_dev_prompt.md`'s "find next unit" step) against the Checklist and any WIP Checkpoint, not raw git-log archaeology — there is no longer a per-task submit to check against, since Submit Points now occur only at Task-Group end (`AGENTS.md` §2.1):
+    - **No Checklist box checked for this task/sub-task, no WIP Checkpoint exists** → not
+      started; begin fresh.
+    - **A WIP Checkpoint submit exists for this task** (only possible where Design specified
+      one, §8) → resume-in-place: check out the WIP state as the actual starting point (never
+      redo from scratch, never discard it), and continue from exactly what its
+      `[WIP-CHECKPOINT]` description states was attempted, confirmed working, and known
+      incomplete (`AGENTS.md` §2.1). A WIP checkpoint whose description doesn't support this —
+      too vague to resume from — is corrected before further work continues, not worked
+      around.
+    - **The Checklist box is checked** → done; move to the next task/sub-task. Since no
+      per-task submit exists to cross-check against, a checked box's authority is the
+      Checklist entry itself plus its corresponding Verification File entry
+      (`development_plan_template.md` §11.4) — a checked box with no corresponding
+      Verification File entry (where one is required) is an inconsistency — an Escalation
+      Trigger (§13's model below), never silently patched over.
 3.  **Implement the Current Session Unit** (`AGENTS.md` §2.8 — `Task Group`, `Task`, or
     `Code+Verify`, as declared for this Task Group): for each task within scope of the session's
     declared unit, in order (respecting stated dependencies), the agent must follow the
-    **Core Development Cycle** (§5.1), including the mandatory Code/Verify split and Submit
-    Point cadence. **Tasks within the unit are worked in the exact order the Checklist lists
-    them — no reordering, no skipping ahead to a later task, and no leaving a DoD sub-item
-    unchecked-but-passed-over — without the user's explicit permission given in that
-    session.** An unnecessary-seeming, already-satisfied, or blocked task/item is a
-    task-level question (§4's Ask-on-Uncertainty) or an Escalation Trigger, never a silent
-    skip. Once a task (or sub-task) is implemented and its DoD is fully satisfied,
-    the agent, in this order: (a) appends that task's entry to
+    **Core Development Cycle** (§5.1), including the mandatory Code/Verify split and the
+    Design-specified WIP Checkpoint (if any) for that task. **Tasks within the unit are worked
+    in the exact order the Checklist lists them — no reordering, no skipping ahead to a later
+    task, and no leaving a DoD sub-item unchecked-but-passed-over — without the user's explicit
+    permission given in that session.** An unnecessary-seeming, already-satisfied, or blocked
+    task/item is a task-level question (§4's Ask-on-Uncertainty) or an Escalation Trigger,
+    never a silent skip. Once a task (or sub-task) is implemented and its DoD is fully
+    satisfied, the agent, in this order: (a) appends that task's entry to
     `test/[projectname]_task_group_[N]_verification.md` and drops any screenshots/clips into
     `test/task_group_[N]/` per `agents/exemplars/development_plan_template.md` §11.4 (skip for
     tasks with no Verification Method beyond human review/approval); (b) updates the
     checklist **continuously, in place** — not batched until end of Task Group, and never via a
-    copy of the checklist (§4); (c) submits at that task's declared Submit Point
-    immediately, not deferred to end-of-Task Group, and before starting the next task.
-4.  **Task Group Integration and System Test:** After all tasks in the Task Group are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome. **In addition to this build/test pass, every Task Group's Exit Criteria include running the full local CI-equivalent sequence** — Lint & Format, Build, Test, Coverage, Security Scan (`agents/CI.md`'s stage skeleton), the same sequence already mandated per-task at Submit Points (step 5, below) — **once more at the Task Group level, and resolving/fixing any bug or issue this run surfaces before the Task Group's Exit Criteria can be checked off.** A Task Group is not exited on the strength of its individual tasks' local Submit Point checks alone; the full sequence is re-run integrated, across the whole Task Group's combined changes, and any finding is fixed in this same Task Group, not deferred to the next one or left for CI's async pass to catch later.
+    copy of the checklist (§4); (c) proceeds directly to the next task — **there is no
+    per-task or per-sub-task `submit` call any more; the session's only `submit` is the
+    Task-Group-end Final Wrap-Up Submit (step 7), or a Design-specified WIP Checkpoint if one
+    is reached first (`AGENTS.md` §2.1).**
+4.  **Task Group Integration and System Test:** After all tasks in the Task Group are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome. **In addition to this build/test pass, every Task Group's Exit Criteria include running the full local CI-equivalent sequence** — Lint & Format, Build, Test, Coverage, Security Scan (`agents/CI.md`'s stage skeleton), the same sequence the Task Group's own Final Wrap-Up Submit (step 5, below) requires as its Mandatory Pre-Submit Local Verification — **once more at the Task Group level, and resolving/fixing any bug or issue this run surfaces before the Task Group's Exit Criteria can be checked off.** A Task Group is not exited on the strength of any individual task's own narrower Verification Method alone; the full sequence is re-run integrated, across the whole Task Group's combined changes, and any finding is fixed in this same Task Group, not deferred to the next one or left for CI's async pass to catch later.
+    - **Coverage is not evidence of integration.** This run's Coverage stage (`cargo-llvm-cov`)
+      confirms no regression in what currently exists — line/branch coverage measures
+      execution, not validation, and an isolated unit test satisfies both build-green and
+      coverage-% identically to a real cross-crate test. Passing this stage is never treated,
+      here or in any Task Group Summary, as evidence that an Integration/System/
+      Acceptance-type Test Case is actually satisfied — that is established solely by the
+      Test-Type-to-Naming Binding and mechanical check described in
+      `agents/exemplars/development_plan_template.md` §8/§11.4, never by a coverage
+      percentage. `PREFERRED_TOOLS.md`'s `cargo-mutants` CI job (informational, non-blocking)
+      is the recommended spot-check for whether a suite's assertions are meaningful, when
+      Fix 3's Step 9 sample-audit or this Task Group's own review flags a component as
+      suspicious — it is a different claim from coverage-green, not a stronger version of it.
+    - **This Task Group's Security Scan run additionally distinguishes two outcomes from
+      `cargo deny check licenses`, of different severity:**
+      - **A license violation** — same stop-and-alert severity as the per-task rule in step 5
+        below: reported to the user immediately as an Escalation Trigger, and the Task
+        Group's Exit Criteria cannot be checked off until resolved. Not resolved by this
+        session regenerating or reconciling `THIRD_PARTY_LICENSES.md` (step 5's rule on that
+        file's sole legitimate writer applies here identically).
+      - **A new crate added since this Task Group's starting `Cargo.lock`** (direct or
+        transitive, diffed against the dependency set captured at this Task Group's
+        session-start sequence, §5.2 step 1) — **notification only**, does not block Exit
+        Criteria, no stop. Every newly-added crate is listed inline in the Task Group
+        Summary — name, version, license, same table shape as `THIRD_PARTY_LICENSES.md` —
+        so the user sees exactly what drifted without a manual `Cargo.lock` diff.
 5.  **Pre-Commit Verification & Quality Assurance:**
-    -   **Mandatory Pre-Submit Local Verification** (`agents/DESIGN.md` §5.8): before any
-        task-complete Submit Point, run the full local CI-equivalent sequence — Lint &
+    -   **Mandatory Pre-Submit Local Verification** (`agents/DESIGN.md` §5.8): before the
+        Task Group's Final Wrap-Up Submit (its sole task-complete-equivalent Submit Point,
+        `AGENTS.md` §2.1), run the full local CI-equivalent sequence — Lint &
         Format, Build, Test, Coverage, Security Scan (`agents/CI.md`'s stage skeleton) —
-        and confirm all stages clean. **The Security Scan's `cargo deny check`/
+        and confirm all stages clean. This is the same run already required at step 4's
+        Task Group Integration and System Test; it is not re-run a third time here where
+        step 4 already covers it, but the Task Group cannot reach its Final Wrap-Up Submit
+        without it having been run clean. **The Security Scan's `cargo deny check`/
         `cargo audit` run in this context is read-only.** A license or advisory finding is
         reported to the user immediately as a stop-and-alert, the same as any other
         Escalation Trigger — it is not resolved by this session regenerating,
@@ -210,7 +254,14 @@ advances into a second Task Group even if time/capacity remains.
     -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first Task Group of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final Task Group, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **README badges are static and CI-written** (`agents/exemplars/README_template.md`'s Metrics & Badges section, `agents/CI.md` Stage 6) — there is no per-Task Group Branch-Name substitution for a Development session to perform; CI's Metrics Commit step rewrites the badge values on every push, from whichever branch it ran on. No Documentation-integrity DoD item exists for this any more.
     -   **Assurance Review:** Perform a final, active review of all code and changes in the current Task Group. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists — checked continuously during the Task Group, not only here (`AGENTS.md` §2.3's Maximal Implementation mandate); this review is a final backstop, not the primary enforcement point.
 6.  **Write the Task Group Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_task_groupN_summary.md`.
-7.  **Final Wrap-Up Submit:** Individual tasks are already submitted at their own declared Submit Points per step 3 — this step is the Task Group-level wrap-up only: docs, README updates, and the Task Group Summary itself, submitted together after the **Task-Group-End Quality Assurance** is complete. This is not the sole checkpoint for the Task Group's work (per-task submits already provide that); it closes out anything not itself task-scoped.
+7.  **Final Wrap-Up Submit:** This is now the Task Group's **sole `submit` call** (`AGENTS.md`
+    §2.1) — every task and sub-task implemented in steps 2–3 above is included in this one
+    submit, not previously saved individually. Fires after docs, README updates, the Task
+    Group Summary, and the Mandatory Pre-Submit Local Verification (step 5) are all complete.
+    This is the single point at which the whole Task Group's work becomes safe from a session
+    crash, aside from any Design-specified WIP Checkpoint reached along the way — treat the
+    Task Group's work as unsaved, not merely "paused for bookkeeping," until this submit
+    actually fires.
 8.  **Stop. Do Not Proceed to the Next Session Unit.** Per `AGENTS.md` §2.8, the session ends here regardless of remaining capacity, whether the declared Session Unit was a full Task Group, a single Task, or one Code/Verify sub-task. Notify the user the unit is complete and await a new session to begin the next one. **Do not check the next Session Unit's Entry Criteria either** — a session verifies only its own Exit Criteria; the next Session Unit is always opened fresh, in a different session, which checks its own Entry Criteria itself at that time (same rule as `agents/MAINTENANCE.md` §10's Task-Group-boundary scope rule — reaching forward, even to glance, is out of this session's scope).
 
 #### 5.2.1. Project README
@@ -329,10 +380,37 @@ development_plan_template.md` §8) are drafted into the Final Task Group at Step
    includes a version identifier, so a future bug report can be correlated to a specific
    build. No SLO/error-budget/alerting apparatus is required unless a specific project's
    own Architecture Specification explicitly scopes one in.
+10. **Documentation Coverage:** every crate's `#![deny(missing_docs)]` passes clean
+    (`AGENTS.md` §2.3, `agents/CI.md` Stage 1b) — re-checked against the actual as-built
+    repository, not merely trusted from each task's own self-reported rustdoc DoD item,
+    the same "final backstop, not primary enforcement" relationship item 3 above already
+    has to the per-task Anti-Stub mandate. `metrics/docs_coverage.toml` shows 100% across
+    the workspace, with no crate left on `#![warn(missing_docs)]` at project completion.
 
-A gap found in any of these nine items (or the applicable subset) at Final Task Group is treated
+A gap found in any of these ten items (or the applicable subset) at Final Task Group is treated
 exactly like any other unmet Exit Criterion — it blocks Task Group completion, it is not
 deferred past this project's own Final Verification.
+
+#### 5.2.5. Recurring Integration-Reality Check
+
+**Every 5th Task Group (Task Groups 5, 10, 15, ...) by index, in addition to that Task
+Group's own Exit Criteria, answers one standing question directly in its Task Group
+Summary:** has the assembled system, or a meaningful and growing subset of it, actually
+been run together as a whole at any point so far — and if not, is that a deliberately
+deferred, explicitly named decision (citing which later Task Group/Build Order Step is
+expected to close the gap), rather than a silent one. This is not a new mechanical gate —
+Fix 1's Test-Type-to-Naming Binding and Fix 2's Walking Skeleton/Maturity-Triggered
+Component Integration milestones are what actually make this question answerable without a
+forensic pass: the check here just asks it out loud, on a fixed cadence, rather than
+leaving it implicit until a downstream question forces the issue by accident (the way the
+original gap this section exists to close was actually discovered).
+
+A "yes, deliberately deferred" answer with a named target Task Group is not itself a
+finding. A "no, and nothing names when this will be addressed" answer, or a Task Group
+Summary that skips the question entirely, is treated the same as any other Escalation
+Trigger (§13's model in `agents/exemplars/development_plan_template.md`) — it stops the
+session's Final Wrap-Up Submit until the question is actually answered, not just deferred
+by omission.
 
 ### 5.3. Completion of Development
 After all Task Groups in the `Development Plan` are complete, the agent must notify the user and await instruction on next steps, which may include a post-development remediation cycle.

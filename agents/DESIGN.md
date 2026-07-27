@@ -225,20 +225,27 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 ### 5.8. Step 8: Development Plan & Checklist Generation
 - **Plan:** Create the dev plan files using `agents/exemplars/development_plan_template.md`.
 - **Environment/Configuration Elicitation:** Before drafting environment/config content (toolchain, local setup, CI — not addressed by Steps 1-7, which are about *what*, not *where/how built*): elicit concrete facts directly; for anything unspecified with a reasonable default, propose the default as a flagged assumption. Once per Plan, not once per Task Group. **Elicit the repository's GitHub org and repo name at this point** (needed to populate `[org]`/`[repo]` in the README's shields.io badge URLs, `agents/exemplars/README_template.md`) — do not leave these as unresolved placeholders in the generated README. **Tool install commands drafted here (`setup_env.sh`/`.bat`) prefer a prebuilt binary release over a source build wherever one exists for the target platform** (`agents/PREFERRED_TOOLS.md`'s Missing Tool Protocol), falling back to `cargo install --locked`/equivalent only when no binary release exists.
-- **Task Group Sizing Mandate:** Each Task Group must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `CLAUDE.md` §3.4 (Step 8) for the complexity-scoring formula and current ceiling. **The computed score is a mandatory column in the Task Group Index (§6.1) of `agents/exemplars/development_plan_template.md`, shown for every Task Group, never left blank or only implied by Task Count** — over-ceiling requires a recorded override note in the same cell, not a silent judgment call. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one Task Group regardless of Task Group size** — sizing governs how much fits comfortably in a session, not whether multiple Task Groups may be attempted in one.
+- **Task Group Sizing Mandate:** Each Task Group must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `CLAUDE.md` §3.4 (Step 8) for the complexity-scoring formula and current ceiling, including the `first_integration_risk` term. **The computed score is a mandatory column in the Task Group Index (§6.1) of `agents/exemplars/development_plan_template.md`, shown for every Task Group, never left blank or only implied by Task Count** — over-ceiling requires a recorded override note in the same cell, not a silent judgment call. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one Task Group regardless of Task Group size** — sizing governs how much fits comfortably in a session, not whether multiple Task Groups may be attempted in one.
+- **Walking Skeleton Milestone and Maturity-Triggered Component Integration (`agents/exemplars/development_plan_template.md` §6):** applied at Build Order sequencing time, not left implicit. For any Build Order with more than ~3 components that must eventually run together, an early, explicitly-named Task Group with genuine cross-crate Exit Criteria is placed before the bulk of per-component work — an architecture-risk-reduction milestone, explicitly distinct from MVP/product-scope decisions already made at Steps 1–2 and never bundled into that scoping conversation. Independently, each component gets a minimal integration test the moment it reaches functional maturity, sized into that same Task Group or, where it integrates with many others, its own dedicated following Task Group — never deferred to a single late capstone sized as if 11 prior phases had already produced a working integration when none had (the confirmed failure pattern in `lessons_learned_grail_gap.md`).
 - **Frontend Targeted Interleaving:** Where the project has a human-facing UI component, Task Group sequencing does not build the entire backend before any frontend work, nor push all frontend work into a single trailing Task Group. Instead, each screen/component's frontend implementation task is placed in the same Task Group as the real (non-mock) backend/data dependency it needs — never earlier (which would force a throwaway stub, contradicting the Anti-Stub Mandate) and never artificially deferred once its real dependency is available. See `agents/exemplars/development_plan_template.md` §6/§9.1 for the concrete sequencing mechanics this principle drives.
-- **Per-Task Design Refs, Submit Points, and Per-Task-Group Session Unit:** Populated at drafting
+- **Per-Task Design Refs, WIP-Checkpoint Field, and Per-Task-Group Session Unit:** Populated at drafting
   time, not left as stubs (`CLAUDE.md` §3.4 Step 8) — each task's Design Refs cite the
   specific Architecture Spec file/section/item it derives from; the mandatory Code/Verify
   split (`agents/DEVELOPMENT.md` §5.1) is derived mechanically from each task's Verification
-  Method; each Task Group's Session Unit (`AGENTS.md` §2.8) is declared explicitly.
-- **Mandatory Pre-Submit Local Verification:** Every task-complete Submit Point drafted into
-  the Plan MUST include, as its final DoD item before `Submitted` is checked, running the
-  full local CI-equivalent sequence — Lint & Format, Build, Test, Coverage, Security Scan,
-  in that order (`agents/CI.md`'s stage skeleton) — and confirming all stages clean. This is
-  not satisfied by the task's own narrower Verification Method check; it is a standing,
-  additional gate on every Submit Point regardless of what that task otherwise verifies. A
-  Submit Point drafted without this item is a Step 9 audit finding (§5.9).
+  Method; each Task Group's Session Unit (`AGENTS.md` §2.8) is declared explicitly; each
+  task's `WIP-Checkpoint` field states `None` or a concrete Design-specified point — there is
+  no per-task Submit Point any more (`AGENTS.md` §2.1), the Session Unit's own Submit Point
+  occurs once, at the unit's own completion.
+- **Mandatory Pre-Submit Local Verification:** Every Task Group's Exit Criteria (its sole
+  Submit Point per `AGENTS.md` §2.1) MUST include, as its final item before `Submitted` is
+  checked, running the full local CI-equivalent sequence — Lint & Format, Build, Test,
+  Coverage, Security Scan, in that order (`agents/CI.md`'s stage skeleton), including the
+  license-violation/crate-drift split (`agents/DEVELOPMENT.md` §5.2 step 4) — and confirming
+  all stages clean (a license violation blocks; new-crate drift is notification only). This
+  is not satisfied by any individual task's own narrower Verification Method check; it is a
+  standing, additional gate on the Task Group's Submit Point regardless of what its
+  individual tasks otherwise verify. A Task Group's Exit Criteria drafted without this item
+  is a Step 9 audit finding (§5.9).
 - **Checklist:** Generate a task-level checklist using `agents/exemplars/development_checklist_template.md` — every Task Group and every task written out in full, individually, in order; never a "repeat this block" placeholder or an ellipsis standing in for omitted Task Groups/tasks (`AGENTS.md` §2.3 No Compressed Formats).
 - **Kickoff Prompt:** Generate the reusable development-agent kickoff prompt using `agents/exemplars/dev_prompt_template.md`, output as `[projectname]_dev_prompt.md`.
 - **Project README:** Generate the root `README.md` **using `agents/exemplars/README_template.md`
@@ -349,9 +356,11 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
      GitHub Actions pinning rule) is a Trivial finding, fixed in place — observed in
      practice to recur across generated projects when left to a one-time generation-time
      reminder alone, so it is now audited mechanically rather than assumed followed.
-  3. Any task-complete Submit Point in the Plan missing the Mandatory Pre-Submit Local
-     Verification DoD item (§5.8) is a Trivial finding, fixed in place by inserting it —
-     mechanical, no judgment call, since the item's required wording is fixed.
+  3. Any Task Group's Exit Criteria missing the Mandatory Pre-Submit Local Verification item
+     (§5.8, including the license-violation/crate-drift split) is a Trivial finding, fixed in
+     place by inserting it — mechanical, no judgment call, since the item's required wording
+     is fixed. Any task in the Plan still carrying its own per-task/per-sub-task Submit Point
+     (rather than a `WIP-Checkpoint` field per `AGENTS.md` §2.1) is likewise a Trivial finding.
   4. A generated `README.md` missing any section present in
      `agents/exemplars/README_template.md` (badges, License note, Table of Contents,
      About, Key Features, Quick Start and its four subsections, Tech Stack, Architecture,
@@ -368,6 +377,34 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
      the missing task(s).
 - **No RCD/RATS here — by design, mirroring Step 7's independence.** Step 8's Plan and Checklist are produced by the same standard RCD/RATS procedure as every other step; nothing in the workflow so far has independently verified them against the finalized Architecture Specification or against their own internal Definition of Done. Step 9 closes that gap the same way Step 7 closes it for the Spec: an adversarial, independent check before the Plan is handed to a development agent, not a restatement of Step 8's own reasoning.
 - **Process:** Execute `agents/exemplars/development_plan_template.md` §15 (Plan-Level Definition of Done) directly as an audit checklist, on Claude's own analysis: every Core-status requirement ID from Architecture Specification §3 traced in at least one Plan task; no orphan requirement citations; every Task Group has non-empty Entry/Exit Criteria; every task has a non-empty Verification Method and DoD; the Task Group Dependency Graph is acyclic and fully reachable; the Development Checklist contains exactly one line per task DoD item (no drift); every deliverable file's name conforms to `CLAUDE.md` §4; **every Task Group's Complexity Score column recomputed from its own listed tasks against the §6 ceiling — a mismatch, a blank cell, or an over-ceiling Task Group with no recorded override is a finding**. Additionally cross-checks Task-Group-to-Build-Order mapping fidelity against Architecture Specification §9.2, that Task Group sequencing reflects Frontend Targeted Interleaving where a UI exists, and **that the Open Items Register contains only valid, not-yet-reached Deferred items** — same check as Step 7 (`CLAUDE.md` §3.12), re-verified here in case anything slipped through since.
+  - **Build Order integration check:** confirms the Build Order contains at least one Task
+    Group whose Exit Criteria genuinely requires multi-crate/cross-boundary execution (the
+    Walking Skeleton milestone, `agents/exemplars/development_plan_template.md` §6) —
+    absence is a finding, since a Build Order that defers all integration to a single late
+    capstone Task Group is exactly the confirmed failure pattern this fix exists to prevent.
+  - **Mechanical Test-Type check (100% coverage, not sampled):** for every Test Case cited
+    anywhere in the Plan whose Design-time Type (Architecture Specification §3.2) is
+    Integration, System, or Acceptance, confirms the citing task's Verification File
+    evidence names an implementing test that is (a) named
+    `test_<type>_<nnnn>__description` per §8's Test-Type-to-Naming Binding, and (b)
+    compiled into a binary that genuinely links the claimed crates/components (checkable
+    via `cargo metadata`/nextest binary listing against the naming convention) — any
+    mismatch, including a citation resolving to a single-crate test or no implementing test
+    at all, is a finding. This check is exhaustive across every such citation, not sampled,
+    since it is mechanical rather than a judgment call.
+  - **Risk-scaled human sample-audit:** on top of the mechanical check above, Claude
+    hand-reads a sample of `max(5, 10%)` of the project's Integration/System/Acceptance-type
+    citations, weighted toward the top third of Task Groups by Complexity Score, checking
+    whether the implementing test asserts genuine cross-crate behavior or exhibits the
+    **hollow-pyramid** anti-pattern — a **line hitter** (executes the code path, asserts
+    nothing behavioral), a **Mockery** (asserts against a mock's own return value rather
+    than real system behavior — directly explains how a component could answer real
+    queries with hand-authored mock payloads and still show a passing, DoD-satisfying
+    test), or a **Conjoined Twins** case (a test labeled/named as narrower in scope than it
+    actually is, the opposite mislabeling direction, worth checking since a naming
+    convention alone can be gamed once agents learn what Step 9 looks for). Any instance
+    found is a finding; finding even one instance is reason to widen the sample for that
+    Task Group rather than close the audit on the strength of the fixed minimum alone.
 - **Output:** Plan & Checklist Audit Report — presented in chat at the gate; not a
   standalone required file. On any finding, its content is embedded directly in the
   backtrack handoff note that reopens Step 8 (or the relevant Spec step), same convention

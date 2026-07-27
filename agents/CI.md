@@ -185,6 +185,36 @@ must install them itself.
         # elected it at Design Step 5 — do not add it by default.
 ```
 
+### Stage 1b: Documentation Coverage
+`#![deny(missing_docs)]` (`AGENTS.md` §2.3 — every crate, no `publish = false`-tied
+exemption) is a source-level attribute in each crate's `lib.rs`, so a crate already at
+100% coverage is enforced automatically the moment it fails to compile at Stage 2a — no
+separate pass/fail step needed for those. This stage instead computes the **coverage
+number itself**, the same way Stage 4 computes test coverage as a tracked metric
+distinct from Stage 3's pass/fail: it exists so a crate mid-backfill (still on
+`#![warn(missing_docs)]`, per `AGENTS.md` §2.3's incremental rollout) has its drift
+visible continuously, rather than only discovered when someone finally flips it to
+`deny`.
+```yaml
+      - name: Documentation coverage
+        id: docs_coverage
+        continue-on-error: true
+        run: cargo doc --workspace --no-deps --message-format=json > /tmp/docs.json
+        env:
+          RUSTDOCFLAGS: "-W missing_docs"
+
+      - name: Parse documentation coverage
+        id: parse_docs_coverage
+        continue-on-error: true
+        run: node scripts/metrics/parse_docs_coverage.js /tmp/docs.json
+        # Writes metrics/docs_coverage.toml: per-crate warning count and percentage,
+        # workspace-wide percentage. Same shape as metrics/coverage.toml (Stage 4) —
+        # a tracked number, not a gate in itself. The actual gate is each crate's own
+        # `#![deny(missing_docs)]` attribute once that crate reaches 100%.
+```
+Never hardcode which crates are still `warn` vs. `deny` into this script — it reads the
+lint level each crate's own `lib.rs` already declares and reports coverage regardless.
+
 ### Stage 2a: Native Build
 ```yaml
       - name: Native build
@@ -366,7 +396,8 @@ dedicated Actions no longer applies now that everything is one job:
 ### Continue-on-Error Policy — which stages get it, and why
 
 **Every step in Stages 1–5 carries `continue-on-error: true`** — `check_formatting`,
-`run_clippy`, `native_build`, `wasm_build`, `test_nextest`, `test_docs`,
+`run_clippy`, `docs_coverage`, `parse_docs_coverage`, `native_build`, `wasm_build`,
+`test_nextest`, `test_docs`,
 `playwright_install`, `playwright_test`, `playwright_metrics`, `coverage_run`,
 `coverage_metrics`, `cargo_deny`, `parse_deny`, `cargo_audit`, `parse_audit`,
 `parse_license_metrics`, `drift_check`. This is what lets `Evaluate required gates`
@@ -409,6 +440,8 @@ the two notes below).**
           success=true
           if [ "${{ steps.check_formatting.outcome }}" != "success" ]; then echo "formatting check failed"; success=false; fi
           if [ "${{ steps.run_clippy.outcome }}" != "success" ]; then echo "clippy failed"; success=false; fi
+          if [ "${{ steps.docs_coverage.outcome }}" != "success" ]; then echo "docs build failed"; success=false; fi
+          if [ "${{ steps.parse_docs_coverage.outcome }}" != "success" ]; then echo "docs coverage parse failed"; success=false; fi
           if [ "${{ steps.native_build.outcome }}" != "success" ]; then echo "native build failed"; success=false; fi
           if [ "${{ steps.wasm_build.outcome }}" != "success" ]; then echo "wasm build failed"; success=false; fi  # omit this line if no WASM component
           if [ "${{ steps.test_nextest.outcome }}" != "success" ]; then echo "nextest failed"; success=false; fi

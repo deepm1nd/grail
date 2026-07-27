@@ -56,14 +56,28 @@ Step 2's RCD/RATS output, by persona then theme. Stable ID `US-[DOMAIN]-NNN`.
     - **Interaction Sequence:** 1. ... 2. ...
     - **Notes/Assumptions from RATS:** any assumption raised while drafting this story and
       its resolved outcome (Resolved/Deferred/Future Feature/Rejected), retained here.
+    - **Diátaxis Destination** *(optional, set at drafting time)*: `Tutorial` (a new
+      user-facing capability worth a hands-on walkthrough) | `How-To Guide` (a task an
+      already-competent user will want to accomplish) | `None` (purely internal/
+      architectural, no end-user-facing documentation need) | `Deferred` (genuinely
+      unclear at Design time, resolved later — e.g. at Maintenance M3 or at RELEASE's own
+      Elicitation step). A mechanical seed for RELEASE's Elicitation step, not
+      publication-ready content — leaving it `Deferred` is a valid answer, not a gap.
 
 ### 2.3. Core Functional Requirements
 Each requirement: unique ID `[PROJ]-FUNC-[DOMAIN]-NNNN`, atomic, includes a Verification
 Protocol, traces to ≥1 User Story ID.
 
-| Req ID | Description | Originating User Story | Verification Protocol |
-|---|---|---|---|
-| `[PROJ]-FUNC-[DOMAIN]-0001` | | `US-[DOMAIN]-001` | |
+**User-Facing Description** *(optional column, filled in only where genuinely
+user-facing — leave blank for an internal/architectural requirement)*: a plain-language,
+non-technical sentence describing what this requirement does for the end user — not a
+restatement of the technical Description. Not publication-ready prose; it's a seed a
+later RELEASE Draft-pass step elaborates, not a shortcut around actually authoring
+Tutorial/How-To/Explanation content.
+
+| Req ID | Description | Originating User Story | Verification Protocol | User-Facing Description |
+|---|---|---|---|---|
+| `[PROJ]-FUNC-[DOMAIN]-0001` | | `US-[DOMAIN]-001` | | |
 
 ### 2.4. Non-Functional Requirements (Quality Attribute Scenarios)
 **MANDATE: expressed as stimulus/response scenarios**, not bare statements. Same ID/
@@ -119,6 +133,15 @@ Every Test Case referenced anywhere (§2.3/§2.4 Verification Protocols, §3.4) 
 here first — an undefined `TEST-[NNN]` reference is a Traceable-criterion failure. Unique
 ID `TEST-[NNN]`, traces to ≥1 Req ID, states type, states the DoD this test enforces.
 
+**This `Type` column is no longer a Design-time-only label.** Per
+`agents/exemplars/development_plan_template.md` §8's Test-Type-to-Naming Binding, the
+Type declared here is mechanically bound, at Development time, to the implementing test's
+own function name (`test_<type>_<nnnn>__description`) and, for Integration/System/
+Acceptance types, to the actual crates/binary that test compiles into — checked
+mechanically at Step 9 (`CLAUDE.md` §3.4). Declaring a Type here is a real, checkable
+commitment about how the eventual test will be built, not free-text intent that can
+silently diverge from what gets implemented.
+
 | Test ID | Verifies Req ID(s) | Type | Test Description | Definition of Done |
 |---|---|---|---|---|
 | `TEST-001` | | Unit/Integration/System/Acceptance | | |
@@ -137,8 +160,15 @@ Per `agents/RUST_PREFERENCES.md` §2.
 ### 3.4. Traceability Matrix
 Master cross-reference; Step 7 checks completeness.
 
-| Req ID | Component / Unit | Test ID | Verification Artifact |
-|---|---|---|---|
+**Doc Note** column *(optional)*: which Diátaxis quadrant(s), if any, this Req ID maps to
+— mirrors how this table already maps Req ID → Verification Artifact. Per `CLAUDE.md`
+§2's "no separate Requirements & Traceability document" rule, this stays a column on the
+existing table rather than a new standalone doc-traceability file. The Development-side
+half of this linkage (which quadrant a task's Design Refs should have in mind) is carried
+forward via `development_plan_template.md` §8's Design Refs field, not re-derived there.
+
+| Req ID | Component / Unit | Test ID | Verification Artifact | Doc Note |
+|---|---|---|---|---|
 
 ### 3.5. Acceptance Criteria Detail
 Per requirement needing more than a one-line Verification Protocol: preconditions, steps,
@@ -410,14 +440,23 @@ project's actual surface (non-exhaustive enum variant addition, trait-bound tigh
 MSRV bump); pre-1.0 policy if applicable; deprecation notice period; changelog convention.
 10.2 **MSRV Policy** — current consumer MSRV (explicit, not "latest stable"); bump policy;
 enforcement (dedicated CI stage compiling only the publishable crate at that version).
-10.3 **Consumer-Facing Documentation & Examples** — rustdoc requirements (`# Panics`/
-`# Errors`), doctests as a CI gate, example-crate convention, `pub`-surface review process.
+10.3 **Consumer-Facing Documentation & Examples** — the baseline rustdoc/doctest DoD
+mandate (`AGENTS.md` §2.3, every `pub` item in every crate, published or not) already
+covers the `# Examples`/`# Errors`/`# Panics` requirement, the `cargo test --doc` CI
+gate, and the `#![deny(missing_docs)]` target state (`agents/CI.md` Stage 1b,
+`metrics/docs_coverage.toml`); this section states only what a consumer-facing framework
+needs *on top of* that baseline — example-crate convention and `pub`-surface review
+process specific to external consumers.
 
 ---
 
 ## 11. Appendices
 
-11.1 **Glossary of Terms** — durable, project-lifetime term registry.
+11.1 **Glossary of Terms** — durable, project-lifetime term registry, already maintained
+across Design/Development/Maintenance sessions (no new mechanism this section adds).
+Doubles as the intended seed for a future RELEASE session's own Spine step — keeping
+this current is already in scope for whichever session touches a term, not a new
+obligation.
 
 | Term / Acronym | Meaning |
 |---|---|
