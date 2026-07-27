@@ -136,7 +136,7 @@ stated in the Plan — never a separate judgment call at execution time.
   own; if either half is long/risky enough to warrant a mid-task save point, that is a
   Design-specified WIP Checkpoint (`AGENTS.md` §2.1), not a sub-task-boundary submit.
 - A split task counts as **two** tasks against the Task Group Sizing complexity formula
-  (`CLAUDE.md` §3.4 Step 8) — stated explicitly so Step 8 sizing doesn't silently overrun.
+  (`agents/exemplars/development_plan_template.md` §6) — stated explicitly so Step 8 sizing doesn't silently overrun.
 
 **Submit Points.** Per `AGENTS.md` §2.1, the Session Unit's Submit Point now occurs once, at
 the unit's own completion — the Task Group's Final Wrap-Up Submit (§5.2 step 7) for the

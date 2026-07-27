@@ -1,7 +1,7 @@
 # Release Checklist: [projectname]_release_v[N.NN.NN]_checklist
 
 > Companion to `release_plan_template.md` and `RELEASE.md`. Named
-> `[projectname]_release_v[N.NN.NN]_checklist.md` from the moment this release's RELEASE
+> `release/[projectname]_release_v[N.NN.NN]_checklist.md` from the moment this release's RELEASE
 > work opens — same no-`_open`-placeholder, no-rename-at-publish convention as the Plan.
 > Edited in place across this release's RELEASE work. Mirrors
 > `development_checklist_template.md`'s Entry/Exit/DoD/Submitted/Session-Log shape, at
@@ -167,7 +167,7 @@
 - [ ] `mdbook build` succeeds locally.
 - [ ] `mdbook test` passes (every code example compiles/runs).
 - [ ] Link-check/lint pass clean.
-- [ ] Release prompt file (`[projectname]_release_v[N.NN.NN]_prompt.md`) generated and
+- [ ] Release prompt file (`release/[projectname]_release_v[N.NN.NN]_prompt.md`) generated and
       handed off per `RELEASE.md` §10.
 - [ ] Version-path publish and switcher update confirmed per `RELEASE.md` §7's tier
       (patch: `latest` updated in place; minor/major: new version-path snapshot).
