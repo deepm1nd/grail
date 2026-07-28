@@ -118,8 +118,8 @@ conflict/incompatibility surfaces → stop the session now** (§5 below).
 
 ### 5. Start infrastructure services (if required)
 ```bash
-docker compose -f deploy/docker-compose.dev.yml up -d
-docker compose -f deploy/docker-compose.dev.yml ps
+docker compose -f test/containers/docker-compose.dev.yml up -d
+docker compose -f test/containers/docker-compose.dev.yml ps
 ```
 Docker unavailable → treat as a missing prerequisite (step 4's rule).
 
@@ -168,13 +168,13 @@ every DoD sub-item is `[x]` and Required Artifacts exist.
 **The instant a task's (or sub-task's) DoD is satisfied, before moving to the next task:**
 if it has a real Verification Method (Build+Test, Hybrid, or Visual/Behavioral — not a pure
 documentation/review task), append its entry to
-`test/[projectname]_task_group_[N]_verification.md` (Plan §11.4) — **paste the actual terminal
+`test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` (Plan §11.4) — **paste the actual terminal
 output line verbatim, never a summary, paraphrase, or description in your own words** (e.g.
 never write something like "Result: Successfully compiled using `cargo check -p [crate]`" —
 that is not evidence the command ran or what it printed; copy the real `Finished`/`error`
 line or the real `cargo nextest` summary line instead), plus any screenshots (static views:
 one final-state shot) or clips (dynamic scenes: three ~5s clips — start/middle/finish) saved
-under `test/task_group_[N]/` named `[TASK_ID]_[short_description].[ext]`.
+under `test/v[N.NN.NN]/task_group_[N]/` named `[TASK_ID]_[short_description].[ext]`.
 
 **Then update the Checklist for this task now — every satisfied DoD sub-item and the task
 line itself — before calling `submit`. Do not defer this update, and do not batch it with
@@ -210,7 +210,7 @@ with other tasks in the Task Group. Go to step 9 now.
 
 ### 9. Write the Task Group Summary — on normal completion or on stopping
 Write/update `[projectname]_task_groupN_summary.md` (Plan §11.3): header block, tasks completed
-with evidence (**link to `test/[projectname]_task_group_[N]_verification.md` rather than
+with evidence (**link to `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` rather than
 repeating its content**), deviations, issues/problems (with full diagnostic detail if this is
 why you stopped), assumptions, unplanned changes, incomplete tasks, open items, and
 **Escalation Required: Yes/No** — if Yes, classify (A) replanning or (B) re-architecting if
@@ -234,9 +234,9 @@ session.
 - [ ] Build and test commands pass (unless you stopped per step 8/9, in which case this is
   the reason the Task Group Summary exists).
 - [ ] Task Group Summary written and saved.
-- [ ] The Verification file (`test/[projectname]_task_group_[N]_verification.md`) has an entry for
+- [ ] The Verification file (`test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md`) has an entry for
   every task completed this session that has a real Verification Method, with any
-  screenshots/clips saved under `test/task_group_[N]/` — nothing beyond the summary line/artifact
+  screenshots/clips saved under `test/v[N.NN.NN]/task_group_[N]/` — nothing beyond the summary line/artifact
   reference (no raw logs).
 - [ ] You verified, per task (not just once at session start), that you were on the Task Group's
   exact declared Branch Name — never the default branch, never another Task Group's branch — and

@@ -1,6 +1,8 @@
 # Release Checklist: [projectname]_release_v[N.NN.NN]_checklist
 
-> Companion to `release_plan_template.md` and `RELEASE.md`. Named
+> Companion to `release_plan_template.md` and `RELEASE.md`. Lives at
+> `dev/release/v[N.NN.NN]/[projectname]_release_v[N.NN.NN]_checklist.md` — same
+> folder-plus-filename version redundancy as the Plan, for the same provenance reason. Named
 > `[projectname]_release_v[N.NN.NN]_checklist.md` from the moment this release's RELEASE
 > work opens — same no-`_open`-placeholder, no-rename-at-publish convention as the Plan.
 > Edited in place across this release's RELEASE work. Mirrors

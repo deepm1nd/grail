@@ -20,6 +20,25 @@ proven Development pipeline's own files and outputs unaffected.
 
 ---
 
+## 0. Reading Requirements (Selective File Reading)
+
+**Invariant set — every Maintenance session, regardless of M-stage:** `AGENTS.md`,
+`CLAUDE.md`, and this file (`MAINTENANCE.md`) itself. No table entry below repeats these
+three. Project-specific Architecture Specification files (e.g. `03_requirements`) are not
+grail files and so are not listed here either — they're read per M1/M2/M3's own
+instructions in §6 above, regardless of which grail files also apply.
+
+**File-level selectivity, escape valve, and Step/M-stage re-run rule** — identical
+mechanics to `DESIGN.md` §0; not restated here.
+
+| M-stage | Additional grail files this stage needs (beyond the invariant set) |
+|---|---|
+| M0 — Elicitation | None. |
+| M1 — Impact Triage | `agents/PREFERRED_DEPENDENCIES.md` and `agents/PREFERRED_SERVICES.md`, only if Question 5 (new dependency/infra service) fires. |
+| M2 — Requirements, Test, Verification *(full path only)* | `DESIGN.md` §4.5 (Requirement Quality Criteria / Requirement Smell catalog). |
+| M3 — Classification, Architecture Synthesis, Impact Assessment *(full path only)* | None beyond whichever project-specific Architecture Specification files M3's own instructions name. |
+| M4 — Task Decomposition *(full path only)* | `agents/exemplars/development_plan_template.md` §8 (Task Template shape, Complexity Score formula), reused directly. |
+
 ## 1. Relationship to Design and Development
 
 Reuses existing mechanisms rather than inventing parallel ones: branch-per-unit-of-work
@@ -355,7 +374,7 @@ partial or absent; pre-v0.9.5 projects additionally need the type-token migratio
 5. **Exception, not default:** if the existing test's name genuinely cannot be changed
    (e.g. proc-macro-generated test names, a framework that derives the name mechanically),
    add a thin wrapper (`fn test_<type>_<nnnn>__desc() { existing_test_fn_or_call() }`)
-   instead — logged as a named exception in `docs/[project_name]_dev_risks.md`
+   instead — logged as a named exception in `dev/dev_risks.md`
    (`dev_risks_template.md`), same tier as any other Development-Phase-discovered standing
    deviation. This is a logged exception, not a silently-accepted default.
 6. Any Core Requirement ID with **no** existing corresponding test is itself a gap this

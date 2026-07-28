@@ -13,6 +13,37 @@ See `CHANGELOG.md` for full version history.
 
 ---
 
+## 0. Reading Requirements (Selective File Reading)
+
+**Invariant set — every Design Phase session, regardless of Step:** `AGENTS.md`,
+`CLAUDE.md`, and this file (`DESIGN.md`) itself. No table entry below repeats these three.
+
+**File-level, not section-level, selectivity** — a session reads whichever files this
+table names *in full*; section-level extraction (grep/sed) is out of scope for a Design
+session, since synthesis work over a governing file needs its full context once that file
+is in scope at all. This is the opposite tradeoff from `agents/exemplars/dev_prompt_template.md`'s
+on-demand table, which extracts sections precisely because it serves the Development
+Phase's execution agent, not a Design Phase synthesis session.
+
+**Escape valve:** uncertain whether a file is relevant to the current Step → read it.
+Under-reading and missing a governing mandate is worse than one unnecessary file fetch.
+
+**Step re-run rule:** a Step that's re-run (a backtrack, an extra RCD/RATS pass, a Step
+7/9 re-audit) re-reads whatever the original run of that Step read — this table's entries
+don't shrink for a repeat run.
+
+| Step | Title | Additional files this Step needs (beyond the invariant set) |
+|---|---|---|
+| 1 | Concept Intake & Context Mapping | None — pure research/elicitation. |
+| 2 | User Story Elicitation Loop | None. |
+| 3 | Recursive Requirement Decomposition | `agents/RUST_PREFERENCES.md` §2 (Requirement Smells). |
+| 4 | Iterative Questioning & Test Identification | None. |
+| 5 | Decomposition Gate & Verification Feasibility | `agents/PREFERRED_DEPENDENCIES.md`, `agents/PREFERRED_TOOLS.md`, `agents/PREFERRED_SERVICES.md`, `agents/RUST_PREFERENCES.md` §0, `agents/RELEASE.md` §5 (reference-surface table, for the Generated Reference Surface Declaration); `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md` only if the project has an embedded component; `agents/CI.md` (for CI Stage Applicability); `agents/DEVELOPMENT.md` §5.2.4 (for Productization Applicability). |
+| 6 | Final Architecture Synthesis (ISO 42010 Viewpoints) | None — primarily recombination of already-approved content. |
+| 7 | Spec Audit & Phase-End Quality Assurance | Whatever the specific Step(s) under audit in this pass required (union of the relevant rows above) — Step 7 re-verifies against the same governing files the original Step used. |
+| 8 | Development Plan & Checklist Synthesis | `agents/exemplars/development_plan_template.md`, `agents/exemplars/development_checklist_template.md`, `agents/exemplars/dev_prompt_template.md`, `agents/exemplars/README_template.md`, `agents/exemplars/CHANGELOG_template.md`, `agents/exemplars/dev_risks_template.md`, `agents/CI.md`, `agents/PREFERRED_TOOLS.md` (Canonical Commands table), `agents/DEVELOPMENT.md` §5.2.1/§5.2.3/§5.2.4. |
+| 9 | Plan & Checklist Audit | `agents/exemplars/development_plan_template.md` §15 only, plus `agents/CI.md` and `agents/PREFERRED_TOOLS.md` (GitHub Actions pinning rule) for the two mechanical `ci.yml` checks. |
+
 ## 1. Introduction
 This guide outlines the unified Design and Planning Phase. This is the most critical phase for ensuring a project's success. All session-level rules are defined in `AGENTS.md` and all script and command rules are in `agents/SCRIPT_RULES.md`. Both MUST be adhered to at all times.
 
@@ -147,7 +178,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   licensing, team familiarity) not list-checkable is a flagged item through RATS.
 - **CI Stage Applicability:** Identify which of `agents/CI.md`'s conditional stages apply
   to this project — WASM/Trunk build, Playwright/E2E suite, ESP32/ESP-IDF, infra services
-  via `deploy/docker-compose.dev.yml`. No file is produced here; this feeds Step 8's
+  via `test/containers/docker-compose.dev.yml`. No file is produced here; this feeds Step 8's
   `ci.yml` generation.
 - **Productization Applicability:** Determine which of the conditional Productization
   Readiness Checklist items (`agents/DEVELOPMENT.md` §5.2.4, items 7–9 — Rollback
@@ -166,6 +197,16 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 - **License Disclosure Artifact:** Identify that a `THIRD_PARTY_LICENSES.md` disclosure
   file is required, fed by `cargo-deny`'s license enumeration. No file is produced here;
   this feeds Step 8's initial-content generation.
+- **Generated Reference Surface Declaration:** Determine which, if any, of this project's
+  externally-consumed, generated-from-source contracts need a published, versioned
+  reference surface (`agents/RELEASE.md` §5's table — `api/` for a Rust library, `cli/` for
+  a CLI, `config/` for a config schema, `proto/` for protobuf, `dds/`, `mqtt/`, `wit/`,
+  `schema/`, or any other project-specific contract). Zero, one, or several may apply; the
+  list is illustrative, not closed — a surface not named in `agents/RELEASE.md` §5 is still
+  declared the same way, under a project-chosen folder name. Recorded in the Architecture
+  Specification (Traceability/Interfaces content) so Release Step 7 knows which publish
+  steps actually apply to this project. No file is produced here beyond that record; this
+  feeds `agents/RELEASE.md` §6.7's Reference-Sync step at each future release.
 - **Mandate:** The agent determines technical sufficiency for development — presented as a proposal pending confirmation, never certified unilaterally where unverifiable real-environment facts are involved.
 - **Output:** Verified Requirements & V&V Protocol.
 - **GATE: STOP and Present Verified V&V Protocol for User Approval.**
@@ -300,7 +341,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   reviews/confirms it against the repository as it starts to take shape rather than
   authoring from scratch.
 - **Development-Phase Risk Log:** Generate an initial, empty/skeleton
-  `docs/[project_name]_dev_risks.md` from `agents/exemplars/dev_risks_template.md`,
+  `dev/dev_risks.md` from `agents/exemplars/dev_risks_template.md`,
   alongside `CHANGELOG.md`. This file has no content to populate at Design time — it exists
   to give Development Phase sessions a ready, append-as-you-go home for standing risks
   discovered only once real dependency resolution exists (`deny.toml` `ignore`-list
@@ -322,16 +363,16 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   Criteria checkboxes with no corresponding task.
 - **Output:** Development Plan, Checklist, Dev Prompt, draft README, draft `.gitignore`,
   draft `ci.yml`, `scripts/metrics/`, `LICENSE.md`, draft `THIRD_PARTY_LICENSES.md`, initial
-  `CHANGELOG.md`, initial `docs/[project_name]_dev_risks.md`, and the
+  `CHANGELOG.md`, initial `dev/dev_risks.md`, and the
   `test/[projectname]_requirement_traceability.md` skeleton.
 - **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, `.gitignore`, `ci.yml`,
   `scripts/metrics/`, `LICENSE.md`, `THIRD_PARTY_LICENSES.md`, `CHANGELOG.md`,
-  `docs/[project_name]_dev_risks.md`, and the `test/[projectname]_requirement_traceability.md`
+  `dev/dev_risks.md`, and the `test/[projectname]_requirement_traceability.md`
   skeleton for User Approval.**
 
 ### 5.9. Step 9: Plan & Checklist Audit
 - **Note: `.gitignore`, `LICENSE.md`, `scripts/metrics/`, `THIRD_PARTY_LICENSES.md`,
-  `docs/[project_name]_dev_risks.md`, and `test/[projectname]_requirement_traceability.md`
+  `dev/dev_risks.md`, and `test/[projectname]_requirement_traceability.md`
   are not Step 9 audit inputs.** Step 9 audits only the Development
   Plan and Checklist against the finalized Architecture Specification and their own
   Definition of Done (§15) — `.gitignore`'s and `LICENSE.md`'s correctness are confirmed

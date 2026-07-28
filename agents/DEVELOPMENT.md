@@ -200,8 +200,8 @@ advances into a second Task Group even if time/capacity remains.
     task/item is a task-level question (§4's Ask-on-Uncertainty) or an Escalation Trigger,
     never a silent skip. Once a task (or sub-task) is implemented and its DoD is fully
     satisfied, the agent, in this order: (a) appends that task's entry to
-    `test/[projectname]_task_group_[N]_verification.md` and drops any screenshots/clips into
-    `test/task_group_[N]/` per `agents/exemplars/development_plan_template.md` §11.4 (skip for
+    `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` and drops any screenshots/clips into
+    `test/v[N.NN.NN]/task_group_[N]/` per `agents/exemplars/development_plan_template.md` §11.4 (skip for
     tasks with no Verification Method beyond human review/approval); (b) updates the
     checklist **continuously, in place** — not batched until end of Task Group, and never via a
     copy of the checklist (§4); (c) proceeds directly to the next task — **there is no
@@ -360,7 +360,7 @@ development_plan_template.md` §8) are drafted into the Final Task Group at Step
 5. **Developer-Facing Docs:** the Architecture Specification has no known undocumented
    divergence from the as-built system — any found divergence is either fixed or logged as
    an Appendix F Spec Amendment (`agents/exemplars/architecture_specification_template.md`
-   Appendix F); `docs/[project_name]_dev_risks.md` is current (every Open risk
+   Appendix F); `dev/dev_risks.md` is current (every Open risk
    re-evaluated against its own Re-evaluation Trigger, not left stale).
 6. **License/Dependency Drift:** `cargo deny check licenses` is clean against the current
    `Cargo.lock`; `THIRD_PARTY_LICENSES.md` matches its actual output with no undisclosed

@@ -14,10 +14,16 @@ See `CHANGELOG.md` for version history.
 All infrastructure services MUST be deployed via Docker containers rather than installed directly into the agent or CI environment. This keeps environments reproducible and avoids host-system pollution.
 
 - **Preferred tool: `docker-compose`** (or `docker compose` v2 CLI).
-- Service definition files live in the `deploy/` directory in the project root.
-- `deploy/docker-compose.yml` — services the project itself is packaged as (e.g., a web service that is itself containerized).
-- `deploy/docker-compose.dev.yml` — infrastructure dependencies needed during development and testing (Postgres, Neo4j, Qdrant, MinIO, Redis, etc.) but not part of the project's own deployment artifact.
-- CI uses the same compose files; the dev file is started before integration tests run.
+- `deploy/docker-compose.yml` — services the project itself is packaged as (e.g., a web
+  service that is itself containerized). Configuration files (YAML), environment variable
+  files (`.env`), and any other config for this file live alongside it in `deploy/`.
+- `test/containers/docker-compose.dev.yml` — infrastructure dependencies needed during
+  development and testing (Postgres, Neo4j, Qdrant, MinIO, Redis, etc.) but not part of the
+  project's own deployment artifact. Its own config files live alongside it under
+  `test/containers/`, not `deploy/` — the dev/test infra stack and the project's own
+  production deployment artifact are deliberately kept in separate trees.
+- CI uses both compose files as applicable; the dev/test file is started before integration
+  tests run.
 
 ### HTTP Over HTTPS for Local Development
 Local/dev service exposure MUST use HTTP (not HTTPS) unless the project specifically requires TLS for a security requirement. TLS termination for production is handled at the infrastructure layer (reverse proxy, load balancer), not by the service itself in dev.
@@ -25,8 +31,11 @@ Local/dev service exposure MUST use HTTP (not HTTPS) unless the project specific
 ### Prefer Each Service's Own Default Port
 Use each service's published default port. Do not remap ports without a documented reason. Default ports are listed per service below.
 
-### Configuration Files in `deploy/`
-All service definition files (YAML), environment variable files (`.env`), and any configuration files for infrastructure services live in `deploy/`. Never commit secrets; use placeholder values and document the required real values.
+### Configuration Files Live Alongside Their Compose File
+Service definition files (YAML), environment variable files (`.env`), and any configuration
+files for infrastructure services live alongside the compose file they belong to — `deploy/`
+for the project-as-container stack, `test/containers/` for the dev/test infra stack. Never
+commit secrets; use placeholder values and document the required real values.
 
 ---
 
@@ -41,7 +50,7 @@ All service definition files (YAML), environment variable files (`.env`), and an
 - **Docker image:** `postgres:17` (or latest stable)
 
 ```yaml
-# deploy/docker-compose.dev.yml
+# test/containers/docker-compose.dev.yml
 services:
   postgres:
     image: postgres:17
@@ -67,7 +76,7 @@ Graph database. Use when the data model is fundamentally graph-shaped (nodes, re
 - **Docker image:** `neo4j:5` (or latest stable)
 
 ```yaml
-# deploy/docker-compose.dev.yml
+# test/containers/docker-compose.dev.yml
 services:
   neo4j:
     image: neo4j:5
@@ -92,7 +101,7 @@ Vector database. Use for semantic search, embedding storage, and similarity quer
 - **Docker image:** `qdrant/qdrant:latest`
 
 ```yaml
-# deploy/docker-compose.dev.yml
+# test/containers/docker-compose.dev.yml
 services:
   qdrant:
     image: qdrant/qdrant:latest
@@ -115,7 +124,7 @@ S3-compatible object storage. Use for file storage, blob storage, and any worklo
 - **Docker image:** `minio/minio:latest`
 
 ```yaml
-# deploy/docker-compose.dev.yml
+# test/containers/docker-compose.dev.yml
 services:
   minio:
     image: minio/minio:latest
@@ -142,7 +151,7 @@ In-memory key-value store. Use for caching, session storage, pub/sub messaging, 
 - **Docker image:** `redis:7` (or latest stable)
 
 ```yaml
-# deploy/docker-compose.dev.yml
+# test/containers/docker-compose.dev.yml
 services:
   redis:
     image: redis:7
@@ -167,7 +176,7 @@ section), but not exclusive to embedded use.
 - **Docker image:** `eclipse-mosquitto:2` (or latest stable)
 
 ```yaml
-# deploy/docker-compose.dev.yml
+# test/containers/docker-compose.dev.yml
 services:
   mosquitto:
     image: eclipse-mosquitto:2
@@ -225,10 +234,10 @@ When a development session needs infrastructure services, the agent MUST start t
 
 ```bash
 # Start dev infrastructure
-docker compose -f deploy/docker-compose.dev.yml up -d
+docker compose -f test/containers/docker-compose.dev.yml up -d
 
 # Verify services are healthy before proceeding
-docker compose -f deploy/docker-compose.dev.yml ps
+docker compose -f test/containers/docker-compose.dev.yml ps
 ```
 
 If Docker is not available in the session environment, this is a missing-prerequisite condition — the agent follows the Missing Tool Protocol from `PREFERRED_TOOLS.md` (inform user, attempt to resolve, escalate if it cannot).

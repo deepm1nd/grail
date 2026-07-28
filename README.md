@@ -186,7 +186,7 @@ UI assets.
    submits at every task's declared Submit Point, and stops — you say "Continue" to start
    the next session.
 5. **Review evidence as it accumulates**, not just at the end: each Task Group's
-   `test/[projectname]_task_group_[N]_verification.md` (build/test summary lines,
+   `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` (build/test summary lines,
    screenshots, clips) and `[projectname]_task_groupN_summary.md` (the narrative — what
    happened, deviations, issues). A session that hits something it can't resolve stops
    immediately and writes its Task Group Summary instead of guessing — bring that back to a
@@ -381,7 +381,7 @@ project inherits.
 - **Tracked UI/media assets.** User-supplied HTML/image/audio/video assets tracked by
   filename via an Asset Manifest, landing at fixed `assets/{html,images,audio,video}/`
   paths — never packaged into a Design-Phase handoff note, only referenced by filename.
-- **Per-Task-Group Verification file.** `test/[projectname]_task_group_[N]_verification.md`
+- **Per-Task-Group Verification file.** `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md`
   — concise build/test summary lines and pointers to screenshots/clips — evidence, not
   narrative; the Task Group Summary links to it rather than repeating it.
 - **Development agents write to one file, bracket-content-only.** The Development Checklist,

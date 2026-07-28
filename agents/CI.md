@@ -16,7 +16,7 @@ See `CHANGELOG.md` for version history.
 
 - **Design Step 5** (`agents/DESIGN.md` §5.5) *identifies* which conditional stages below
   apply to this project — WASM/Trunk build? Playwright/E2E suite? ESP32/ESP-IDF? infra
-  services via `deploy/docker-compose.dev.yml`? — as part of its existing tool/dependency
+  services via `test/containers/docker-compose.dev.yml`? — as part of its existing tool/dependency
   feasibility check. No file is produced at this point.
 - **Design Step 8** (`agents/DESIGN.md` §5.8) *generates* the concrete `.github/workflows/ci.yml`
   from this file's skeleton, using Step 5's stage-applicability findings as input — added to
@@ -256,8 +256,8 @@ colocated `#[test]`s and `tests/*.rs` integration tests in the same invocation r
   Canonical Commands table) → parsed by `scripts/metrics/parse_tests.js` → `metrics/tests.toml`.
   Doc-tests run generically for whichever crates in the workspace have doc-tests; never
   hardcode a specific crate name into this step.
-- **Stage 3b — Infra-dependent tests** *(conditional — `deploy/docker-compose.dev.yml`
-  present)*: start infra first (`docker compose -f deploy/docker-compose.dev.yml up -d`,
+- **Stage 3b — Infra-dependent tests** *(conditional — `test/containers/docker-compose.dev.yml`
+  present)*: start infra first (`docker compose -f test/containers/docker-compose.dev.yml up -d`,
   `PREFERRED_SERVICES.md`'s Session Startup section), then run the test subset that needs
   it.
 - **Stage 3c(+) — E2E/Playwright** *(conditional — Playwright/E2E suite present)*:

@@ -14,7 +14,7 @@
 - `[ ]` not done · `[x]` done, DoD fully satisfied incl. artifacts · `[D]` deliberately
   deferred (only for Plan-marked-deferred tasks, never to silently skip a Core task).
 - **A "Required artifact captured" item points at the Task Group's Verification file/folder** —
-  `test/[projectname]_task_group_[N]_verification.md` and `test/task_group_[N]/`
+  `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` and `test/v[N.NN.NN]/task_group_[N]/`
   (`agents/exemplars/development_plan_template.md` §11.4) — not a description of the
   artifact inline in the Checklist.
 - **A Development Phase session's edits to this file are bracket-content-only**
@@ -188,7 +188,7 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 > `PROD-004` is satisfied by `DOC-FINAL` above — not a separate task.
 - [ ] Architecture Specification reviewed against as-built system; any divergence fixed or
   logged as an Appendix F Spec Amendment
-- [ ] Every Open entry in `docs/[project_name]_dev_risks.md` re-evaluated against its own
+- [ ] Every Open entry in `dev/dev_risks.md` re-evaluated against its own
   Re-evaluation Trigger
 - [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 

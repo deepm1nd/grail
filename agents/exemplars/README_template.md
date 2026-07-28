@@ -58,21 +58,44 @@
 ├── crates/                     # Multi-crate workspace members (if applicable)
 │   └── [crate_name]/
 │       └── src/
+├── dev/                         # grail-generated process docs (Design/Maintenance/Release)
+│   ├── spec/                    # Architecture Specification files
+│   ├── plan/                    # Development Plan, Checklist, Dev Prompt files
+│   ├── dev_risks.md              # Development-Phase risk log
+│   ├── maintenance/
+│   │   └── v[N.NN.NN]/           # one folder per Maintenance batch, any type
+│   └── release/
+│       └── v[N.NN.NN]/           # one folder per RELEASE-Phase pass
 ├── assets/                     # Tracked UI/media assets
 │   ├── html/
 │   ├── images/
 │   ├── audio/
 │   └── video/
-├── deploy/                     # Infra service compose files & config
-│   ├── docker-compose.yml      # Project-as-container (if applicable)
-│   └── docker-compose.dev.yml  # Dev/test infra dependencies
+├── deploy/                     # Project-as-container deploy config (if applicable)
+│   └── docker-compose.yml      # The project's own packaged service(s), production-facing
 ├── metrics/                    # Coverage/test/audit/deny/playwright TOML — CI-maintained
 ├── scripts/
 │   ├── setup_env.sh / .bat     # Idempotent tool/dependency installer
 │   ├── check_env.sh            # Read-only pre-flight verifier
 │   └── metrics/                # Parsers feeding metrics/*.toml
-├── test/                       # Per-Task-Group verification files & evidence
+├── test/                       # Per-version verification files & evidence
+│   ├── containers/
+│   │   └── docker-compose.dev.yml   # Dev/test infra dependencies (Postgres, Neo4j, ...)
+│   ├── scripts/                 # Scripts/fixtures not part of the codebase itself
+│   │   └── fixtures/             # Test input files, golden outputs, sample payloads
+│   ├── v[N.NN.NN]/               # Per-version results (Development's own work starts in v0.0.1)
 │   └── [projectname]_requirement_traceability.md  # Requirement-to-test traceability
+├── web/
+│   ├── site/     # the website itself — home/landing, docs (mdBook), blog, community, ...
+│   │   ├── home/       # landing page — folded into default scope, not a rare override
+│   │   ├── docs/       # the mdBook project itself
+│   │   ├── blog/
+│   │   ├── community/
+│   │   ├── ...         # playground/, showcase/, etc. — only what this project chose
+│   │   └── [reference surfaces]  # api/, cli/, config/, proto/, etc. — see RELEASE.md §5
+│   ├── press/    # media kit: brand assets, fact sheet, press releases, contact
+│   ├── legal/    # privacy policy, ToS, security.txt/disclosure policy
+│   └── social/   # social media content/templates
 ├── Cargo.toml
 ├── rust-toolchain.toml
 ├── deny.toml
@@ -89,7 +112,7 @@
   **[cargo-audit](https://github.com/rustsec/rustsec)** — installed automatically by
   `scripts/setup_env.sh` if missing.
 * **[Docker](https://www.docker.com/) / Docker Compose** — only if this project uses
-  infra services (`deploy/docker-compose.dev.yml`).
+  infra services (`test/containers/docker-compose.dev.yml`).
 * [Trunk](https://trunkrs.dev/) — only if this project has a WASM/web-frontend component.
 
 ### Installation
@@ -106,7 +129,7 @@
    ```
 3. **Start infra services, if this project uses any:**
    ```bash
-   docker compose -f deploy/docker-compose.dev.yml up -d
+   docker compose -f test/containers/docker-compose.dev.yml up -d
    ```
 4. **Build and run:**
    ```bash

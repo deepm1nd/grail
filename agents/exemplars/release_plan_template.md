@@ -1,7 +1,9 @@
 # Release Plan: [projectname]_release_v[N.NN.NN]_plan
 
-> Companion to `RELEASE.md`. Named `[projectname]_release_v[N.NN.NN]_plan.md` — the real
-> target version from the moment this release's RELEASE work opens (mirrors
+> Companion to `RELEASE.md`. Lives at `dev/release/v[N.NN.NN]/[projectname]_release_v[N.NN.NN]_plan.md`
+> — the version folder plus the filename's own `_v[N.NN.NN]` both carry the version
+> (redundant on purpose: the filename retains full provenance if the file is ever copied
+> out of its folder). Named from the moment this release's RELEASE work opens (mirrors
 > `MAINTENANCE.md`'s own batch-open convention: no `_open` placeholder, no rename at
 > publish time, except a rare escalation-driven correction). Edited in place across this
 > release's RELEASE work, never copied/renamed/"v2'd" (`AGENTS.md` §2.7).

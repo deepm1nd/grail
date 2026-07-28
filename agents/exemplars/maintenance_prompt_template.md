@@ -1,9 +1,10 @@
 # Maintenance-Agent Prompt — Template
 
 > Produced once per batch, at the end of the batch's Claude-side work (M1 exit for a
-> lightweight-only batch, or M4 for a batch containing full-path items), saved as
-> `[projectname]_v[N.NN.NN]_prompt.md` — the real target version from the moment the
-> batch opens (`agents/MAINTENANCE.md` §5/§8/§11); no `_open` placeholder stage, no
+> lightweight-only batch, or M4 for a batch containing full-path items), lives at
+> `dev/maintenance/v[N.NN.NN]/[projectname]_v[N.NN.NN]_prompt.md` — same folder-plus-
+> filename version redundancy as the batch/checklist files, for the same provenance
+> reason — the real target version from the moment the batch opens (`agents/MAINTENANCE.md` §5/§8/§11); no `_open` placeholder stage, no
 > release-time rename, except a rare escalation-driven mid-batch correction. Reused
 > verbatim at the start of every session working this batch — not regenerated per
 > session. If the batch/Checklist changes materially, amend this file once, in place.
@@ -105,7 +106,7 @@ session now** (§9 below).
 
 ### 5. Start infrastructure services (if required)
 ```bash
-docker compose -f deploy/docker-compose.dev.yml up -d
+docker compose -f test/containers/docker-compose.dev.yml up -d
 ```
 Docker unavailable → treat as a missing prerequisite (step 4's rule).
 
@@ -126,7 +127,7 @@ wider unilaterally (this prompt's Escape Valve note above; `agents/MAINTENANCE.m
 Same discipline as Development: no reordering, no skipping ahead, no omitting a DoD
 sub-item without explicit user permission this session. Check off DoD sub-items the
 moment each is satisfied. **The instant a task's DoD is satisfied:** if it has a real
-Verification Method, append its entry to `test/[projectname]_task_group_[N]_verification.md`-
+Verification Method, append its entry to `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md`-
 equivalent evidence for this item (paste actual terminal output verbatim, never a
 paraphrase), plus any screenshots/clips per the project's existing evidence convention.
 **If the task involves adding or renaming a test per the Regression Scaffold naming

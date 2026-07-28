@@ -9,6 +9,29 @@
 
 ---
 
+## 0. Reading Requirements (Selective File Reading)
+
+**Invariant set — every Release Phase session, regardless of Step:** `AGENTS.md`,
+`CLAUDE.md`, and this file (`RELEASE.md`) itself. No table entry below repeats these
+three. Project-specific Architecture Specification/`CHANGELOG.md` content (e.g. §1.5, §2.1–
+§2.3) is not a grail file and so is not listed here either — it's read per each Step's own
+instructions in §6 above, regardless of which grail files also apply.
+
+**File-level selectivity, escape valve, and Step re-run rule** — identical mechanics to
+`DESIGN.md` §0; not restated here.
+
+| Step | Title | Additional grail files this Step needs (beyond the invariant set) |
+|---|---|---|
+| 1 | Elicitation | None. |
+| 2 | Scaffold | None — mechanical, Jules-executable. |
+| 3 | Terminology/Concept Spine | None. |
+| 4 | Tutorials | None. |
+| 5 | How-To Guides | None. |
+| 6 | Explanation | None. |
+| 7 | Reference-Sync | `MAINTENANCE.md` §11 (Release Checklist gating state), or `DEVELOPMENT.md`'s Final Verification section for a project's first release. |
+| 8 | Finalize | None. |
+| 9 | Consistency Audit | None. |
+
 ## 1. What RELEASE Is, and What It Explicitly Is Not
 
 RELEASE governs **polished, user-facing and developer-facing documentation collateral** —
@@ -76,9 +99,10 @@ for every project's docs content.
 ## 5. Directory Structure
 
 RELEASE's output lives under a dedicated top-level `web/` directory — never inside the
-project-root `docs/` (reserved for Development-Phase risk logs, `docs/[project]_dev_risks.md`,
-and unrelated to RELEASE) — and never using mdBook's own default `src/` name at project
-root (would collide with the project's actual Rust source).
+project-root `dev/` tree (reserved for grail-generated process docs: `dev/spec/`,
+`dev/plan/`, `dev/maintenance/`, `dev/release/`, `dev/dev_risks.md` — unrelated to
+RELEASE's own published output) — and never using mdBook's own default `src/` name at
+project root (would collide with the project's actual Rust source).
 
 ```
 web/
@@ -87,14 +111,42 @@ web/
 │   ├── docs/       # the mdBook project itself
 │   │   ├── book.toml
 │   │   ├── src/
-│   │   └── book/   # build output (gitignored, or published per §9's versioning)
+│   │   └── book/   # build output (gitignored, or published per §7's versioning)
 │   ├── blog/
 │   ├── community/
-│   └── ...         # playground/, showcase/, etc. — only the ones this project's Elicitation step chose
+│   ├── ...         # playground/, showcase/, etc. — only the ones this project's Elicitation step chose
+│   └── [reference surfaces — see below]
 ├── press/    # media kit: brand assets, fact sheet, press releases, contact
 ├── legal/    # privacy policy, ToS, security.txt/disclosure policy
 └── social/   # social media content/templates
 ```
+
+**Generated reference surfaces** — a project's *externally-consumed, generated-from-source*
+contracts (as distinct from the hand-authored `docs/` mdBook site) each get their own
+sibling folder directly under `web/site/`, published with the identical `latest/` +
+`vX.Y.Z/` versioning as `docs/` (§7), the same CI-deploy mechanism (§8), and the same
+completeness gate as `docs/`'s own Step 7 (§6.7). Decided per-project at Design Step 5,
+recorded in the Architecture Specification — not every project has every surface, and not
+every project needs any:
+
+| Folder | Surface | Typical generator |
+|---|---|---|
+| `web/site/api/` | Rustdoc — a Rust library API | `cargo doc` |
+| `web/site/cli/` | CLI command/flag/subcommand reference | e.g. `clap`'s markdown-help output |
+| `web/site/config/` | Config-file schema reference | e.g. `schemars`-derived JSON Schema |
+| `web/site/http/` | HTTP/REST API reference (wire-level contract, distinct from `api/`'s Rust-internal rustdoc) | OpenAPI/Swagger spec |
+| `web/site/proto/` | Protobuf interface reference (regardless of gRPC vs. plain protobuf transport) | `protoc-gen-doc` or equivalent |
+| `web/site/dds/` | DDS topic/IDL reference | vendor/OMG DDS doc tooling |
+| `web/site/mqtt/` | MQTT topic/message-schema reference | project-authored or generated from a schema |
+| `web/site/wit/` | WIT (WASM Component Model) interface reference | `wit-bindgen`-adjacent tooling |
+| `web/site/schema/` | Data-model/DB schema reference | ERD/schema-dump tooling |
+
+**This list is illustrative, not a closed enum.** Any other externally-consumed contract a
+project exposes gets the same treatment — versioned path, same publish gate — under a
+project-chosen folder name; a future surface type not named above never requires a grail
+change to support, only an update to this table for discoverability if it recurs across
+projects. The mdBook `docs/` Reference quadrant links out to whichever of these exist for
+this project (§6.7) rather than absorbing their content.
 
 **`web/site/`'s own content checklist**, presented at Elicitation (§6.1) — the user selects
 which of these this project wants, beyond the always-present Docs (mdBook) quadrant:
@@ -115,6 +167,7 @@ A public **uptime/status page** is explicitly **not** a `web/` category — if a
 one, it is typically hosted externally (a third-party service, linked to from `site/`'s
 nav/footer) and overlaps with `DEVELOPMENT.md`'s existing `PROD-008`/`PROD-009` operational
 checklist items, not a RELEASE concern.
+
 
 ## 6. The Release Phase Process
 
@@ -201,13 +254,31 @@ framework; RELEASE does not invent an independent readiness signal.
 proposal — see `grail_continuous_documentation_proposal_v1.md`, pending its own
 implementation session), rustdoc comments and `# Examples` doctests should already exist,
 current and CI-verified, on every `pub` item touched since the last release, by the time
-this gate fires. Reference-Sync is therefore **extraction, not authorship**: Jules pulls
-this already-correct, already-tested content into the Reference quadrant (or links out to a
-generated rustdoc/docs.rs-style page). If that upstream discipline has not yet been
-implemented for a given project, this Step reverts to genuine authorship and should be
-flagged as a scope/timeline risk, not silently absorbed.
+this gate fires. Reference-Sync is therefore **generation and publishing, not
+authorship or extraction**: for every reference surface this project declared at Design
+Step 5 (§5's table — `api/`, `cli/`, `proto/`, etc.), Jules runs that surface's generator,
+publishes the output to its own versioned path (§7) via the same CI-deploy mechanism as
+`docs/` (§8), and the mdBook Reference quadrant's own pages become thin **link-out** pages
+pointing at each published surface's matching version — never a copy of that surface's
+content pasted into a hand-maintained mdBook page, since a pasted copy silently goes stale
+the moment the underlying source changes and nobody remembers to re-extract it. **Each
+`docs/vX.Y.Z/` snapshot links to its own matching `vX.Y.Z/` version of every reference
+surface it references — never to that surface's `latest/`** — so an older, pinned docs
+snapshot never accidentally shows a reader newer API surface than what its own prose
+describes. `docs/latest/` is the sole exception: since "latest" and "the current release's
+own version" are the same thing by definition, it links to each surface's `latest/` too.
+If a project's upstream continuous-documentation discipline has not yet been implemented,
+this Step reverts to genuine authorship for the reference content and should be flagged as
+a scope/timeline risk, not silently absorbed.
 
-**Output:** A complete, as-built-accurate Reference quadrant.
+**Same completeness gate as `docs/`, applied per-surface.** Any declared reference surface
+whose generated content is missing or stale for a `pub`/exposed item touched since the
+last release blocks *that surface's* publish step — the risk (a Reference-quadrant page
+confidently linking to an incomplete target) is identical regardless of which surface is
+gated, so the gate is not weakened for any of them.
+
+**Output:** A complete, as-built-accurate Reference quadrant of link-out pages, plus every
+declared reference surface published at its own matching versioned path.
 
 ### 6.8. Step 8: Finalize
 
@@ -247,6 +318,11 @@ no independent trigger invented:
 - **Versioning is opt-out at the project level** — a `latest`-only, no-version-history model
   (VS Code's own real-world convention) is a legitimate Design-time choice, not a deviation
   requiring justification.
+- **Every declared generated reference surface (§5's table) gets the identical treatment,
+  in the same publish step, at the same tier** — a minor/major release snapshots `docs/` and
+  every reference surface together, since they describe the same commit's state and must
+  never drift apart in which version they represent; a patch release updates `latest/` for
+  all of them in place, same as `docs/`.
 
 ## 8. Hosting and Deployment
 
@@ -260,6 +336,12 @@ nobody can reach isn't done.
   commercial-licensing option (e.g., grail's own PolyForm Noncommercial + paid-license
   model). The one genuine trigger to reconsider is the docs site itself needing to process
   a transaction or gate content behind a paywall — not the underlying software's license.
+- **Deploy mechanism: `peaceiris/actions-gh-pages`**, invoked once per generated surface
+  (`docs/` plus every declared reference surface) in the same CI job — none of these are
+  ever git-committed to the branch the project edits; every one is a build artifact,
+  generated fresh and pushed straight to the Pages-serving target by CI, the same way
+  `docs/`'s own mdBook output already is. This applies uniformly regardless of which
+  surfaces a given project declares.
 - **Escalation to full hosting** (Cloudflare Pages/Netlify/a real subdomain deployment),
   triggered by an explicit, checkable condition, not a vague judgment call: media/repo size
   approaching GitHub Pages' ~1 GB ceiling, expected traffic approaching its ~100 GB/month

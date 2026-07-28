@@ -202,21 +202,15 @@ Applies wherever Claude uses the selectable-options tool for a RATS item.
 
 **Every step below except 7 and 9 runs the standard procedure (§3.1): RCD-drafted batch →
 bulk-accept → RATS on residuals → terminal outcome per item.** No toggle, no autonomy
-preset — this is fixed. The table states only what's specific to each step.
+preset — this is fixed.
 
-| # | Step | Output | Specifics |
-|---|---|---|---|
-| 1 | Concept Intake & Context Mapping | Architecture file `_01_introduction` (Draft) | Highest-cost step for an unflagged wrong guess — every later step inherits it. Deep web + competitive research is mandatory, aiming at best-in-class/competitive-advantage/novel-capability framing; an honest "no meaningful competitive landscape, here's why" is acceptable, a fabricated comparison is not. **Actively solicits screen mockups, reference HTML, brand/image assets, and (if relevant) audio/video assets, as early as possible** (§3.7/§2.2). |
-| 2 | User Story Elicitation | Architecture file `_02_user_stories` | Always runs, in full, regardless of project size — no skip path. Single session; the story list and each story's Interaction Sequence are drafted and closed together. |
-| 3 | Requirement Decomposition | Architecture file `_03_requirements` | 3-pass decomposition (Functional → Logical → Detailed) plus the 9-criteria/Requirement-Smell check (`agents/DESIGN.md` §4.5) as part of core-batch generation. |
-| 4 | Test Identification | Architecture file `_04_test_strategy` | Test cases derived per requirement; the 9-criteria table and Rust Requirement Smell catalog checked as part of core-batch generation. |
-| 5 | Verification Feasibility | Architecture file `_05_verified_traceability` | Rust dependencies checked against `agents/PREFERRED_DEPENDENCIES.md` (preferred used directly; Forbidden never proposed; Requires-Approval/unlisted is a RATS item); dev tools/`agents/PREFERRED_TOOLS.md`, infra services/`agents/PREFERRED_SERVICES.md`; ESP32/ESP-IDF components cross-checked against `agents/ESP32_ESPIDF_RUST_BUILD_GUIDE.md`; **sets the workspace MSRV** (`agents/RUST_PREFERENCES.md` §0) — flagged placeholder here, relocated to `_07_interfaces_and_stack` §6 at Step 6. Claude never certifies "technical sufficiency" unilaterally. |
-| 6 | Final Architecture Synthesis (ISO 42010) | Architecture files `_06_viewpoints`, `_07_interfaces_and_stack`, `_08_constraints_and_roadmap` (new); `_05_verified_traceability` (finalized) | Mostly recombination of already-approved content — less new drafting. One live judgment call: formal notation vs. prose per element, stated briefly so the user can override without re-litigating. Covers all 4 mandatory viewpoints. Asset Manifest migrates to permanent home in `_06`'s §4.13. |
-| 7 | Spec Audit & Phase-End QA | Final Deficiency Audit Report | **No RCD/RATS here — by design.** Adversarial independence from the rest of the process, including Claude's own prior work. Checks, on Claude's own analysis: every User Story maps to a requirement; every requirement atomic; no elided/summarized content; no gap forcing a stub downstream; every Asset Manifest entry referenced with a prose description and, for mockups, a
-logged Authority Level; every filename conforms to §4; **no file carries a front-of-file metadata box (§4.3) — a
-finding here is Trivial per §3.11's tiering**; **the Open Items Register contains only valid, not-yet-reached Deferred items — any Resolved/Future Feature/Rejected entry still sitting on the Register, or any item with no terminal outcome at all, is itself a finding** (§3.12). **Every finding tagged Trivial or Substantive (§3.11) — all-Trivial fixes in place, same session, no backtrack; any Substantive finding → Step 7 Backtrack Protocol (§3.11).** Zero findings → proceed to Step 8. |
-| 8 | Development Plan & Checklist | Development Plan + Checklist + Dev Prompt + draft README + draft `.gitignore` + draft `ci.yml` + draft `THIRD_PARTY_LICENSES.md` | Environment/config facts (toolchain, CI, local setup) elicited directly; unspecified items with a reasonable default proposed once per Plan via RATS, not once per Task Group. ****Task Group Sizing:** `Score = (task_count × 1) + (new_public_interfaces × 2) + (cross_file_tasks × 2) + (cross_task_dependencies × 1.5) + (first_integration_risk × 5)`, default ceiling **≤15** (a Code/Verify-split task counts as 2 tasks). `first_integration_risk` is 1 when this Task Group's Exit Criteria requires genuine cross-crate execution no earlier Task Group already required, else 0 (`agents/exemplars/development_plan_template.md` §6). **Shown as its own computed Complexity Score column in the Task Group Index (§6.1), never left blank or only implied by Task Count**; over-ceiling requires a recorded override note in the same cell. **Frontend targeted interleaving** where a UI exists: each screen/component's frontend task sits in the same Task Group as its real backend/data dependency. **Walking Skeleton Milestone:** any Build Order with more than ~3 components that must eventually run together includes an early, explicitly-named Task Group whose Exit Criteria genuinely links the main architectural components (a dedicated sibling test crate, never a single domain crate's own `tests/` directory) — architecture-risk reduction, distinct from MVP/product scoping. **Maturity-Triggered Component Integration:** each component gets a minimal integration test the moment it reaches functional maturity — folded into that Task Group for a component with few integration points, or its own dedicated Task Group where it integrates with many others — never deferred to a later capstone (`agents/exemplars/development_plan_template.md` §6). **Per-task Design Refs, `WIP-Checkpoint` field, and per-Task-Group Session Unit are populated at drafting time** (`agents/exemplars/development_plan_template.md` §6.1/§8), not left as stubs — Design Refs cite the specific Spec file/section/item each task derives from; the mandatory Code/Verify split is derived mechanically from each task's Verification Method; the Session Unit's own Submit Point occurs once, at the unit's own completion (`AGENTS.md` §2.1), not per task. **Drafts the project README** (overview/stack/roadmap) — Development Phase's Task Group 0 task reviews/confirms/enhances it. **Generates `ci.yml`** from `agents/CI.md`'s skeleton, using Step 5's CI Stage Applicability findings, and **initial `THIRD_PARTY_LICENSES.md` content** from Step 5's License Disclosure Artifact finding — both reviewed/confirmed at Development Phase 0 (`agents/DEVELOPMENT.md` §5.2.2/§5.2.3). **Deliverable:** `agents/exemplars/dev_prompt_template.md` → `[projectname]_dev_prompt.md`, produced once, reused every Development-Phase session. |
-| 9 | Plan & Checklist Audit | Plan & Checklist Audit Report | **No RCD/RATS here either — mirrors Step 7's independence.** Runs `agents/exemplars/development_plan_template.md` §15 directly as an audit checklist: every Core requirement traced, no orphan citations, every Task Group has Entry/Exit Criteria, every task has a Verification Method and DoD, Task Group Dependency Graph acyclic, Checklist/Plan lockstep, every filename conforms to §4, Build Order fidelity, Frontend Targeted Interleaving where a UI exists, **every Task Group's Complexity Score recomputed from its own listed tasks and checked against the §6 ceiling (any mismatch, or any over-ceiling Task Group with no recorded override, is a finding)**, and **the Open Items Register contains only valid, not-yet-reached Deferred items — same check as Step 7 (§3.12), re-verified here in case anything slipped through since.** **Build Order integration check (new):** the Build Order must contain at least one Task Group whose Exit Criteria genuinely requires multi-crate/cross-boundary execution (the Walking Skeleton milestone, §6) — its absence is a finding, not an assumed-fine gap. **Mechanical Test-Type check (new, 100% coverage — not sampled):** for every Test Case cited anywhere in the Plan whose Design-time Type (Architecture Spec §3.2) is Integration/System/Acceptance, confirm — via `cargo metadata`/nextest binary listing against the task's own stated Verification File evidence — that the implementing test is actually named `test_<type>_<nnnn>__description` and compiled into a binary genuinely linking the claimed crates; any mismatch (a Type-labeled-Integration citation resolving to a single-crate test, a missing test, or a naming mismatch) is a finding. **Risk-scaled human sample-audit (new):** additionally, hand-read a sample of `max(5, 10%)` of the project's Integration/System/Acceptance-type citations, weighted toward the top third of Task Groups by Complexity Score, for whether the test asserts genuine behavior rather than exhibiting the **"hollow pyramid"** pattern (near-100%-unit, ~0%-integration, invisible from a green build) — specifically the **"line hitter"** (executes code, asserts nothing behavioral), **"Mockery"** (asserts against a mock's own return value rather than real system behavior), or **"Conjoined Twins"** (an isolated-in-name test that's secretly cross-cutting, the opposite mislabeling) anti-patterns; any instance found is a finding, and its presence beyond the sampled instance is treated as reason to widen the sample, not close the audit early. **Zero findings closes the Design Phase. Any finding classifies as (A) Plan/Checklist-only** — reopen Step 8 alone — **or (B) Spec-originating** — reopen the relevant Spec step, re-clear Step 7, then return to Step 8. Repeats until clean. See `agents/DESIGN.md` §5.9. |
+**Full detail for all 9 Steps — Output, Process, and Specifics — lives in
+`agents/DESIGN.md` §5** (§5.1–§5.9, one sub-section per Step), not restated here. **Which
+grail files each Step needs to have read lives in `agents/DESIGN.md` §0** — read that
+table before starting any Step rather than assuming the full grail set is needed every
+time. The one Step-independent binding here: the RCD/RATS procedure (§3.1–§3.2 above)
+governs every Step except 7 and 9, which instead follow §3.11's and `agents/DESIGN.md`
+§5.9's own independent-audit mechanics.
 
 Every step ends with **STOP, present output, await explicit `APPROVED`** — never combined,
 never skipped. Per §1, every step (and
@@ -255,18 +249,14 @@ collapses that into a plain exclusion.
 
 ### 3.6. Backtracking & Major Changes
 
-Per `agents/DESIGN.md`, the user may return to any previous step, most often when a later
-step reveals an earlier step's content — flagged or not — was wrong. For normal forward
-iteration (i.e. *not* a Step 7 or Step 9 finding — §3.11 for Step 7's mandatory case,
-`agents/DESIGN.md` §5.9 for Step 9's analogous one), Claude: (1) names the originating step
-and specific content at issue, rather than patching around it; (2) presents — doesn't
-unilaterally decide — the choice between a local patch vs. reopening the earlier step, since
-that determines how much upstream work needs re-approval; (3) if reopened, preserves all
-already-approved later content, revisiting only as needed once the earlier step is
-re-approved (additive-only, no wholesale discard); (4) flags it as a Major Change whenever it
-materially changes scope/requirements/architecture — not just when convenient. **Major
-Changes generally** are flagged explicitly, by name, the moment Claude recognizes one — never
-buried in a diff or folded silently into the next deliverable.
+The full four-point backtracking mandate — naming the originating step; presenting
+patch-vs-reopen as a choice, not a unilateral decision; preserving later-approved content
+additively; flagging a material change as Major — is defined once, in `AGENTS.md` §2.1,
+and applies here unchanged; not restated. The one Design-Phase-specific carve-out: for a
+Step 7 or Step 9 finding specifically, §3.11 below (Step 7) and `agents/DESIGN.md` §5.9
+(Step 9) each govern their own mandatory backtrack mechanics instead of the general
+patch-vs-reopen choice — `AGENTS.md` §2.1 still governs every other, ordinary-iteration
+backtrack.
 
 #### 3.6.1. Post-Audit Fix Pass
 
@@ -997,10 +987,13 @@ copied or renamed (`AGENTS.md` §2.7).
 ## 6. Out of Scope for This File
 
 Development Phase execution behavior (`agents/DEVELOPMENT.md`); Maintenance-Phase-specific
-mechanics beyond the shared Advisory Mode contract (§1) — the M1–M4 process, trigger
-phrases, batch/checklist/prompt filenames, Tier/Track/Type classification, and the Release
-Checklist all belong to `agents/MAINTENANCE.md`, not here; `agents/SCRIPT_RULES.md` (no
-script execution in Advisory Mode). The concrete task-level mechanics of frontend targeted
+mechanics beyond the shared Advisory Mode contract (§1) — the M0–M4 process, trigger
+phrases, batch/checklist/prompt filenames, Tier/Type classification, and the Release
+Checklist all belong to `agents/MAINTENANCE.md`, not here; Release-Phase-specific mechanics
+— the 9-Step docs-site process, Diátaxis quadrant/content-type selection, versioning UX,
+and hosting/deployment all belong to `agents/RELEASE.md`, not here (Release, like
+Development, is a phase this file does not govern — see `agents/RELEASE.md` §0 for its own
+selective-reading table); `agents/SCRIPT_RULES.md` (no script execution in Advisory Mode). The concrete task-level mechanics of frontend targeted
 interleaving (§3.4's Step 8 row states only the principle Design Phase applies when sizing
 Task Groups — the full mechanism belongs in
 `agents/exemplars/development_plan_template.md` §6/§9.1 and `agents/DEVELOPMENT.md`).
@@ -1011,18 +1004,5 @@ introduces in examples, for consistency.
 ---
 
 ## Appendix
-See `CHANGELOG.md` for this file's full version history. **v0.8.5 batch:** removed the
-Autonomy Toggle/Tailored/Full-Autonomous presets and the Grouped Closing
-Protocol/propose-with-flagged-assumptions mechanism entirely, replaced by the single fixed
-RCD/RATS procedure (§3.1-3.2) for every step but 7 and 9 — Step 2 always runs in full. RATS
-items now resolve to exactly one of Resolved/Deferred-to-a-specific-step/Future
-Feature/Rejected (§3.1), with Step 7/9 auditing that every Open Items Register entry carries
-a terminal outcome. Handoff/version-bump timing reworked: interim files use lowercase-letter
-suffixes and are never packaged or version-bumped until exact `APPROVED` is received (§3.10).
-`AGENTS.md` §3.1 tightened to exact, all-uppercase `APPROVED` only. Renamed
-`dev_agent_prompt_template.md`/`[projectname]_dev_agent_prompt.md` back to
-`dev_prompt_template.md`/`[projectname]_dev_prompt.md`. Step 8 now also drafts the project
-README. Added ESP32/ESP-IDF build guide cross-reference (§2.1). All prior sections renumbered
-down by one following removal of the former §3.7 (Autonomy Toggle). This should be recorded
-as a new dated entry in `CHANGELOG.md`'s `CLAUDE.md` section and flagged to the user as a
-Major Change per §3.6.
+See `CHANGELOG.md` for this file's full version history — the file's own restructuring
+history is recorded there, not duplicated here as inline content.

@@ -1,6 +1,9 @@
 # Maintenance Batch: [projectname]_[type]_v[N.NN.NN]
 
-> Companion to `agents/MAINTENANCE.md`. One file per release batch, holding the
+> Companion to `agents/MAINTENANCE.md`. Lives at
+> `dev/maintenance/v[N.NN.NN]/[projectname]_[type]_v[N.NN.NN].md` — the version folder plus
+> the filename's own `_v[N.NN.NN]` both carry the version (redundant on purpose: full
+> provenance if the file is ever copied out of its folder). One file per release batch, holding the
 > Spec-equivalent content (M0–M3) for every item headed to this release — full detail,
 > not a terse log; Appendix B/F in the Architecture Specification hold only a pointer row
 > per item, once released. **Batch composition is fixed at open time (`MAINTENANCE.md`

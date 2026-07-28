@@ -151,7 +151,7 @@ longer a trivial resolve — the session stops per §13's escalation model, full
 ## 5. Development & Test Configuration
 - **Local config file(s), mock/test credential seeding, test key material** (clearly
   marked non-production), **local infra bring-up** (`docker compose -f
-  deploy/docker-compose.dev.yml up -d`), **env-var override convention.**
+  test/containers/docker-compose.dev.yml up -d`), **env-var override convention.**
 
 **Rule:** no task's DoD may depend on a production credential/provider/infrastructure — that
 requirement is itself an Escalation Trigger (§13).
@@ -391,7 +391,7 @@ Hybrid review-and-confirm tasks rather than a build-test-debug cycle.
 - **`PROD-005` — Spec/Dev-Risks Currency:** review the Architecture Specification against
   the as-built system; any divergence is fixed or logged as an Appendix F Spec Amendment
   (`agents/exemplars/architecture_specification_template.md` Appendix F); re-evaluate every
-  Open entry in `docs/[project_name]_dev_risks.md` against its own Re-evaluation Trigger.
+  Open entry in `dev/dev_risks.md` against its own Re-evaluation Trigger.
   **Verification Method:** Visual/Behavioral. **DoD:** Spec/as-built divergence resolved or
   logged; dev-risks log current. **Design Refs:** Architecture Spec, full document.
 - **`PROD-006` — License/Dependency Drift:** run `cargo deny check licenses` against the
@@ -477,7 +477,7 @@ Required content:
 
 ### 11.4. Verification File
 
-**One file per Task Group, `test/[projectname]_task_group_[N]_verification.md`, appended to in
+**One file per Task Group, `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md`, appended to in
 place across every session that touches the Task Group** (never copied/renamed — same
 in-place discipline as the Checklist, `AGENTS.md` §2.7). It is the concise evidence
 receipt for the Task Group's task claims — distinct from the Task Group Summary (§11.3), which is
@@ -519,7 +519,7 @@ timing as the Checklist), each entry no more than a few lines:
   only discoverable via a forensic extract after the fact. Still evidence-line format, not
   prose — this addition is a few words, not a paragraph.
 
-**Detail folder — `test/task_group_[N]/`:** holds the actual screenshots/clips named
+**Detail folder — `test/v[N.NN.NN]/task_group_[N]/`:** holds the actual screenshots/clips named
 `[TASK_ID]_[short_description].[ext]` (e.g. `AUTH_003_login_success.png`,
 `UI_007_toast_animation_start.mp4`). Raw build/test logs are **not** retained here —
 only the summary line goes in the Verification file itself, per the Mandatory Artifact
