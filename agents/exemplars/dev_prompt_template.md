@@ -134,17 +134,26 @@ In the Checklist, find the first Task Group whose Exit Criteria isn't checked. V
 Criteria are actually true from current repo state — not assumed from the Checklist alone.
 Unverifiable → stop the session now.
 
-**Then run the three-way task-state check** against each task/sub-task's declared Submit
-Point (Plan §8) — not raw git-log archaeology:
-- **No submit exists** → not started; begin fresh.
-- **A `[WIP-CHECKPOINT]` submit exists, no task-complete submit** → resume **in place** from
-  exactly what that checkpoint's own description states was attempted, confirmed working,
-  and known incomplete. Never redo from scratch, never discard it. If the description is too
-  vague to resume from, that's a defect to flag, not something to guess past.
-- **A task-complete submit exists** → done; move to the next task/sub-task.
+**Then check the Checklist and any WIP Checkpoint for this Task Group — not raw git-log
+archaeology, and not a per-task submit check, since no per-task submit exists any more**
+(`AGENTS.md` §2.1):
+- **No task boxes checked, no WIP Checkpoint submit** → not started; begin fresh, first task
+  in Checklist order.
+- **Some task boxes checked, no WIP Checkpoint submit since** → resume at the first unchecked
+  task, trusting the Checklist itself as the record of what's done — there is no per-task
+  submit to cross-check it against.
+- **A `[WIP-CHECKPOINT]` submit exists for a task still in progress** → resume **in place**
+  from exactly what that checkpoint's own description states was attempted, confirmed
+  working, and known incomplete. Never redo from scratch, never discard it. If the
+  description is too vague to resume from, that's a defect to flag, not something to guess
+  past.
+- **Every task box in the Task Group is checked but the Task Group's Final Wrap-Up Submit
+  hasn't happened** → the whole Task Group's work is not yet safe from a crash; resume by
+  verifying the repo state matches what the Checklist claims, then proceed straight to the
+  Final Wrap-Up Submit (step 9).
 
-A Checklist mark with no matching submit, or a submit with no matching Checklist mark, is an
-inconsistency — go to step 9 now, do not silently reconcile it yourself.
+A Checklist mark with no corresponding real change in the repo is an inconsistency — go to
+step 9 now, do not silently reconcile it yourself.
 
 Work only within the Task Group's declared **Session Unit** (`Task Group` / `Task` / `Code+Verify`) —
 never begin work outside that scope even with capacity remaining.
@@ -177,25 +186,28 @@ one final-state shot) or clips (dynamic scenes: three ~5s clips — start/middle
 under `test/v[N.NN.NN]/task_group_[N]/` named `[TASK_ID]_[short_description].[ext]`.
 
 **Then update the Checklist for this task now — every satisfied DoD sub-item and the task
-line itself — before calling `submit`. Do not defer this update, and do not batch it with
-any other task's update.** This is Checklist-adjacent bookkeeping, not a Checklist edit —
-the Checklist itself stays bracket-content-only (`AGENTS.md` §2.7).
-
-**Do not check the task's `Submitted` box yet.** Call `submit` for this task's declared
-Submit Point now. **Only after `submit` completes AND the user responds with "Continue,"
-"Proceed," or equivalent, go back and check the `Submitted` box** — then, and only then,
-move to the next task. A `Submitted` box checked before the user's resume message is a rule
-violation, not a shortcut.
+line itself.** This is Checklist-adjacent bookkeeping, not a Checklist edit — the Checklist
+itself stays bracket-content-only (`AGENTS.md` §2.7). **Do not call `submit` here** — there
+is no per-task or per-sub-task Submit Point any more (`AGENTS.md` §2.1). Move directly to
+the next task; the whole Task Group is not "finished" piecemeal from a save-point
+perspective — only its Final Wrap-Up Submit (step 9) makes any of this session's work safe
+from a crash, so keep this in mind when weighing how much to attempt in one session.
 
 **If the task's Verification Method is Build+Test or Hybrid, it is already split into `a`
 (Code) and `b` (Verify) sub-tasks in the Plan/Checklist** — work `a` to its own DoD (clean
-build only) and its own Submit Point first; only then start `b`, where the build-test-debug
-loop lives. **Submit at every declared Submit Point immediately upon reaching it** — do not
-batch multiple tasks' completions into one later submit. Where a task is flagged
-WIP-Checkpoint-Eligible, or its build-test-debug cycle is visibly not converging, issue a
-`[WIP-CHECKPOINT]` submit stating what was attempted, what's confirmed working, and what's
-known incomplete — this always bypasses code review regardless of the current policy
-setting.
+build only), then `b`, where the build-test-debug loop lives. **Neither sub-task carries its
+own Submit Point** — both collapse into the same Task-Group-end submit as every other task
+in this Task Group.
+
+**A task carries a WIP Checkpoint only if Design explicitly stated one for it** (Plan §8) —
+a concrete point, never a bare eligibility flag, and never a runtime/non-convergence
+trigger of any kind (`AGENTS.md` §2.1). Your role here is purely mechanical recognition:
+once that Design-specified point is reached, issue a `[WIP-CHECKPOINT]` submit immediately,
+stating what was attempted, what's confirmed working, and what's known incomplete — this
+always bypasses code review regardless of the current policy setting, and it never claims
+the task is done. A task with no Design-specified checkpoint has no save point before this
+Task Group's own Final Wrap-Up Submit — a known, accepted tradeoff, not something to invent
+a checkpoint for on your own judgment.
 
 **When uncertainty arises** — a missing detail, a conflict between what the task says and
 what you find in the code, an ambiguous type or interface, anything that makes you unsure
@@ -222,11 +234,12 @@ Summary to a Design Phase session to diagnose, update the Spec/Plan, and hand ba
 restructured Plan/Checklist for a fresh session to resume from the last known-good Task Group.
 
 ### 10. On normal completion only: final wrap-up submit and stop
-Individual tasks are already submitted at their own declared Submit Points (step 8) — this
-is the Task-Group-level wrap-up only: docs, README updates, and the Task Group Summary, submitted
-together. Confirm build/tests green. Notify the user the declared Session Unit is complete.
-**Do not begin the next unit**, regardless of remaining capacity — it starts in a new
-session.
+This is the Task Group's **sole Submit Point** (`AGENTS.md` §2.1) — no task or sub-task was
+submitted individually along the way, so this single submit is what makes the whole Task
+Group's work safe from a crash. Confirm build/tests green, docs/README updates are in
+place, and the Task Group Summary is written, then `submit` everything together. Notify the
+user the declared Session Unit is complete. **Do not begin the next unit**, regardless of
+remaining capacity — it starts in a new session.
 
 ### 11. Session-End Checklist
 - [ ] Every DoD item you completed is checked in the Checklist — all of them.
@@ -257,10 +270,10 @@ session.
 - [ ] You did not perform a broad repository scan or read any Architecture Spec / Dev Plan
   file in full (except the protocols file). Every doc reference was a targeted extraction
   triggered by a specific uncertainty, using the method in the step 2 table.
-- [ ] Every task/sub-task you completed this session has a matching `submit` and its
-  Checklist `Submitted` box checked — no DoD-satisfied task left unsubmitted. Every
-  `Submitted` box checked this session was checked only after that task's submit completed
-  and the user's resume message ("Continue"/"Proceed") — never before.
+- [ ] Every task/sub-task you completed this session has its DoD satisfied and its
+  Checklist box checked — no submit to check per-task any more (`AGENTS.md` §2.1). The
+  Task Group's own `Submitted` box is checked only after this session's Final Wrap-Up
+  Submit completed and the user's resume message ("Continue"/"Proceed") — never before.
 - [ ] Any WIP Checkpoint you issued this session has a description sufficient for a future
   session to resume from without redoing your work.
 - [ ] You did not call `request_code_review` (per `AGENTS.md` §2.2's current setting).

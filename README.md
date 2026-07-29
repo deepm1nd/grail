@@ -183,8 +183,8 @@ UI assets.
    start of every session — it's reused verbatim, not regenerated. Each session checks out
    the current Task Group's branch, works exactly one Session Unit (a full Task Group by
    default, or a single Task/Code+Verify sub-task if the Plan declared a finer unit),
-   submits at every task's declared Submit Point, and stops — you say "Continue" to start
-   the next session.
+   submits once at that Session Unit's own completion — its sole Submit Point — and stops;
+   you say "Continue" to start the next session.
 5. **Review evidence as it accumulates**, not just at the end: each Task Group's
    `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` (build/test summary lines,
    screenshots, clips) and `[projectname]_task_groupN_summary.md` (the narrative — what
@@ -370,9 +370,11 @@ project inherits.
 - **No cross-session memory.** Every session starts from what's actually on disk/provided.
 - **One Session Unit per development session** — a full Task Group by default, or a finer
   Task/Code+Verify unit where the Plan declares one; never more than one per session.
-- **Per-Task-Group branch, per-task submit.** Each Task Group gets its own human-readable
-  Branch Name (assigned at Design Step 8); every task submits immediately on DoD completion
-  — never batched to end-of-Task-Group — bounding crash blast-radius to the task in flight.
+- **Per-Task-Group branch, Session-Unit-end submit.** Each Task Group gets its own
+  human-readable Branch Name (assigned at Design Step 8); the Session Unit submits once at
+  its own completion — the Task Group's Final Wrap-Up Submit by default — never per-task.
+  The accepted tradeoff: no save point before then except a Design-specified WIP Checkpoint,
+  wider crash blast-radius in exchange for fewer review interruptions.
 - **Development agent escalation: stop, don't troubleshoot further.** A missing tool that
   installs cleanly is the sole case that continues automatically. Everything else the agent
   can't resolve itself — conflicts, failures, ambiguity — stops the entire session

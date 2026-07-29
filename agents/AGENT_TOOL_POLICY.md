@@ -56,11 +56,13 @@ Propose the action and wait for explicit consent before calling:
 
 - `write_file` (new file), `replace_with_git_merge_diff` (targeted edit to an existing file)
 - `rename_file`
-- `submit` — **propose the exact submit type (task-complete / Code-only / WIP checkpoint),
-  its title, and whether code review is invoked (per `AGENTS.md` §2.2's current setting)
-  before calling.** Per `agents/DEVELOPMENT.md` §5.2, the Development Plan pre-declares
-  Submit Points per task at drafting time — this approval step confirms execution of an
-  already-planned checkpoint, not a fresh judgment call each time.
+- `submit` — **propose the exact submit type (Session Unit's Final Wrap-Up Submit / WIP
+  Checkpoint), its title, and whether code review is invoked (per `AGENTS.md` §2.2's
+  current setting) before calling.** Per `agents/DEVELOPMENT.md` §5.2, the Development Plan
+  pre-declares, at drafting time, any WIP Checkpoint a task will carry and the Session
+  Unit's own completion point — this approval step confirms execution of an
+  already-planned checkpoint, not a fresh judgment call each time. There is no third,
+  per-task submit type any more (`AGENTS.md` §2.1).
 
 **After every `submit`, the session stops and awaits the user's next message before
 continuing any further work — per `agents/DEVELOPMENT.md` §5.2, the user says "Continue" or

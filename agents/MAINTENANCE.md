@@ -223,13 +223,15 @@ path.** Determines Tier, Type, and SemVer recommendation for the item:
 
 ### M4 — Task Decomposition *(full path only)*
 Generates this item's tasks, following the standard Task Template shape (Design Refs,
-Verification Method, DoD, Submit Point — `development_plan_template.md` §8's shape,
-reused directly). **The rustdoc DoD checkbox (`AGENTS.md` §2.3) is inherited
-automatically by this reuse** — any Question 2 item (new external interface, data-model/
-schema field, or component/module boundary) that reaches M4 generates tasks touching
-`pub` items, and those tasks carry the same DoD item any Development task would; no
-separate M1 question or parallel Maintenance-specific doc-mandate is needed. **Self-check
-after M4:** every task has a Verification Method and DoD —
+Verification Method, DoD, WIP-Checkpoint-if-specified — `development_plan_template.md`
+§8's shape, reused directly; no per-task Submit Point, per `AGENTS.md` §2.1 — the Task
+Group's own Final Wrap-Up Submit is the only one). **The rustdoc DoD checkbox
+(`AGENTS.md` §2.3) is inherited automatically by this reuse** — any Question 2 item (new
+external interface, data-model/schema field, or component/module boundary) that reaches M4
+generates tasks touching `pub` items, and those tasks carry the same DoD item any
+Development task would; no separate M1 question or parallel Maintenance-specific
+doc-mandate is needed. **Self-check after M4:** every task has a Verification Method and
+DoD —
 mechanical completeness check, not a gated audit. **Complexity Score
 (`development_plan_template.md` §8's formula, reused unmodified) applied across the
 batch's full task list** determines Task Group count in the generated Checklist — one batch is

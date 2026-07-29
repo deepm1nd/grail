@@ -135,9 +135,17 @@ convention** (`agents/MAINTENANCE.md` §6a), confirm the new/renamed test resolv
 `cargo nextest run <id> --exact` (or the Playwright `-g` equivalent) before checking its
 DoD item — do not assume the name is correct without actually running it.
 
-**Update the Checklist for this task now — before calling `submit`.** Do not check the
-task's `Submitted` box until **after** `submit` completes and the user responds
-"Continue"/"Proceed."
+**Update the Checklist for this task now — every satisfied DoD sub-item and the task line
+itself.** This is Checklist-adjacent bookkeeping, not a Checklist edit. **Do not call
+`submit` here** — there is no per-task or per-sub-task Submit Point any more
+(`AGENTS.md` §2.1); move directly to the next task. This item's Task Group is not
+"finished" piecemeal from a save-point perspective — only its own Final Wrap-Up Submit
+(step 10) makes this session's work safe from a crash, so weigh how much to attempt
+accordingly. **A task carries a WIP Checkpoint only if the batch file explicitly stated
+one for it** — a concrete point, never a bare eligibility flag, never a runtime/
+non-convergence trigger. If reached, issue a `[WIP-CHECKPOINT]` submit immediately, stating
+what was attempted, confirmed working, and known incomplete; this always bypasses code
+review and never claims the task done.
 
 **When uncertainty arises**, consult the reference table in step 2 before guessing. **If
 it cannot be resolved that way** — a persistent test failure, an unverifiable precondition,
@@ -151,10 +159,12 @@ the end of the session** — no further progress. The user takes this report to 
 Verification session (`agents/MAINTENANCE.md` §10).
 
 ### 10. On normal completion only: final wrap-up submit and stop
-Confirm build/tests green. Notify the user this item's Checklist Task Group is complete. **Do
-not begin the next item**, regardless of remaining capacity — it starts in a new session.
-**Do not check the next item's Entry Criteria either** — per this prompt's Task-Group-Boundary
-Scope Rule above, that belongs entirely to the session that opens it.
+This is the item's Task Group's **sole Submit Point** — no task was submitted individually
+along the way. Confirm build/tests green, then `submit` everything together. Notify the
+user this item's Checklist Task Group is complete. **Do not begin the next item**,
+regardless of remaining capacity — it starts in a new session. **Do not check the next
+item's Entry Criteria either** — per this prompt's Task-Group-Boundary Scope Rule above,
+that belongs entirely to the session that opens it.
 
 ### 11. Session-End Checklist
 - [ ] Every DoD item you completed is checked in the Checklist.
@@ -178,8 +188,9 @@ Scope Rule above, that belongs entirely to the session that opens it.
       current item's Task Group only.
 - [ ] You did not perform a broad repository scan or read a large file in full without a
       targeted-extraction justification.
-- [ ] Every task/sub-task you completed has a matching `submit` and its Checklist
-      `Submitted` box checked, only after that task's submit completed and the user's
+- [ ] Every task/sub-task you completed has its DoD satisfied and Checklist box checked —
+      no submit to check per-task any more. The item's Task Group `Submitted` box is
+      checked only after this session's Final Wrap-Up Submit completed and the user's
       resume message — never before.
 - [ ] You did not call `request_code_review` (per `AGENTS.md` §2.2's current setting).
 

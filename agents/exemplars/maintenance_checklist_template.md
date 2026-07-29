@@ -26,21 +26,24 @@
   not this session's job to do early.
 - Each task is a `### Task: <TASK-ID>` sub-section with DoD items as individual
   checkboxes — same Task Template shape as Development (Design Refs, Verification Method,
-  DoD, Submit Point).
+  DoD, WIP-Checkpoint-if-Design-specified).
 - `[ ]` not done · `[x]` done, DoD fully satisfied · `[D]` deliberately deferred (only for
   an item explicitly carried over to the next batch, never to silently skip).
 - **Edits to this file during a Maintenance session are bracket-content-only**: flipping a
-  mark, checking a `Submitted` box, appending a Session Log row. Rewording a task/DoD
-  line or restructuring content is an Escalation Trigger, not a same-session fix.
+  mark, checking the Task Group's `Submitted` box, appending a Session Log row. Rewording a
+  task/DoD line or restructuring content is an Escalation Trigger, not a same-session fix.
 - **No compressed formats** — every Task Group and task is written out in full, individually,
   in order. This template's own `## Task Group BF-0001` block below is illustrative only.
 - **Continuous updates, in place** — each DoD sub-item checked the moment it's satisfied.
 - **Tasks are worked in the order they appear**, Task Group by Task Group, task by task — no
   reordering or skipping without explicit user permission that session.
-- **Submitted** checkbox — every task carries its own, checked only when its Submit Point
-  has actually fired via `submit`.
+- **`Submitted` checkbox — one per Task Group, not one per task**, matching
+  `AGENTS.md` §2.1's cadence: no per-task or per-sub-task Submit Point exists any more. It's
+  checked only when the Task Group's own Final Wrap-Up Submit has actually fired via
+  `submit` and the user has responded "Continue"/"Proceed."
 - **Code/Verify split tasks:** two adjacent `### Task:` sub-sections, `[ID]a` (Code) and
-  `[ID]b` (Verify), each with its own DoD and `Submitted` checkbox.
+  `[ID]b` (Verify) — neither carries its own `Submitted` checkbox; both fold into the same
+  Task Group `Submitted` checkbox as every other task.
 
 ---
 
@@ -54,9 +57,9 @@
 - [ ] Verification Method checks pass (`[command]`)
 - [ ] Test Case [ID] verified
 - [ ] Required artifact captured: [artifact]
-- [ ] **Submitted**
 
 **Exit Criteria:** [ ] Verified per `agents/MAINTENANCE.md` §10
+**Submitted:** [ ] (Task Group's Final Wrap-Up Submit — the sole submit for this Task Group)
 
 ---
 
