@@ -833,7 +833,7 @@ prefix, no version suffix, produced once at Step 8's end, reused verbatim every
 Development-Phase session.
 
 **Task Group Summaries** (Development Phase, per `agents/exemplars/development_plan_template.md`
-§11.3): `[projectname]_task_groupN_summary.md` — carries the `[projectname]` prefix for
+§11.3): `dev/plan/[projectname]_task_group_[N]_summary.md` — carries the `[projectname]` prefix for
 consistency, even though it's a Development-, not Design-Phase, artifact.
 
 This grouping is a starting proposal for the Plan (the Spec's 8-file grouping is fixed, tied

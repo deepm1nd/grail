@@ -350,7 +350,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   section, which covers risks identified during Design and is never used for these
   (`agents/exemplars/dev_risks_template.md`'s Purpose and Scope section).
 - **Requirement Traceability Table Skeleton:** Generate
-  `dev/spec/[projectname]_requirement_traceability.md` with one row per Core-status
+  `test/[projectname]_requirement_traceability.md` with one row per Core-status
   Requirement ID (Spec §3), test column empty. This is a skeleton only — Development
   Task Group updates it incrementally, Task Group by Task Group, as each Task Group's tasks add tests
   (`agents/DEVELOPMENT.md` §5.2.4 item 1).
@@ -364,15 +364,15 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 - **Output:** Development Plan, Checklist, Dev Prompt, draft README, draft `.gitignore`,
   draft `ci.yml`, `scripts/metrics/`, `LICENSE.md`, draft `THIRD_PARTY_LICENSES.md`, initial
   `CHANGELOG.md`, initial `dev/plan/dev_risks.md`, and the
-  `dev/spec/[projectname]_requirement_traceability.md` skeleton.
+  `test/[projectname]_requirement_traceability.md` skeleton.
 - **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, `.gitignore`, `ci.yml`,
   `scripts/metrics/`, `LICENSE.md`, `THIRD_PARTY_LICENSES.md`, `CHANGELOG.md`,
-  `dev/plan/dev_risks.md`, and the `dev/spec/[projectname]_requirement_traceability.md`
+  `dev/plan/dev_risks.md`, and the `test/[projectname]_requirement_traceability.md`
   skeleton for User Approval.**
 
 ### 5.9. Step 9: Plan & Checklist Audit
 - **Note: `.gitignore`, `LICENSE.md`, `scripts/metrics/`, `THIRD_PARTY_LICENSES.md`,
-  `dev/plan/dev_risks.md`, and `dev/spec/[projectname]_requirement_traceability.md`
+  `dev/plan/dev_risks.md`, and `test/[projectname]_requirement_traceability.md`
   are not Step 9 audit inputs.** Step 9 audits only the Development
   Plan and Checklist against the finalized Architecture Specification and their own
   Definition of Done (§15) — `.gitignore`'s and `LICENSE.md`'s correctness are confirmed

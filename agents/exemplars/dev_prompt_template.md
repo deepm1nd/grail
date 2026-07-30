@@ -44,8 +44,8 @@ that scope, never beyond it, regardless of remaining capacity.
    your current, identified Task Group (flip DoD/task boxes, append a Session Log row) — every
    other file is read-only; an apparent error in one is an Escalation Trigger, never a
    same-session fix.
-2. Every existing `[projectname]_task_groupN_summary.md`, in Task Group order — what actually happened
-   in completed Task Groups, not just what the Plan intended. Use `ls [projectname]_task_group*_summary.md`
+2. Every existing `dev/plan/[projectname]_task_group_[N]_summary.md`, in Task Group order — what actually happened
+   in completed Task Groups, not just what the Plan intended. Use `ls dev/plan/[projectname]_task_group_*_summary.md`
    to find them; read each with targeted extraction or in full if short.
 3. `[projectname]_dev_plan_02_environment_and_phases_v[N].md` §6.1 — Task Group Index only.
    Extract with: `grep -n "Task Group Index\|^| " [projectname]_dev_plan_02_environment_and_phases_v[N].md | head -60`
@@ -221,7 +221,7 @@ a production credential — **stop immediately.** Do not troubleshoot further, d
 with other tasks in the Task Group. Go to step 9 now.
 
 ### 9. Write the Task Group Summary — on normal completion or on stopping
-Write/update `[projectname]_task_groupN_summary.md` (Plan §11.3): header block, tasks completed
+Write/update `dev/plan/[projectname]_task_group_[N]_summary.md` (Plan §11.3): header block, tasks completed
 with evidence (**link to `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` rather than
 repeating its content**), deviations, issues/problems (with full diagnostic detail if this is
 why you stopped), assumptions, unplanned changes, incomplete tasks, open items, and

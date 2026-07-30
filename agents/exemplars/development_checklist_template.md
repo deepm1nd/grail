@@ -163,7 +163,7 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 
 ### Task: PROD-001 — Regression Traceability
 - [ ] Every Core Requirement ID (Spec §3) has a row in
-  `dev/spec/[projectname]_requirement_traceability.md`
+  `test/[projectname]_requirement_traceability.md`
 - [ ] Every test named per the convention in `agents/exemplars/development_plan_template.md`
   §8's Test-Type-to-Naming Binding (`test_<type>_<nnnn>__description` for Rust — supersedes
   the bare `test_<nnnn>__description` form previously in `agents/MAINTENANCE.md` §6a, pending
@@ -265,7 +265,7 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 
 > One entry per session (Plan §11). Never edit a prior entry except to fix a factual error
 > (log the fix as a new entry). For full evidence, see Task Group Summary files
-> (`[projectname]_task_groupN_summary.md`).
+> (`dev/plan/[projectname]_task_group_[N]_summary.md`).
 
 | Date | Task Group(s) touched | Tasks completed | Tasks aborted | Escalation (Plan §13) | Notes |
 |---|---|---|---|---|---|

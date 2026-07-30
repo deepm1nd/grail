@@ -60,9 +60,9 @@
 │       └── src/
 ├── dev/                         # grail-generated process docs (Design/Maintenance/Release)
 │   ├── spec/                    # Architecture Specification files
-│   │   └── [projectname]_requirement_traceability.md  # Requirement-to-test traceability
 │   ├── plan/                    # Development Plan, Checklist, Dev Prompt files
-│   │   └── dev_risks.md          # Development-Phase risk log
+│   │   ├── dev_risks.md          # Development-Phase risk log
+│   │   └── [projectname]_task_group_[N]_summary.md  # Task Group Summary (one per Task Group)
 │   ├── maintenance/
 │   │   └── v[N.NN.NN]/           # one folder per Maintenance batch, any type
 │   └── release/
@@ -84,7 +84,12 @@
 │   │   └── docker-compose.dev.yml   # Dev/test infra dependencies (Postgres, Neo4j, ...)
 │   ├── scripts/                 # Scripts/fixtures not part of the codebase itself
 │   │   └── fixtures/             # Test input files, golden outputs, sample payloads
-│   └── v[N.NN.NN]/               # Per-version results (Development's own work starts in v0.0.1)
+│   ├── v[N.NN.NN]/               # Per-version results (Development's own work starts in v0.0.1)
+│   │   ├── [projectname]_task_group_[N]_verification.md  # Verification evidence per Task Group
+│   │   └── task_group_[N]/       # Screenshots/clips for that Task Group's Verification entries
+│   └── [projectname]_requirement_traceability.md  # Requirement-to-test traceability — one
+│                                                   # cumulative file for the project's whole life,
+│                                                   # not version-scoped like the folders above
 ├── web/
 │   ├── site/     # the website itself — home/landing, docs (mdBook), blog, community, ...
 │   │   ├── home/       # landing page — folded into default scope, not a rare override

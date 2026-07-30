@@ -255,7 +255,7 @@ This section is the canonical definition referenced by `DEVELOPMENT.md` §5.2.4 
 by Appendix G's gap report, and by Phase Final+1b's hard gate — defined once, here.
 
 **The gap this closes:** a Requirement-to-Test traceability table
-(`dev/spec/[projectname]_requirement_traceability.md`) asserting a test is "independently
+(`test/[projectname]_requirement_traceability.md`) asserting a test is "independently
 re-runnable by name/tag" is meaningless without a concrete mechanism connecting an
 abstract `TEST-[NNN]` catalog ID (Architecture Spec §3.2) to an actual, invocable test in
 source. **It is equally meaningless if that link exists but says nothing about whether the
@@ -317,7 +317,7 @@ many-to-many. The naming convention above only fixes the previously-missing link
 authored during Development Phase, not a grail-supplied file; grail specifies its
 required behavior here, the same way it specifies `ci.yml`'s shape without shipping a
 finished workflow). **Required behavior:**
-- Parses every row of `dev/spec/[projectname]_requirement_traceability.md`; tolerant of
+- Parses every row of `test/[projectname]_requirement_traceability.md`; tolerant of
   column order, locating the Requirement ID and Test ID columns by header name rather
   than fixed position.
 - For each cited Test ID, confirms a matching `test_<type>_<nnnn>__*` Rust function or
@@ -356,7 +356,7 @@ finished workflow). **Required behavior:**
 
 **Retrofit policy (pre-v0.9.4 projects, or any project whose traceability table is
 partial or absent; pre-v0.9.5 projects additionally need the type-token migration below):**
-1. **A missing `dev/spec/[projectname]_requirement_traceability.md` file is the same gap as
+1. **A missing `test/[projectname]_requirement_traceability.md` file is the same gap as
    an incomplete one, at maximal size** — "0 of N Core Requirement IDs have a traceability
    row" rather than "M of N." The remediation process is identical either way; only the
    size of the gap differs. Appendix G's gap report distinguishes "missing entirely" from

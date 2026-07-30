@@ -373,7 +373,7 @@ DoD, WIP-Checkpoint); none are split (Code/Verify), being Visual/Behavioral-equi
 Hybrid review-and-confirm tasks rather than a build-test-debug cycle.
 
 - **`PROD-001` — Regression Traceability:** confirm every Core Requirement ID (Spec §3)
-  has a row in `dev/spec/[projectname]_requirement_traceability.md` and that every listed test
+  has a row in `test/[projectname]_requirement_traceability.md` and that every listed test
   is independently invocable by name/tag (actually run each by name, not merely assumed
   present). **Verification Method:** Hybrid. **DoD:** table complete, every listed test
   confirmed runnable by name. **Design Refs:** Spec §3.
@@ -456,7 +456,7 @@ immediately per §13's model instead.
 
 ### 11.3. Task Group Summary
 
-**One file per Task Group, `[projectname]_task_groupN_summary.md`**, produced at Task Group close —
+**One file per Task Group, `dev/plan/[projectname]_task_group_[N]_summary.md`**, produced at Task Group close —
 whether the Task Group succeeded, partially succeeded, or the session stopped on an escalation.
 Required content:
 - **Header:** Task Group ID/title, Build-Order step(s), date, executing session self-description,
@@ -558,7 +558,7 @@ that fails, a persistent test failure, an ambiguous Spec question, an unverifiab
 Criteria, a low-confidence artifact, a task requiring a production credential/
 infrastructure — stops the entire session immediately:**
 1. Halt all task work — no partial continuation to other tasks, no further troubleshooting.
-2. Write `[projectname]_task_groupN_summary.md` (§11.3) with full diagnostic detail: what was
+2. Write `dev/plan/[projectname]_task_group_[N]_summary.md` (§11.3) with full diagnostic detail: what was
    tried, exact failure output, and — if determinable — the (A)/(B) classification.
 3. Leave the repository in its last clean, committed state. No PR, no further progress.
 4. Stop. The human brings the Task Group Summary to a Design Phase session, which diagnoses the

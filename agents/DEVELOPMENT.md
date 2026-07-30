@@ -253,7 +253,7 @@ advances into a second Task Group even if time/capacity remains.
         swapping the offending dependency — never to edit the disclosure file itself.
     -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first Task Group of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final Task Group, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **README badges are static and CI-written** (`agents/exemplars/README_template.md`'s Metrics & Badges section, `agents/CI.md` Stage 6) — there is no per-Task Group Branch-Name substitution for a Development session to perform; CI's Metrics Commit step rewrites the badge values on every push, from whichever branch it ran on. No Documentation-integrity DoD item exists for this any more.
     -   **Assurance Review:** Perform a final, active review of all code and changes in the current Task Group. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists — checked continuously during the Task Group, not only here (`AGENTS.md` §2.3's Maximal Implementation mandate); this review is a final backstop, not the primary enforcement point.
-6.  **Write the Task Group Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `[projectname]_task_groupN_summary.md`.
+6.  **Write the Task Group Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `dev/plan/[projectname]_task_group_[N]_summary.md`.
 7.  **Final Wrap-Up Submit:** This is now the Task Group's **sole `submit` call** (`AGENTS.md`
     §2.1) — every task and sub-task implemented in steps 2–3 above is included in this one
     submit, not previously saved individually. Fires after docs, README updates, the Task
@@ -337,7 +337,7 @@ development_plan_template.md` §8) are drafted into the Final Task Group at Step
 1. **Regression Scaffold:** every Core-status Requirement ID (Spec §3) traces to ≥1
    independently re-runnable test — re-runnable by name/tag, not merely "covered somewhere
    in the Task Group N verification run." The Requirement-to-Test traceability table exists as
-   a committed artifact, `dev/spec/[projectname]_requirement_traceability.md`, not something
+   a committed artifact, `test/[projectname]_requirement_traceability.md`, not something
    reconstructed ad hoc from memory or grep. This table is drafted as a skeleton (one row
    per Core Requirement ID, empty test column) at Design Step 8, then updated
    incrementally every Development Task Group as that Task Group's own tasks add tests — it is a
