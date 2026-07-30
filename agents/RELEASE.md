@@ -100,7 +100,7 @@ for every project's docs content.
 
 RELEASE's output lives under a dedicated top-level `web/` directory — never inside the
 project-root `dev/` tree (reserved for grail-generated process docs: `dev/spec/`,
-`dev/plan/`, `dev/maintenance/`, `dev/release/`, `dev/dev_risks.md` — unrelated to
+`dev/plan/`, `dev/maintenance/`, `dev/release/`, `dev/plan/dev_risks.md` — unrelated to
 RELEASE's own published output) — and never using mdBook's own default `src/` name at
 project root (would collide with the project's actual Rust source).
 

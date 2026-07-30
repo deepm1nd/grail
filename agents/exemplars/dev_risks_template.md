@@ -1,6 +1,6 @@
 # Development-Phase Risk Log: [Project Name]
 
-> Companion to `CHANGELOG_template.md`, same tier. **Named `dev/dev_risks.md`,
+> Companion to `CHANGELOG_template.md`, same tier. **Named `dev/plan/dev_risks.md`,
 > generated as an initial empty/skeleton file at Design Step 8
 > (`agents/DESIGN.md` §5.8), alongside `CHANGELOG.md` — then edited in place, append-only,
 > across every subsequent Development Phase session that discovers a new standing risk.**

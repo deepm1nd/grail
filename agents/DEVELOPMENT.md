@@ -337,7 +337,7 @@ development_plan_template.md` §8) are drafted into the Final Task Group at Step
 1. **Regression Scaffold:** every Core-status Requirement ID (Spec §3) traces to ≥1
    independently re-runnable test — re-runnable by name/tag, not merely "covered somewhere
    in the Task Group N verification run." The Requirement-to-Test traceability table exists as
-   a committed artifact, `test/[projectname]_requirement_traceability.md`, not something
+   a committed artifact, `dev/spec/[projectname]_requirement_traceability.md`, not something
    reconstructed ad hoc from memory or grep. This table is drafted as a skeleton (one row
    per Core Requirement ID, empty test column) at Design Step 8, then updated
    incrementally every Development Task Group as that Task Group's own tasks add tests — it is a
@@ -360,7 +360,7 @@ development_plan_template.md` §8) are drafted into the Final Task Group at Step
 5. **Developer-Facing Docs:** the Architecture Specification has no known undocumented
    divergence from the as-built system — any found divergence is either fixed or logged as
    an Appendix F Spec Amendment (`agents/exemplars/architecture_specification_template.md`
-   Appendix F); `dev/dev_risks.md` is current (every Open risk
+   Appendix F); `dev/plan/dev_risks.md` is current (every Open risk
    re-evaluated against its own Re-evaluation Trigger, not left stale).
 6. **License/Dependency Drift:** `cargo deny check licenses` is clean against the current
    `Cargo.lock`; `THIRD_PARTY_LICENSES.md` matches its actual output with no undisclosed

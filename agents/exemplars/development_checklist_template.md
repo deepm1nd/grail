@@ -163,7 +163,7 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 
 ### Task: PROD-001 — Regression Traceability
 - [ ] Every Core Requirement ID (Spec §3) has a row in
-  `test/[projectname]_requirement_traceability.md`
+  `dev/spec/[projectname]_requirement_traceability.md`
 - [ ] Every test named per the convention in `agents/exemplars/development_plan_template.md`
   §8's Test-Type-to-Naming Binding (`test_<type>_<nnnn>__description` for Rust — supersedes
   the bare `test_<nnnn>__description` form previously in `agents/MAINTENANCE.md` §6a, pending
@@ -188,7 +188,7 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 > `PROD-004` is satisfied by `DOC-FINAL` above — not a separate task.
 - [ ] Architecture Specification reviewed against as-built system; any divergence fixed or
   logged as an Appendix F Spec Amendment
-- [ ] Every Open entry in `dev/dev_risks.md` re-evaluated against its own
+- [ ] Every Open entry in `dev/plan/dev_risks.md` re-evaluated against its own
   Re-evaluation Trigger
 - [ ] WIP-Checkpoint reached (if applicable — see Plan §8's stated point for this task)
 

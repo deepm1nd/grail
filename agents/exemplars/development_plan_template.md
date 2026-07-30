@@ -373,7 +373,7 @@ DoD, WIP-Checkpoint); none are split (Code/Verify), being Visual/Behavioral-equi
 Hybrid review-and-confirm tasks rather than a build-test-debug cycle.
 
 - **`PROD-001` — Regression Traceability:** confirm every Core Requirement ID (Spec §3)
-  has a row in `test/[projectname]_requirement_traceability.md` and that every listed test
+  has a row in `dev/spec/[projectname]_requirement_traceability.md` and that every listed test
   is independently invocable by name/tag (actually run each by name, not merely assumed
   present). **Verification Method:** Hybrid. **DoD:** table complete, every listed test
   confirmed runnable by name. **Design Refs:** Spec §3.
@@ -391,7 +391,7 @@ Hybrid review-and-confirm tasks rather than a build-test-debug cycle.
 - **`PROD-005` — Spec/Dev-Risks Currency:** review the Architecture Specification against
   the as-built system; any divergence is fixed or logged as an Appendix F Spec Amendment
   (`agents/exemplars/architecture_specification_template.md` Appendix F); re-evaluate every
-  Open entry in `dev/dev_risks.md` against its own Re-evaluation Trigger.
+  Open entry in `dev/plan/dev_risks.md` against its own Re-evaluation Trigger.
   **Verification Method:** Visual/Behavioral. **DoD:** Spec/as-built divergence resolved or
   logged; dev-risks log current. **Design Refs:** Architecture Spec, full document.
 - **`PROD-006` — License/Dependency Drift:** run `cargo deny check licenses` against the
