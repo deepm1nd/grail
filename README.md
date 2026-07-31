@@ -187,7 +187,7 @@ UI assets.
    you say "Continue" to start the next session.
 5. **Review evidence as it accumulates**, not just at the end: each Task Group's
    `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` (build/test summary lines,
-   screenshots, clips) and `[projectname]_task_groupN_summary.md` (the narrative — what
+   screenshots, clips) and `dev/plan/[projectname]_task_group_[N]_summary.md` (the narrative — what
    happened, deviations, issues). A session that hits something it can't resolve stops
    immediately and writes its Task Group Summary instead of guessing — bring that back to a
    **Design Phase session with Claude** to diagnose and restructure the Plan/Checklist,
