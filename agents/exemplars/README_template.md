@@ -61,7 +61,7 @@
 ├── dev/                         # grail-generated process docs (Design/Maintenance/Release)
 │   ├── spec/                    # Architecture Specification files
 │   ├── plan/                    # Development Plan, Checklist, Dev Prompt files
-│   │   ├── dev_risks.md          # Development-Phase risk log
+│   │   ├── [projectname]_dev_risks.md          # Development-Phase risk log
 │   │   └── [projectname]_task_group_[N]_summary.md  # Task Group Summary (one per Task Group)
 │   ├── maintenance/
 │   │   └── v[N.NN.NN]/           # one folder per Maintenance batch, any type

@@ -360,7 +360,7 @@ development_plan_template.md` §8) are drafted into the Final Task Group at Step
 5. **Developer-Facing Docs:** the Architecture Specification has no known undocumented
    divergence from the as-built system — any found divergence is either fixed or logged as
    an Appendix F Spec Amendment (`agents/exemplars/architecture_specification_template.md`
-   Appendix F); `dev/plan/dev_risks.md` is current (every Open risk
+   Appendix F); `dev/plan/[projectname]_dev_risks.md` is current (every Open risk
    re-evaluated against its own Re-evaluation Trigger, not left stale).
 6. **License/Dependency Drift:** `cargo deny check licenses` is clean against the current
    `Cargo.lock`; `THIRD_PARTY_LICENSES.md` matches its actual output with no undisclosed

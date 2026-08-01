@@ -341,7 +341,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   reviews/confirms it against the repository as it starts to take shape rather than
   authoring from scratch.
 - **Development-Phase Risk Log:** Generate an initial, empty/skeleton
-  `dev/plan/dev_risks.md` from `agents/exemplars/dev_risks_template.md`,
+  `dev/plan/[projectname]_dev_risks.md` from `agents/exemplars/dev_risks_template.md`,
   alongside `CHANGELOG.md`. This file has no content to populate at Design time — it exists
   to give Development Phase sessions a ready, append-as-you-go home for standing risks
   discovered only once real dependency resolution exists (`deny.toml` `ignore`-list
@@ -363,16 +363,16 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   Criteria checkboxes with no corresponding task.
 - **Output:** Development Plan, Checklist, Dev Prompt, draft README, draft `.gitignore`,
   draft `ci.yml`, `scripts/metrics/`, `LICENSE.md`, draft `THIRD_PARTY_LICENSES.md`, initial
-  `CHANGELOG.md`, initial `dev/plan/dev_risks.md`, and the
+  `CHANGELOG.md`, initial `dev/plan/[projectname]_dev_risks.md`, and the
   `test/[projectname]_requirement_traceability.md` skeleton.
 - **GATE: STOP and Present Plan, Checklist, Dev Prompt, README, `.gitignore`, `ci.yml`,
   `scripts/metrics/`, `LICENSE.md`, `THIRD_PARTY_LICENSES.md`, `CHANGELOG.md`,
-  `dev/plan/dev_risks.md`, and the `test/[projectname]_requirement_traceability.md`
+  `dev/plan/[projectname]_dev_risks.md`, and the `test/[projectname]_requirement_traceability.md`
   skeleton for User Approval.**
 
 ### 5.9. Step 9: Plan & Checklist Audit
 - **Note: `.gitignore`, `LICENSE.md`, `scripts/metrics/`, `THIRD_PARTY_LICENSES.md`,
-  `dev/plan/dev_risks.md`, and `test/[projectname]_requirement_traceability.md`
+  `dev/plan/[projectname]_dev_risks.md`, and `test/[projectname]_requirement_traceability.md`
   are not Step 9 audit inputs.** Step 9 audits only the Development
   Plan and Checklist against the finalized Architecture Specification and their own
   Definition of Done (§15) — `.gitignore`'s and `LICENSE.md`'s correctness are confirmed

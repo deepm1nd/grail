@@ -66,7 +66,7 @@ explicitly designed to allow sublicensing under different, more restrictive term
   data-bundling crate carrying `OFL-1.1`, which is not on the standard allow-list but is
   reasonable to accept for that one dependency). Same approval tier as an Unlisted
   dependency (`AGENTS.md` §2.2), and same standing-risk logging convention as an
-  `[advisories].ignore` entry: recorded in `dev/plan/dev_risks.md`
+  `[advisories].ignore` entry: recorded in `dev/plan/[projectname]_dev_risks.md`
   (`agents/exemplars/dev_risks_template.md`), not the Architecture Specification's Risk
   Management section, since this is discovered once the actual dependency tree resolves,
   not during Design. See `PREFERRED_TOOLS.md`'s `deny.toml` skeleton for the exact syntax.
@@ -102,7 +102,7 @@ manifest at face value.
   requirement as an Unlisted dependency (`AGENTS.md` §2.2), not a unilateral judgment call.
   If approved: pin to an exact commit hash (never a branch or tag that can move), record the
   `[patch]` entry's justification and the upstream issue/PR tracking eventual release in
-  `dev/plan/dev_risks.md` (`agents/exemplars/dev_risks_template.md`) and in
+  `dev/plan/[projectname]_dev_risks.md` (`agents/exemplars/dev_risks_template.md`) and in
   `CHANGELOG.md` — not the Architecture Specification's Risk Management section, since this
   is a Development-Phase discovery rather than a Design-Phase-identified risk — and treat it
   as a standing risk to revisit — remove the patch and return to the published crate the

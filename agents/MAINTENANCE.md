@@ -376,7 +376,7 @@ partial or absent; pre-v0.9.5 projects additionally need the type-token migratio
 5. **Exception, not default:** if the existing test's name genuinely cannot be changed
    (e.g. proc-macro-generated test names, a framework that derives the name mechanically),
    add a thin wrapper (`fn test_<type>_<nnnn>__desc() { existing_test_fn_or_call() }`)
-   instead — logged as a named exception in `dev/plan/dev_risks.md`
+   instead — logged as a named exception in `dev/plan/[projectname]_dev_risks.md`
    (`dev_risks_template.md`), same tier as any other Development-Phase-discovered standing
    deviation. This is a logged exception, not a silently-accepted default.
 6. Any Core Requirement ID with **no** existing corresponding test is itself a gap this

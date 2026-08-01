@@ -308,7 +308,7 @@ a failing CI run.
   # would apply the exception project-wide. See PREFERRED_DEPENDENCIES.md's License
   # Compatibility Criterion for when this is appropriate vs. when a dependency should
   # simply be avoided. Every exception entry is logged in
-  # dev/plan/dev_risks.md (agents/exemplars/dev_risks_template.md), same
+  # dev/plan/[projectname]_dev_risks.md (agents/exemplars/dev_risks_template.md), same
   # standing-risk convention as an [advisories].ignore entry.
   # [[licenses.exceptions]]
   # allow = ["OFL-1.1"]
@@ -344,7 +344,7 @@ a failing CI run.
     patch, or remove the dependency), never silently ignored, regardless of how deep it
     sits in the tree.
   - **Recorded as a standing risk to revisit** — logged in
-    `dev/plan/dev_risks.md` (`agents/exemplars/dev_risks_template.md`), not the
+    `dev/plan/[projectname]_dev_risks.md` (`agents/exemplars/dev_risks_template.md`), not the
     Architecture Specification's Risk Management section, since this is a Development-Phase
     discovery rather than a Design-Phase-identified risk; also recorded in `CHANGELOG.md`,
     with the RUSTSEC ID and date. Each `ignore` entry's `reason` field should be the short
@@ -372,7 +372,7 @@ a failing CI run.
     transitively via `gloo-worker`, while also being the direct dependency
     `PREFERRED_DEPENDENCIES.md` swaps for `postcard`) — these are two separate,
     non-conflicting dispositions: ignore the transitive instance you don't control, swap
-    the direct instance you do. Note both in `dev/plan/dev_risks.md` as distinct
+    the direct instance you do. Note both in `dev/plan/[projectname]_dev_risks.md` as distinct
     entries rather than conflating them into one.
 - **Clippy strictness — mandatory floor vs. per-project opt-in.** `-D warnings` (deny
   actual compiler/clippy warnings) is **mandatory on every project, no exceptions** — cheap
