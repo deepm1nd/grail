@@ -641,11 +641,79 @@ without shipping a finished workflow file).
    other three fixes being correct. This is scoped to `metrics_commit` alone, not set
    workflow-wide, since `ci_pipeline` itself never pushes anything.
 
-**Nothing in this CI pipeline is `main`-specific.** Every branch is self-contained: its own
+**Nothing in `ci.yml` itself is `main`-specific.** Every branch is self-contained: its own
 metrics, its own README badge state, its own Metrics Commit run. If a future revision of
-this document reintroduces a `main`-only assumption anywhere, that is a defect to fix, not a
-default to preserve — this branch-uniform behavior is the settled design, not an interim
-state.
+this document reintroduces a `main`-only assumption anywhere in `ci.yml`, that is a defect
+to fix, not a default to preserve — this branch-uniform behavior is the settled design, not
+an interim state. **The one exception is Stage 7 below**, and it's a GitHub Actions
+platform behavior rather than a workflow-file choice, so it isn't something `ci.yml` could
+fix even in principle — see Stage 7's own notes.
+
+### Stage 7: Mutation Testing *(separate workflow file — advisory, `PREFERRED_TOOLS.md`)*
+`cargo-mutants` — never a merge-blocking gate (`PREFERRED_TOOLS.md`'s cargo-mutants
+section). **This is a second, genuinely separate workflow file**
+(`.github/workflows/mutation_testing.yml`), not a job inside `ci.yml` — not merely a
+different job in the same file. A job-level `if: github.event_name == 'schedule'` inside
+`ci.yml` cannot work: `ci.yml`'s own workflow-level trigger (§3 above) only listens for
+`push`, so that event never reaches any job in that file, making the `if` condition permanently
+false and the job dead code that never runs at all, regardless of the cron schedule below.
+A separate file with its own `on: schedule:` block, and no `push:` trigger at all,
+guarantees by construction — not by a same-file condition — that this job only ever runs
+on schedule, never on push.
+
+**`--in-diff` takes a path to a diff file, not a git revision range** — `git diff
+A...B` produces that file; passing a range string like `origin/main..HEAD` directly as
+the flag's value is the most common way to get this wrong, since it reads like it should
+work. The job below generates the diff explicitly as its own step for exactly this
+reason — never inline a revision range directly after `--in-diff`.
+
+```yaml
+# .github/workflows/mutation_testing.yml — separate file, deliberately not a job in ci.yml
+name: Mutation Testing
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # weekly; adjust cadence per project
+
+jobs:
+  mutation_testing:
+    name: Mutation Testing (informational)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # shallow clone by default won't have origin/main resolvable
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants --locked
+      - name: Generate diff
+        run: git diff origin/main...HEAD > mutants-diff.txt
+      - name: Run cargo-mutants (in-diff)
+        continue-on-error: true
+        run: cargo mutants --in-diff mutants-diff.txt || true
+```
+
+- **No `push:` trigger in this file, ever** — that's what makes "scheduled only, never on
+  push" a structural fact rather than a condition someone could accidentally weaken later.
+  No `if:` guard is needed on the job itself for this reason.
+- **`schedule` only ever fires on the repository's current default branch — never
+  per-branch, regardless of how many other branches exist or what workflow file they
+  carry.** This is a real GitHub Actions platform behavior, not a workflow-file
+  configuration choice, and it's the one genuine exception to this document's otherwise
+  branch-uniform design (§3's closing note that "nothing in this pipeline is
+  `main`-specific" — that holds for `ci_pipeline`/`metrics_commit`, both `push`-triggered,
+  but not for this stage). If a project needs mutation-testing coverage on work still
+  sitting on a not-yet-merged branch, `schedule` cannot provide that; the job simply won't
+  run there until that branch becomes the default branch or merges into it.
+- **`fetch-depth: 0`** is required, not optional — without it, `origin/main` frequently
+  isn't resolvable at all in the shallow clone `actions/checkout` produces by default, and
+  the `git diff` step fails before `cargo-mutants` is even invoked.
+- **A near-empty diff (e.g. the very first Task Group's PR, before much source exists) is
+  not an error case** — the diff is just unusually large (unusually *small* diffs are the
+  concern for other tools, not this one), and the job runs longer than usual, not
+  differently. `continue-on-error: true` and the trailing `|| true` both apply regardless.
+- **A full-tree/`--in-place` run** (§`PREFERRED_TOOLS.md`) is a separate, even-less-frequent
+  scheduled job in the same file if a project wants it — not shown here, since most
+  projects only need the `--in-diff` job above.
 
 ---
 

@@ -96,10 +96,17 @@ for any component Step 9's sample-audit (`CLAUDE.md` §3.4) flags as suspicious 
 "line hitter," "Mockery," or "Conjoined Twins" candidate.
 Install: `cargo install cargo-mutants --locked` (or `taiki-e/install-action` in CI, faster
 than a source build).
-- **CI posture: scheduled, non-blocking, never a merge gate.** Wire `cargo mutants --in-diff`
-  (PR-scoped, fast — tests only code changed in that PR) as its own CI job, informational
-  only: results post as an artifact/comment, the job never fails the build or blocks a
-  merge. This is the current tool-recommended usage — mutation testing is slower and
+- **CI posture: scheduled, non-blocking, never a merge gate.** Wire `cargo mutants
+  --in-diff` (PR-scoped, fast — tests only code changed since the last push to the
+  default branch) as its own CI job, informational only: results post as an
+  artifact/comment, the job never fails the build or blocks a merge. **`--in-diff` takes
+  a path to a diff file, not a git revision range** — generate the diff as its own step
+  first (`git diff origin/main...HEAD > mutants-diff.txt`), then point `--in-diff` at
+  that file; passing a range string like `origin/main..HEAD` directly as the flag's
+  value is a common mistake that fails with "a value is required... but none was
+  supplied." A complete, correct job skeleton is in `agents/CI.md`'s Stage 7 — copy that
+  rather than re-deriving the invocation from this prose description. This is the
+  current tool-recommended usage — mutation testing is slower and
   noisier than coverage and needs deterministic, non-flaky tests to be useful, so it is
   advisory rather than gating for now. Revisit graduating it to a real gate only once a
   project has runtime/flakiness data justifying that step; that decision is never made
