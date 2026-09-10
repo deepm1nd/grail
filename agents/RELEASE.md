@@ -337,7 +337,8 @@ nobody can reach isn't done.
   model). The one genuine trigger to reconsider is the docs site itself needing to process
   a transaction or gate content behind a paywall — not the underlying software's license.
 - **Deploy mechanism: `peaceiris/actions-gh-pages`**, invoked once per generated surface
-  (`docs/` plus every declared reference surface) in the same CI job — none of these are
+  (`docs/` plus every declared reference surface) from within `.github/workflows/release_docs.yml`
+  (`agents/CI.md` §5.2, v0.12.8) — none of these are
   ever git-committed to the branch the project edits; every one is a build artifact,
   generated fresh and pushed straight to the Pages-serving target by CI, the same way
   `docs/`'s own mdBook output already is. This applies uniformly regardless of which
@@ -404,3 +405,16 @@ restriction, per §8's note — not a determination this guide makes unilaterall
 `maintenance_batch_template.md`'s own `[projectname]_[type]_v[N.NN.NN].md` pattern — this
 avoids an exact-filename collision with `MAINTENANCE.md`'s own
 `[projectname]_v[N.NN.NN]_checklist.md`/`_prompt.md` for the same version.
+
+**Versioning note (v0.12.8):** `v[N.NN.NN]` above — and `dev/release/v[N.NN.NN]/`'s own
+folder — is `v0.0.1` or any higher version, entirely user-determined at the point this
+release's RELEASE work opens; it is never assumed to be `v0.1.0` or any other specific
+value. Unlike Development Phase's `test/` output (fixed at `v0.0.1` for that phase's whole
+duration, `agents/DEVELOPMENT.md`), a release's version is a real project SemVer value set
+by whoever opens the RELEASE work, not a framework default — same treatment as
+`MAINTENANCE.md` §8's batch versioning.
+
+**Publishing note (v0.12.8):** the mdBook build/test/publish pipeline (§6.7's Step
+7/`release_prompt_template.md` steps 2–6) now runs as its own named, manually-triggered
+workflow, `.github/workflows/release_docs.yml` (`agents/CI.md` §5.2) — not "the same CI
+job" as any prior phrasing implied. `ci.yml` itself never runs this pipeline.

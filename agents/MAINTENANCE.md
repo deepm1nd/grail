@@ -410,6 +410,13 @@ does not independently decide scope during implementation.
 
 ## 8. Generated Artifacts and Filenames
 
+**(v0.12.8) `v[N.NN.NN]` here — and `dev/maintenance/v[N.NN.NN]/`'s own folder — is
+`v0.0.1` or any higher version, entirely user/batch-determined at open time; it is never
+assumed to be the project's actual first post-v0.1.0 Maintenance batch.** Unlike
+Development Phase's `test/` output (fixed at `v0.0.1` for that phase's whole duration,
+`agents/DEVELOPMENT.md`), a Maintenance batch's version is a real project SemVer value, set
+by whoever opens the batch, not a framework default.
+
 Three files, **named with their real target version from the moment the batch opens** —
 no placeholder/`_open` staging name, no rename step at release:
 

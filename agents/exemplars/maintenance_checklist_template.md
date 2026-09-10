@@ -58,7 +58,10 @@
 - [ ] Test Case [ID] verified
 - [ ] Required artifact captured: [artifact]
 
-**Exit Criteria:** [ ] Verified per `agents/MAINTENANCE.md` §10
+**Exit Criteria:**
+- [ ] Verified per `agents/MAINTENANCE.md` §10
+- [ ] `scripts/run_ci.sh` run and output presented verbatim per `agents/CI.md` §6's
+  mechanical contract
 **Submitted:** [ ] (Task Group's Final Wrap-Up Submit — the sole submit for this Task Group)
 
 ---

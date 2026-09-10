@@ -25,8 +25,19 @@
 - **Steps 4–6 (Tutorials/How-To Guides/Explanation) are order-independent** (`RELEASE.md`
   §6.4–6.6) — worked in whichever sequence the Plan/user chooses, one Step at a time, never
   concurrently.
-- **Submitted** checkbox — every Step carries its own, checked only after its declared
-  Submit Point actually fires via `submit` and the user's "Continue"/"Proceed" response.
+- **`scripts/run_ci.sh` (v0.12.8):** any Step touching buildable/testable content (Reference-Sync,
+  Finalize) runs it and presents output verbatim per `agents/CI.md` §6's mechanical contract,
+  as part of that Step's own DoD, before its Exit Criteria can be checked.
+- **Visual State Capture Completeness (v0.12.8, `development_plan_template.md` §8) applies**
+  to any Step touching UI/doc-site visual content — every distinct visual state introduced
+  or changed gets its own screen capture, plus an asset-fidelity comparison where an Asset
+  Manifest entry governs it.
+- **Submitted** checkbox — every Step carries its own, checked once its declared Submit
+  Point actually fires via `submit`. Per `agents/AGENT_TOOL_POLICY.md` §2 (v0.12.8), when a
+  Step's DoD/Exit Criteria are genuinely satisfied with no issue requiring intervention,
+  `submit` fires directly — no "Should I proceed?"/"finalize and submit?" confirmation turn
+  beforehand — and the call itself then pauses the session for the user's "Continue"/
+  "Proceed" response.
 
 ---
 

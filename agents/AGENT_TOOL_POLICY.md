@@ -56,19 +56,28 @@ Propose the action and wait for explicit consent before calling:
 
 - `write_file` (new file), `replace_with_git_merge_diff` (targeted edit to an existing file)
 - `rename_file`
-- `submit` — **propose the exact submit type (Session Unit's Final Wrap-Up Submit / WIP
-  Checkpoint), its title, and whether code review is invoked (per `AGENTS.md` §2.2's
-  current setting) before calling.** Per `agents/DEVELOPMENT.md` §5.2, the Development Plan
-  pre-declares, at drafting time, any WIP Checkpoint a task will carry and the Session
-  Unit's own completion point — this approval step confirms execution of an
-  already-planned checkpoint, not a fresh judgment call each time. There is no third,
-  per-task submit type any more (`AGENTS.md` §2.1).
+**(v0.12.8) `submit` no longer requires pre-call approval.** Based on operating experience
+across many sessions, both submit types — the Session Unit's Final Wrap-Up Submit and a WIP
+Checkpoint — are removed from this tier's propose-and-wait requirement. When a Task
+Group/item/Step has genuinely satisfied its DoD/Exit Criteria with no issue, ambiguity, or
+problem requiring intervention, the session calls `submit` directly — it does not first ask
+"Should I proceed?" or "Would you like me to finalize and submit?" as a separate
+confirmation turn. A WIP Checkpoint fires the same way, without a preceding proposal, once
+its Design-specified trigger point (`agents/DEVELOPMENT.md` §5.2) is actually reached.
+Genuine Escalation Triggers — ambiguity, scope creep, failed verification — are unaffected
+by this change and still stop and report per each phase's own Escalation section, never
+proceeding to `submit`.
 
-**After every `submit`, the session stops and awaits the user's next message before
-continuing any further work — per `agents/DEVELOPMENT.md` §5.2, the user says "Continue" or
-"Proceed" (plain language, not the `AGENTS.md` §3.1 `APPROVED` token, which governs a
-different mechanism) to resume. This pause is normal flow, not an error and not itself an
-Escalation Trigger.**
+Per `agents/DEVELOPMENT.md` §5.2, the Development Plan still pre-declares, at drafting
+time, any WIP Checkpoint a task will carry and the Session Unit's own completion point —
+that planning content is unchanged; only the pre-call approval step on the `submit` call
+itself is removed. There is no third, per-task submit type (`AGENTS.md` §2.1).
+
+**The post-`submit` pause is an inherent effect of the call itself, not a separate policy
+instruction** — the session pauses and awaits the user's next message ("Continue"/"Proceed"
+to resume) automatically; this is normal flow, not an error and not itself an Escalation
+Trigger. (Prior text restating this as a standalone rule is removed as redundant — the
+behavior is unchanged.)
 
 ---
 

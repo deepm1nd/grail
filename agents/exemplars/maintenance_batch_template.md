@@ -82,6 +82,12 @@ and proceeds directly to the Jules Checklist/Prompt.)*
   |---|---|---|---|---|---|
   | | | | | | |
 
+  **Visual State Capture Completeness applies** (`development_plan_template.md` §8,
+  v0.12.8): every distinct visual state (page/screen, overlay, toggled view, or
+  visibly-different interaction state) this item introduces or changes gets its own screen
+  capture, plus a basic screenshot-vs-asset fidelity comparison for any state governed by a
+  row above.
+
 ### §4 — Task Decomposition (M4) — *full path only*
 Tasks for this item live in `[projectname]_v[N.NN.NN]_checklist.md` (this item's own
 `## Task Group [ID]` block) — not duplicated here. **Self-check:** every task has a

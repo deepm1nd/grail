@@ -198,17 +198,29 @@ advances into a second Task Group even if time/capacity remains.
     task, and no leaving a DoD sub-item unchecked-but-passed-over — without the user's explicit
     permission given in that session.** An unnecessary-seeming, already-satisfied, or blocked
     task/item is a task-level question (§4's Ask-on-Uncertainty) or an Escalation Trigger,
-    never a silent skip. Once a task (or sub-task) is implemented and its DoD is fully
-    satisfied, the agent, in this order: (a) appends that task's entry to
-    `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` and drops any screenshots/clips into
-    `test/v[N.NN.NN]/task_group_[N]/` per `agents/exemplars/development_plan_template.md` §11.4 (skip for
+    never a silent skip. **`test/` (singular) vs `tests/` (plural) — never confused:** `test/` is grail's own
+    process/evidence tree (Markdown verification/traceability files, never compiled); `tests/`
+    is Rust's standard Cargo-compiled integration-test source directory. Both exist and serve
+    entirely different purposes — see `README_template.md`'s Repository Layout tree.
+    **`test/v[N.NN.NN]/` during Development Phase is fixed at `v0.0.1` for the entire phase**
+    — a single shared folder for every Task Group's verification output, never incrementing
+    per Task Group and never tied to a real project SemVer, since no real version exists yet
+    at this point. **Nothing is ever written loose directly under `test/`** — only
+    `test/v[N.NN.NN]/...`, `test/containers/`, `test/scripts/` (and its own future
+    subfolders), and the single cumulative `test/[projectname]_requirement_traceability.md`
+    file are permitted at that root; a verification file or screenshot landing loose in
+    `test/` instead of inside `test/v0.0.1/` is a defect. Once a task (or sub-task) is
+    implemented and its DoD is fully satisfied, the agent, in this order: (a) appends that
+    task's entry to
+    `test/v0.0.1/[projectname]_task_group_[N]_verification.md` and drops any screenshots/clips into
+    `test/v0.0.1/task_group_[N]/` per `agents/exemplars/development_plan_template.md` §11.4 (skip for
     tasks with no Verification Method beyond human review/approval); (b) updates the
     checklist **continuously, in place** — not batched until end of Task Group, and never via a
     copy of the checklist (§4); (c) proceeds directly to the next task — **there is no
     per-task or per-sub-task `submit` call any more; the session's only `submit` is the
     Task-Group-end Final Wrap-Up Submit (step 7), or a Design-specified WIP Checkpoint if one
     is reached first (`AGENTS.md` §2.1).**
-4.  **Task Group Integration and System Test:** After all tasks in the Task Group are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome. **In addition to this build/test pass, every Task Group's Exit Criteria include running the full local CI-equivalent sequence** — Lint & Format, Build, Test, Coverage, Security Scan (`agents/CI.md`'s stage skeleton), the same sequence the Task Group's own Final Wrap-Up Submit (step 5, below) requires as its Mandatory Pre-Submit Local Verification — **once more at the Task Group level, and resolving/fixing any bug or issue this run surfaces before the Task Group's Exit Criteria can be checked off.** A Task Group is not exited on the strength of any individual task's own narrower Verification Method alone; the full sequence is re-run integrated, across the whole Task Group's combined changes, and any finding is fixed in this same Task Group, not deferred to the next one or left for CI's async pass to catch later.
+4.  **Task Group Integration and System Test:** After all tasks in the Task Group are implemented, build the system and test it using the project's actual build/test commands (Development Plan §2/§4). The agent must perform a mandatory log inspection before concluding the test outcome. **In addition to this build/test pass, every Task Group's Exit Criteria include running `scripts/run_ci.sh`** — the full local CI-equivalent sequence (`agents/CI.md` §6): Lint & Format, Build, Test, Coverage, Security Scan, the same checks `ci.yml` itself runs, minus tool-installation steps — the same sequence the Task Group's own Final Wrap-Up Submit (step 5, below) requires as its Mandatory Pre-Submit Local Verification — **once more at the Task Group level, and resolving/fixing any bug or issue this run surfaces before the Task Group's Exit Criteria can be checked off. Its output is presented to the user verbatim per `agents/CI.md` §6's mechanical summary/failure-detail contract** — a pass/fail line for every clean check, full relevant failure context for any that fail — as its own Exit Criteria DoD item, not folded silently into the build/test pass above. A Task Group is not exited on the strength of any individual task's own narrower Verification Method alone; the full sequence is re-run integrated, across the whole Task Group's combined changes, and any finding is fixed in this same Task Group, not deferred to the next one or left for CI's async pass to catch later.
     - **Coverage is not evidence of integration.** This run's Coverage stage (`cargo-llvm-cov`)
       confirms no regression in what currently exists — line/branch coverage measures
       execution, not validation, and an isolated unit test satisfies both build-green and

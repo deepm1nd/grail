@@ -116,6 +116,27 @@ than a source build).
   branch, per the same reasoning — full-tree runs are the product of viable-mutant-count ×
   test-suite-runtime and can be materially slower than a single PR's `--in-diff` run.
 
+### cargo-fuzz (conditional — only when Design Step 5 identifies a parser/codec/
+untrusted-input component; advisory/spot-check — never a merge-blocking gate)
+Coverage-guided fuzzing (libFuzzer-based) — generates randomized/mutated inputs to find
+panics, crashes, and undefined behavior in code that parses or otherwise consumes
+untrusted or external input (file formats, network protocols, codecs, deserializers). Not
+generated for a project with no such component — this is a scope-gated addition, not a
+blanket default like `cargo-mutants`.
+- **Scope gate:** Design Step 5's tool/dependency feasibility check determines whether this
+  project has a parser/codec/untrusted-input component; only then is `fuzz/` scaffolded
+  and `.github/workflows/fuzz.yml` generated (`agents/CI.md` §5's Stage 8).
+- Install: `cargo install cargo-fuzz --locked`. Convention: one fuzz target per
+  `fuzz/fuzz_targets/*.rs`, one crate-root `fuzz/Cargo.toml` (cargo-fuzz's own generated
+  layout via `cargo fuzz init`).
+- **CI posture: scheduled, non-blocking, never a merge gate** — same posture and same
+  reasoning as `cargo-mutants` above: fuzzing is open-ended and noisy, useful as an ongoing
+  spot-check rather than a per-PR gate. A complete, correct job skeleton is in
+  `agents/CI.md`'s Stage 8 — copy that rather than re-deriving the invocation.
+- A crash/panic found by a scheduled run is an Escalation Trigger for whichever phase is
+  currently open — the scheduled job only surfaces and uploads the crash artifact, it never
+  attempts a fix itself.
+
 ---
 
 ## Frontend Visual Testing (Playwright)

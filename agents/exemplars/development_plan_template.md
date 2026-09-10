@@ -266,14 +266,39 @@ cross-component contract a later Task Group depends on.
 
   **UI-touch rule:** any task that adds, modifies, or visibly changes a UI component,
   feature, or appearance MUST use **Visual/Behavioral** or **Hybrid** — never Build+Test
-  alone — and MUST specify at least one screen capture in its DoD/Commands.
-  **Consolidation:** if a Task Group has multiple UI-touching tasks whose changes are all
-  visible together in one screen/state, one shared capture may satisfy all of them — cite
-  it from each task's DoD rather than duplicating. If the changes are **not** all visible
-  in the same screen/state (different pages, different interaction states, or a change not
-  visible until a separate action), each requires its own capture. A task drafted as
-  UI-touching with no capture specified is a Plan drafting defect (§15 DoD), not something
-  left to the executing agent's judgment.
+  alone.
+
+  **Visual State Capture Completeness (v0.12.8 — standalone mandate, applies to
+  Development, Maintenance §6 M3 Asset Manifest items, and Release):** every **distinct
+  visual state** newly introduced or visibly changed by the work gets its own screen
+  capture — regardless of how many tasks/items/Steps the work is split across; this is no
+  longer framed as a task-consolidation exception. A "distinct visual state" is
+  mechanically defined as any of:
+  1. A distinct page/route/screen.
+  2. A distinct overlay, modal, dialog, dropdown, or popover triggered from a parent screen
+     (captured separately from the screen that triggers it).
+  3. A distinct toggled/switched view (tabs, accordions, view-mode switches).
+  4. A distinct discrete interaction state that **renders visibly differently**: `default`,
+     `hover`, `focus`, `active/pressed`, `disabled`, `loading`, `empty`, `error`,
+     `populated`. (An interaction state that changes only a non-visual property — e.g. a
+     `disabled` state with no visible style change — is exempt; the test is "renders
+     visibly differently," not "has a different HTML/CSS attribute.")
+  5. A distinct responsive breakpoint **only if** the Architecture Specification declares
+     specific breakpoints as an in-scope UI requirement — otherwise out of scope by default,
+     and even then scoped to exactly the declared breakpoint set, never an open-ended
+     viewport sweep.
+
+  A capture may be cited/reused across multiple tasks/items only when it's the literal
+  same state, never a merely-similar one. A task drafted as UI-touching with no capture
+  specified for each of its distinct visual states is a Plan drafting defect (§15 DoD), not
+  something left to the executing agent's judgment.
+
+  **Asset-fidelity check:** for any touched visual state governed by an Asset Manifest
+  entry (`CLAUDE.md` §3.7 / `maintenance_batch_template.md` §3), Verification includes a
+  basic side-by-side comparison — the captured screenshot alongside the governing asset —
+  with a one-line pass/deviation note (layout, color/branding, typography, spacing — not
+  pixel-perfect diffing). A deviation doesn't auto-fail the task, but must be stated
+  explicitly, never silently passed over.
 - **Commands**
 - **DoD:** code builds (`command`) · verification passes (`command(s)`) · Test Case ID
   verified · Required Artifacts captured · **any new or modified `pub` item carries a

@@ -74,7 +74,9 @@ internal/external link → stop, report.
   (not only `CHANGELOG.md`) before publishing — if absent, stop and report; this is a
   required Major-tier item (`MAINTENANCE.md` §11's existing MAJOR-only Release Checklist
   item, carried into `RELEASE.md` §7).
-- Deploy every surface via `peaceiris/actions-gh-pages` in the same CI job, per
+- Deploy every surface via `peaceiris/actions-gh-pages` from within
+  `.github/workflows/release_docs.yml` (`agents/CI.md` §5.2) — a single, separate, manually
+  triggered workflow, never a job in `ci.yml` — per
   `RELEASE.md` §8's hosting decision (GitHub Pages default, or the project's recorded
   escalation choice).
 

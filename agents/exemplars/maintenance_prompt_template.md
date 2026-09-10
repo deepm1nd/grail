@@ -24,9 +24,13 @@ Read `agents/MAINTENANCE.md` in full if not already internalized this session. F
 session, no memory of any prior one.
 
 **Code Review Policy** is governed by `AGENTS.md` §2.2. **Tool tiers and submit mechanics**
-are governed by `agents/AGENT_TOOL_POLICY.md`. **After every `submit`, stop and wait — the
-user will say "Continue" or "Proceed" to resume; this is normal, expected flow, not an
-error.** **Session Unit** for this session is one Maintenance Batch item (Checklist Task Group)
+are governed by `agents/AGENT_TOOL_POLICY.md`. **(v0.12.8) When this item's DoD/Exit
+Criteria are genuinely satisfied with no issue, ambiguity, or problem requiring
+intervention, call `submit` directly — do not ask "Should I proceed?" or "Would you like me
+to finalize and submit?" first.** `submit` itself then causes a pause — the user will say
+"Continue" or "Proceed" to resume; this is normal, expected flow, not an error, and not
+something to ask permission for in advance. **Session Unit** for this session is one
+Maintenance Batch item (Checklist Task Group)
 — work only within that scope, never beyond it, regardless of remaining capacity.
 
 **Task-Group-boundary scope rule (`agents/MAINTENANCE.md` §10) — read this before touching the

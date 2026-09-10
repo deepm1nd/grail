@@ -58,15 +58,21 @@
 ├── crates/                     # Multi-crate workspace members (if applicable)
 │   └── [crate_name]/
 │       └── src/
+├── tests/                      # Rust's own standard integration-test source (Cargo-compiled
+│                                # `tests/*.rs` binaries) — NOT the same thing as `test/`
+│                                # (singular) below, which is grail's own process/evidence
+│                                # tree and is never compiled. See `agents/PREFERRED_TOOLS.md`.
 ├── dev/                         # grail-generated process docs (Design/Maintenance/Release)
 │   ├── spec/                    # Architecture Specification files
 │   ├── plan/                    # Development Plan, Checklist, Dev Prompt files
 │   │   ├── [projectname]_dev_risks.md          # Development-Phase risk log
 │   │   └── [projectname]_task_group_[N]_summary.md  # Task Group Summary (one per Task Group)
 │   ├── maintenance/
-│   │   └── v[N.NN.NN]/           # one folder per Maintenance batch, any type
+│   │   └── v[N.NN.NN]/           # one folder per Maintenance batch — v0.0.1 or higher,
+│   │                             # user/batch-determined at open time, never assumed
 │   └── release/
-│       └── v[N.NN.NN]/           # one folder per RELEASE-Phase pass
+│       └── v[N.NN.NN]/           # one folder per RELEASE-Phase pass — v0.0.1 or higher,
+│                                 # user-determined at open time, never assumed
 ├── assets/                     # Tracked UI/media assets
 │   ├── html/
 │   ├── images/
@@ -79,12 +85,22 @@
 │   ├── setup_env.sh / .bat     # Idempotent tool/dependency installer
 │   ├── check_env.sh            # Read-only pre-flight verifier
 │   └── metrics/                # Parsers feeding metrics/*.toml
-├── test/                       # Per-version verification files & evidence
+├── test/                       # grail's own process/evidence tree — Markdown verification &
+│                                # traceability artifacts ONLY. NOT Rust integration-test
+│                                # source (that's `tests/`, above) — never compiled, never
+│                                # run by Cargo. Nothing is ever written loose at this root;
+│                                # only the entries below (plus their own future subfolders)
+│                                # are permitted here.
 │   ├── containers/
 │   │   └── docker-compose.dev.yml   # Dev/test infra dependencies (Postgres, Neo4j, ...)
 │   ├── scripts/                 # Scripts/fixtures not part of the codebase itself
 │   │   └── fixtures/             # Test input files, golden outputs, sample payloads
-│   ├── v[N.NN.NN]/               # Per-version results (Development's own work starts in v0.0.1)
+│   ├── v[N.NN.NN]/               # Per-version results. Development Phase's own folder is
+│   │                             # FIXED at v0.0.1 for the entire phase (never increments
+│   │                             # per Task Group, never tied to a real project version —
+│   │                             # no real version exists yet). Maintenance/Release folders
+│   │                             # are real batch/release versions, v0.0.1 or higher,
+│   │                             # user-determined at open time.
 │   │   ├── [projectname]_task_group_[N]_verification.md  # Verification evidence per Task Group
 │   │   └── task_group_[N]/       # Screenshots/clips for that Task Group's Verification entries
 │   └── [projectname]_requirement_traceability.md  # Requirement-to-test traceability — one

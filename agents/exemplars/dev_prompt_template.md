@@ -18,9 +18,12 @@ in full if not already internalized this session. Fresh session, no memory of an
 
 **Code Review Policy** is governed by `AGENTS.md` §2.2 (bypassed by default — do not call
 `request_code_review` unless that section states otherwise). **Tool tiers and submit
-mechanics** are governed by `agents/AGENT_TOOL_POLICY.md`. **After every `submit`, stop and
-wait — the user will say "Continue" or "Proceed" to resume; this is normal, expected flow at
-every declared Submit Point, not an error.** **Session Unit** for this session's Task Group is
+mechanics** are governed by `agents/AGENT_TOOL_POLICY.md`. **(v0.12.8) When this Task
+Group's DoD/Exit Criteria are genuinely satisfied with no issue, ambiguity, or problem
+requiring intervention, call `submit` directly — do not ask "Should I proceed?" or "Would
+you like me to finalize and submit?" first.** `submit` itself then causes a pause — the user
+will say "Continue" or "Proceed" to resume; this is normal, expected flow, not an error, and
+not something to ask permission for in advance. **Session Unit** for this session's Task Group is
 stated in the Checklist/Plan §6.1 (`Task Group`, `Task`, or `Code+Verify`) — work only within
 that scope, never beyond it, regardless of remaining capacity.
 

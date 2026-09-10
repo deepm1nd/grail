@@ -132,8 +132,9 @@ sole Final Wrap-Up Submit, `AGENTS.md` §2.1 — the only Submit Point for this 
 
 **Exit Criteria:**
 - [ ] [copied verbatim from Plan §6.1]
-- [ ] Full local CI-equivalent sequence run and clean at Task Group level (`agents/DEVELOPMENT.md`
-  §5.2 step 4): [ ] Lint & Format · [ ] Build · [ ] Test · [ ] Coverage · [ ] Security Scan
+- [ ] `scripts/run_ci.sh` run at Task Group level and output presented verbatim per
+  `agents/CI.md` §6's mechanical contract (`agents/DEVELOPMENT.md` §5.2 step 4): [ ] Lint &
+  Format · [ ] Build · [ ] Test · [ ] Coverage · [ ] Security Scan
 - [ ] Security Scan's license check: no license violation found (a violation found blocks this
   Exit Criteria — Escalation Trigger, not a same-Task-Group fix)
 - [ ] New-crate/dependency drift since Task Group start (if any) listed inline in the Task
@@ -228,8 +229,9 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 
 **Exit Criteria:**
 - [ ] [copied verbatim from Plan §6.1]
-- [ ] Full local CI-equivalent sequence run and clean at Task Group level (`agents/DEVELOPMENT.md`
-  §5.2 step 4): [ ] Lint & Format · [ ] Build · [ ] Test · [ ] Coverage · [ ] Security Scan
+- [ ] `scripts/run_ci.sh` run at Task Group level and output presented verbatim per
+  `agents/CI.md` §6's mechanical contract (`agents/DEVELOPMENT.md` §5.2 step 4): [ ] Lint &
+  Format · [ ] Build · [ ] Test · [ ] Coverage · [ ] Security Scan
 - [ ] Security Scan's license check: no license violation found (a violation found blocks this
   Exit Criteria — Escalation Trigger, not a same-Task-Group fix)
 - [ ] New-crate/dependency drift since Task Group start (if any) listed inline in the Task

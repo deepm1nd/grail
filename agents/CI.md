@@ -43,10 +43,11 @@ scope and by different mechanism:
   for Step 7/9 audits, applied to code instead of documents.
 
 **CI is an async, human-reviewed backstop, not a session-blocking gate.** Per
-`AGENT_TOOL_POLICY.md` §2, a Development Phase session stops after every `submit` and
-awaits the user's next message — it does not loop waiting on a CI run, and there is no
-Development Plan-level rule requiring the next task's session to wait on a prior push's CI
-result. A red CI check is surfaced the same way other between-session evidence is reviewed
+`AGENT_TOOL_POLICY.md` §2, a Development Phase session pauses after every `submit` — it does
+not loop waiting on a CI run, and there is no Development Plan-level rule requiring the next
+task's session to wait on a prior push's CI result. (CI itself is now PR-triggered, §3 below
+— it does not even run until the user opens a PR, at their own discretion; `scripts/run_ci.sh`,
+§3a, gives an immediate local-equivalent signal at every Task Group exit in the meantime.) A red CI check is surfaced the same way other between-session evidence is reviewed
 (`README.md`'s "Review evidence as it accumulates" workflow step) — a human notices it and
 brings it back to a Design Phase session if it needs diagnosis, the same path a stuck
 session's Phase Summary already takes.
@@ -89,17 +90,21 @@ the whole workflow.
 ```
 No inline comment, no variation — this is the literal form every job uses.
 
-**Trigger: `on: push` only — never `pull_request`.** Consistent with §2's framing of CI as
-an async, human-reviewed backstop rather than a merge gate: this workflow does not run
-against pull requests, only against actual pushes (to any branch, or restricted to `main` if
-preferred per-project). Running on `pull_request` implies CI-as-gate semantics (a required
-check blocking merge) that this framework deliberately does not adopt — see §2's Open
-Question on failure triage for why that gate model is intentionally not codified here.
+**Trigger: `on: pull_request` only — never bare `push`.** (Changed in v0.12.8; previously
+`push`-only with an explicit anti-`pull_request` rule — that reasoning is superseded, not
+merely swapped.) This still satisfies §2's "async, human-reviewed backstop, not a merge
+gate" framing: nothing about `pull_request` as a *trigger* forces gate semantics — gate
+semantics come from configuring the check as a required status check on branch protection,
+which this framework still does not do. What `pull_request` actually buys is **discretion**:
+the workflow only fires when a PR is opened, and opening a PR is itself a deliberate,
+user-initiated act — so CI runs exactly when the user chooses to invoke it, not on every
+intermediate push to a working branch. `scripts/run_ci.sh` (§3a below) covers the
+local-and-immediate case a push-triggered workflow used to give for free.
 
 ```yaml
 on:
-  push:
-    branches: ["**"]   # or restrict to specific branches per project
+  pull_request:
+    branches: ["**"]   # or restrict to specific target branches per project
 ```
 
 Fixed stage order. Stages marked *(conditional)* are included only when Step 5 determined
@@ -465,7 +470,7 @@ the two notes below).**
         if: always()
         run: |
           node scripts/metrics/write_source_marker.js \
-            --branch "${{ github.ref_name }}" \
+            --branch "${{ github.head_ref }}" \
             --commit "${{ github.sha }}" \
             --status "${{ job.status }}"
 
@@ -510,6 +515,14 @@ steps resolves both constraints together: `job.status` is accurate by the time t
 is written (the aggregation step has already run and, if applicable, already failed the
 job), and the marker is still written before the artifact upload, so `source.toml` is
 still captured in the artifact.
+
+**(v0.12.8) `--branch` uses `github.head_ref`, not `github.ref_name`** — under the
+`pull_request` trigger (§3 above), `github.ref_name` resolves to the ephemeral merge ref,
+not the PR's actual source branch; `metrics/source.toml` would silently record the wrong
+branch name on every run. `github.head_ref` is the built-in populated specifically for a
+`pull_request` event's source branch name — the idiomatic choice here, distinct from
+`github.event.pull_request.head.ref` used above for checkout/push targets requiring a full
+ref form.
 
 **All three steps carry `if: always()`,** so the marker-write and artifact-upload steps
 still run even when `Evaluate required gates` has failed the job — only `Evaluate required
@@ -601,7 +614,7 @@ without shipping a finished workflow file).
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Download metrics artifact
         id: download_metrics_artifact
@@ -620,26 +633,30 @@ without shipping a finished workflow file).
           git config user.email "ci-bot@<project>.example"
           git add metrics/*.toml README.md
           git diff --staged --quiet || git commit -m "ci: refresh metrics [skip ci]"
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
 ```
 
-**Four fixes from an earlier draft, and why each matters:**
+**Five fixes from earlier drafts, and why each matters:**
 1. **`if: always() && github.ref == 'refs/heads/main'` → `if: always()`** — this job now
-   runs on **every** branch push, not `main` only. Metrics Commit is not a `main`-gated job
-   at all.
-2. **Bare `actions/checkout@v5` → add `with: ref: ${{ github.ref_name }}`** — without an
-   explicit `ref`, checkout can leave the workspace in detached-HEAD state for the
-   triggering commit. Pinning `ref` guarantees the job checks out the actual branch that
-   triggered the run.
-3. **Bare `git push` → `git push origin HEAD:${{ github.ref_name }}`** — a bare push from a
-   detached-HEAD checkout has no reliable target branch. The explicit refspec guarantees the
-   commit goes back to whichever branch triggered the run — never `main` specifically,
-   whichever branch it actually was.
+   runs on **every** PR, not `main` only. Metrics Commit is not a `main`-gated job at all.
+2. **Bare `actions/checkout@v5` → add `with: ref: ${{ github.event.pull_request.head.ref }}`**
+   — without an explicit `ref`, checkout can leave the workspace in detached-HEAD state for
+   the triggering commit. Pinning `ref` guarantees the job checks out the actual source
+   branch of the PR that triggered the run.
+3. **Bare `git push` → `git push origin HEAD:${{ github.event.pull_request.head.ref }}`** —
+   a bare push from a detached-HEAD checkout has no reliable target branch. The explicit
+   refspec guarantees the commit goes back to the PR's actual source branch.
 4. **Added `permissions: contents: write`** — the default `GITHUB_TOKEN` permissions for a
    workflow run are read-only unless a job explicitly requests write access; without this
    block, `git push` in the Commit step fails with a permissions error regardless of the
    other three fixes being correct. This is scoped to `metrics_commit` alone, not set
    workflow-wide, since `ci_pipeline` itself never pushes anything.
+5. **(v0.12.8) `github.ref_name` → `github.event.pull_request.head.ref` throughout this
+   job** — under a `pull_request` trigger (§3 above), `github.ref_name` resolves to the
+   ephemeral merge ref (e.g. `42/merge`), not the PR's actual source branch. Checking out or
+   pushing to that ref either no-ops or errors. **This assumes the PR's head branch lives in
+   this same repository, not a fork** — a fork-originated PR has no push access back to it
+   under this token, and is out of scope for this job as written.
 
 **Nothing in `ci.yml` itself is `main`-specific.** Every branch is self-contained: its own
 metrics, its own README badge state, its own Metrics Commit run. If a future revision of
@@ -700,8 +717,8 @@ jobs:
   carry.** This is a real GitHub Actions platform behavior, not a workflow-file
   configuration choice, and it's the one genuine exception to this document's otherwise
   branch-uniform design (§3's closing note that "nothing in this pipeline is
-  `main`-specific" — that holds for `ci_pipeline`/`metrics_commit`, both `push`-triggered,
-  but not for this stage). If a project needs mutation-testing coverage on work still
+  `main`-specific" — that holds for `ci_pipeline`/`metrics_commit`, both `pull_request`-
+  triggered, but not for this stage). If a project needs mutation-testing coverage on work still
   sitting on a not-yet-merged branch, `schedule` cannot provide that; the job simply won't
   run there until that branch becomes the default branch or merges into it.
 - **`fetch-depth: 0`** is required, not optional — without it, `origin/main` frequently
@@ -715,9 +732,218 @@ jobs:
   scheduled job in the same file if a project wants it — not shown here, since most
   projects only need the `--in-diff` job above.
 
+### Stage 8: Fuzz Testing *(separate workflow file — advisory; only when Design Step 5
+determined this project has a parser/codec/untrusted-input component, `PREFERRED_TOOLS.md`)*
+
+Same structural reasoning as Stage 7: fuzzing is scheduled/advisory, never a merge-blocking
+gate, and lives in its own workflow file for the same reason `ci.yml`'s trigger cannot
+support a `schedule` job internally.
+
+```yaml
+# .github/workflows/fuzz.yml — separate file, deliberately not a job in ci.yml
+name: Fuzz Testing
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"   # weekly; adjust cadence per project
+
+jobs:
+  fuzz:
+    name: Fuzz Testing (informational)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [ ]   # one entry per fuzz target under fuzz/fuzz_targets/ — filled in per project
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+      - name: Run fuzz target (time-boxed)
+        continue-on-error: true
+        run: cargo fuzz run ${{ matrix.target }} -- -max_total_time=300
+      - name: Upload crash artifacts (if any)
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: fuzz-crashes-${{ matrix.target }}
+          path: fuzz/artifacts/${{ matrix.target }}/
+          if-no-files-found: ignore
+```
+
+- **Scope gate:** this workflow file is only generated at all for a project whose Design
+  Step 5 tool/dependency feasibility check identified a parser, codec, deserializer, or other
+  component that consumes untrusted/external input (`PREFERRED_TOOLS.md`'s cargo-fuzz
+  section) — never generated blanket for every project the way Stage 0–6 are.
+- **Time-boxed, not exhaustive** — `-max_total_time` keeps each scheduled run bounded;
+  fuzzing is inherently open-ended, so this is a spot-check cadence, not a completeness
+  claim, matching Stage 7's own advisory framing.
+- A crash found here is an Escalation Trigger for whichever phase is currently open — never
+  silently fixed by a scheduled job, which only surfaces and uploads the artifact.
+
 ---
 
-## 4. Reading a Stage 5 Failure
+## 5. Release-Pipeline Workflows *(separate workflow files, manually triggered — never a
+job in `ci.yml`)*
+
+Two further concerns are deliberately kept out of `ci.yml` entirely, not merely
+advisory-scheduled like Stages 7–8: producing distributable binary artifacts, and
+publishing the RELEASE-Phase documentation site. Both are manually invoked
+(`workflow_dispatch`) — the user decides when to run them, typically shortly before an
+actual release — never triggered by a push or PR.
+
+### 5.1. `release_build.yml` — cross-platform binary build pipeline
+
+For a project that ships distributable binaries across multiple OS/architecture targets
+(e.g. a CLI tool or native application, not a typical web service). `ci.yml`'s own Stage 2a
+`cargo build --release` is a single-target compile sanity check only — it is never extended
+into a build matrix; that job belongs entirely to this separate file.
+
+```yaml
+# .github/workflows/release_build.yml — separate file, manually triggered, never a job in ci.yml
+name: Release Build Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release_pipeline:
+    name: Release Build Pipeline
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm   # swap to ubuntu-latest once GitHub folds ARM into that alias
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install target
+        run: rustup target add ${{ matrix.target }}
+      - name: Build (release)
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Package artifact
+        run: |
+          # Package the built binary per-OS convention (tar.gz on Linux/macOS, zip on
+          # Windows) into a target-named archive — project-specific packaging step,
+          # filled in per-project's actual binary name(s).
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: release-${{ matrix.target }}
+          path: [path to packaged archive]
+```
+
+- **`workflow_dispatch` only** — never `push`/`pull_request`/`schedule`. This is a manual
+  staging/dry-run pipeline the user invokes at their own discretion before a real release,
+  not an automatic gate on any repository event.
+- **Output is workflow-run artifacts, not an auto-published GitHub Release** — the user
+  retrieves and distributes these manually; this workflow does not itself create or attach
+  to a GitHub Release.
+- **Outside `RELEASE.md`'s process scope** — `RELEASE.md` governs the Diátaxis
+  documentation pipeline only (§5.2 below); this file is a project-specific concern grail
+  provides the placement/pattern for, not a gated Step within the RELEASE Phase itself.
+- **Matrix is a starting point, not fixed** — a project with different target needs
+  (additional architectures, no Windows target, etc.) adjusts the `include:` list at
+  authoring time; the four entries above are the default scaffold.
+
+### 5.2. `release_docs.yml` — mdBook documentation publish pipeline
+
+Houses the mechanical build/test/publish work `release_prompt_template.md` hands to a
+Jules session (steps 2–6 of that file) as a real, separate, named workflow — replacing any
+prior vague "same CI job" phrasing. Never a job inside `ci.yml`.
+
+```yaml
+# .github/workflows/release_docs.yml — separate file, manually triggered, never a job in ci.yml
+name: Release Docs Publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release_docs:
+    name: Release Docs Publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Generate reference surfaces
+        run: |
+          # One step per declared reference surface (api/cli/config/proto/etc.,
+          # RELEASE.md §5) — project-specific generator invocations.
+      - name: Build docs
+        run: mdbook build web/site/docs
+      - name: Test docs
+        run: mdbook test web/site/docs
+      - name: Link check
+        run: |
+          # Project's configured link-checker/linter against the built output.
+      - name: Publish (tiered per RELEASE.md §7)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: web/site/docs/book
+          # destination_dir set per-tier: `latest` (patch, in place) or `vX.Y.Z` (minor/major)
+```
+
+- **`workflow_dispatch` only** — invoked once Release Step 9 (Consistency Audit) is
+  complete, per `release_checklist_template.md`'s Final Verification. Never auto-fires on a
+  tag push or any other repository event.
+- **Scope is unchanged from `release_prompt_template.md`'s existing steps 2–6** — this
+  gives that content a real workflow-file home; it does not change what the pipeline does,
+  only where it runs.
+- Any build/test/link-check failure, or a missing/stale reference-surface generation, is an
+  Escalation Trigger (`RELEASE.md` §11) reported back to a Claude session — this workflow
+  never authors or patches content itself, matching `release_prompt_template.md`'s existing
+  "execution only" framing.
+
+---
+
+## 6. `scripts/run_ci.sh` — Local CI-Equivalent Run
+
+**Required at every Task Group's (Development, Maintenance) or Step's (Release) exit
+criteria** (`development_checklist_template.md`, `maintenance_checklist_template.md`,
+`release_checklist_template.md`) — run this script and present its output before that Task
+Group/Step can be marked complete. Exists because CI itself is now PR-triggered (§3 above)
+and therefore not run on every push; this gives the same signal locally, on demand, without
+opening a PR.
+
+**Required behavior** (`scripts/run_ci.sh` — project-specific, authored during Development
+Phase, not grail-supplied, the same pattern as `scripts/verify_traceability.js`):
+- Near-duplicates `ci.yml`'s Stage 1–5 steps (formatting, clippy, docs coverage, native/WASM
+  build, test/coverage/security/license stages) — **every** check `ci.yml` runs, not a
+  trimmed subset — executed locally in sequence.
+- **Excludes any tool-installation step.** `run_ci.sh` assumes the environment is already
+  provisioned by `scripts/setup_env.sh`; if a required tool is missing, it fails fast with a
+  clear "run setup_env.sh first" message rather than installing anything itself — tool
+  installation lives only in `setup_env.sh`, never duplicated here.
+- Generates the same `metrics/*.toml` outputs as `ci.yml`'s Stages 4–5, then itself invokes
+  `scripts/metrics/write_readme_badges.js` — so `README.md`'s badges and `metrics/*.toml`
+  land in the same commit as the Task Group's own `submit`, not a separate step.
+- Writes `metrics/source.toml` with `origin = "local"` (vs. `origin = "ci"` written by
+  `ci.yml`'s `Write branch/status marker` step, §3 above) — so a later reader can tell
+  whether the last recorded state came from an actual GitHub Actions run or a local pass.
+- **Output contract — mechanical, not left to agent judgment:**
+  - Every passing check prints exactly one summary line: `✅ <check>: pass`.
+  - Every failing check prints its failure-signature line through the end of that failure's
+    own block — never the full raw tool output, never truncated mid-block. Per-tool
+    signature start markers: `FAILED` (nextest), `error[` / `error:` (rustc/clippy), a
+    panic's `thread '...' panicked at` line, the first line of a cargo-deny/cargo-audit
+    JSON finding, or the equivalent first line of a Playwright failure block. The block ends
+    at the next check's own summary/failure line or end of output, whichever comes first.
+  - This same rule governs what the agent pastes into the DoD evidence entry when
+    presenting `run_ci.sh`'s output to the user — verbatim, per the rule above, never
+    paraphrased.
+
+---
+
+## 7. Reading a Stage 5 Failure
 
 A red Stage 5 does not by itself tell you which of three distinct checks fired — read the
 log before assuming which one. As of v0.9.1, Stage 5 runs `cargo deny`/`cargo audit`
@@ -736,7 +962,7 @@ early-phase-churn note above.
 
 ---
 
-## 4.1. Design Step 9 Audit Checks
+## 7.1. Design Step 9 Audit Checks
 
 `agents/DESIGN.md` §5.9's Tier-A-equivalent mechanical checks include two checks specific
 to this file — see that section for the exact rule text:
