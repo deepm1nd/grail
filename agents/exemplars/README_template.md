@@ -2,15 +2,7 @@
 
 ***[One-sentence description of what this project does.]***
 
-[![Rust](https://img.shields.io/badge/rust-2024_edition-orange?logo=rust)](https://doc.rust-lang.org/edition-guide/rust-2024/index.html)
-<!-- BADGE:coverage:START -->[![Coverage](https://img.shields.io/badge/coverage-pending-lightgrey)](metrics/coverage.toml)<!-- BADGE:coverage:END -->
-<!-- BADGE:tests:START -->[![Tests](https://img.shields.io/badge/tests-pending-lightgrey)](metrics/tests.toml)<!-- BADGE:tests:END -->
-<!-- BADGE:audit:START -->[![Security Audit](https://img.shields.io/badge/security_audit-pending-lightgrey)](metrics/audit.toml)<!-- BADGE:audit:END -->
-<!-- BADGE:deny:START -->[![License Check](https://img.shields.io/badge/license_check-pending-lightgrey)](THIRD_PARTY_LICENSES.md)<!-- BADGE:deny:END -->
-<!-- BADGE:license_violations:START -->[![License Violations](https://img.shields.io/badge/license_violations-pending-lightgrey)](metrics/license_violations_log.jsonl)<!-- BADGE:license_violations:END -->
-<!-- BADGE:crates_added:START -->[![Crates Added](https://img.shields.io/badge/crates_added-pending-lightgrey)](metrics/license_additions_log.jsonl)<!-- BADGE:crates_added:END -->
-<!-- BADGE:source:START -->[![Branch Status](https://img.shields.io/badge/latest_push-pending-lightgrey)](metrics/source.toml)<!-- BADGE:source:END -->
-[![CI](https://github.com/[org]/[repo]/actions/workflows/ci.yml/badge.svg)](https://github.com/[org]/[repo]/actions/workflows/ci.yml)
+[![Rust](https://img.shields.io/badge/rust-2024_edition-orange?logo=rust)](https://doc.rust-lang.org/edition-guide/rust-2024/index.html) <!-- BADGE:coverage:START -->[![Coverage](https://img.shields.io/badge/coverage-pending-lightgrey)](metrics/coverage.toml)<!-- BADGE:coverage:END --> <!-- BADGE:tests:START -->[![Tests](https://img.shields.io/badge/tests-pending-lightgrey)](metrics/tests.toml)<!-- BADGE:tests:END --> <!-- BADGE:audit:START -->[![Security Audit](https://img.shields.io/badge/security_audit-pending-lightgrey)](metrics/audit.toml)<!-- BADGE:audit:END --> <!-- BADGE:deny:START -->[![License Check](https://img.shields.io/badge/license_check-pending-lightgrey)](THIRD_PARTY_LICENSES.md)<!-- BADGE:deny:END --> <!-- BADGE:license_violations:START -->[![License Violations](https://img.shields.io/badge/license_violations-pending-lightgrey)](metrics/license_violations_log.jsonl)<!-- BADGE:license_violations:END --> <!-- BADGE:crates_added:START -->[![Crates Added](https://img.shields.io/badge/crates_added-pending-lightgrey)](metrics/license_additions_log.jsonl)<!-- BADGE:crates_added:END --> <!-- BADGE:source:START -->[![Branch Status](https://img.shields.io/badge/latest_push-pending-lightgrey)](metrics/source.toml)<!-- BADGE:source:END --> [![CI](https://github.com/[org]/[repo]/actions/workflows/ci.yml/badge.svg)](https://github.com/[org]/[repo]/actions/workflows/ci.yml)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE.md)
 
 > **License note:** this project is **source-available**, not open-source in the OSI sense.
@@ -196,6 +188,29 @@ hand-edit them. `metrics/*.toml` are regenerated first, then
 `scripts/metrics/write_readme_badges.js` reads them and replaces the content between each
 `<!-- BADGE:X:START -->`/`<!-- BADGE:X:END -->` marker pair above with a freshly built
 badge line.
+
+**(v0.12.10 — corrected from v0.12.9) All badges MUST stay on one shared physical line,
+led by a badge whose Markdown does not start with an HTML comment (e.g. the Rust badge
+first).** GFM/CommonMark's HTML-block rule triggers only when a *line itself begins with*
+`<!--`: such a line becomes a raw HTML block in full, breaking it out of the surrounding
+paragraph — which is what caused the v0.12.9 three-line fix to correctly stop badges
+rendering as inert text, but at the cost of pushing every badge onto its own line/paragraph
+(each `<!-- BADGE:X:START -->` line began with `<!--`, so each became its own block). The
+real, narrower rule: a `<!-- -->` comment appearing **mid-line**, after some non-comment
+content already opened that line, is just inert inline HTML — it neither breaks rendering
+nor splits the paragraph. So the correct, tested layout is the **original one-line
+form**, `<!-- BADGE:X:START -->[![...]](...)<!-- BADGE:X:END -->`, but with the *entire*
+badge sequence kept on one physical line that starts with a plain (non-comment-prefixed)
+badge first:
+
+```
+[![Rust](...)](...) <!-- BADGE:coverage:START -->[![Coverage](...)](...)<!-- BADGE:coverage:END --> <!-- BADGE:tests:START -->[![Tests](...)](...)<!-- BADGE:tests:END --> ...
+```
+
+`write_readme_badges.js`'s marker-matching regex operates on this single line — same-line
+`START...content...END` matching per marker, as originally specified — but the script must
+never insert a newline before the first marker or between subsequent markers; the whole
+badge row is one paragraph, one line, always.
 
 This mechanism exists specifically because the old `dynamic/toml` badge type required
 shields.io's server to externally fetch `raw.githubusercontent.com/.../metrics/*.toml` —

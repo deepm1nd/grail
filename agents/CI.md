@@ -573,10 +573,32 @@ without shipping a finished workflow file).
 **Required behavior of `scripts/metrics/write_readme_badges.js`:**
 - Reads each `metrics/*.toml` file named in the table below; computes a
   `label-message-color` triple per badge.
+- **(v0.12.10 — corrected from v0.12.9) All badge markers stay on one shared physical
+  line, in their original single-line-per-marker form**, but the entire badge sequence
+  MUST be one physical line that *begins* with a non-comment badge (e.g. the Rust badge
+  first), never with `<!--`:
+  ```
+  [![Rust](...)](...) <!-- BADGE:<name>:START -->[![...]](...)<!-- BADGE:<name>:END --> <!-- BADGE:<next>:START -->...
+  ```
+  **v0.12.9 previously mandated three-line markers (`START` alone / badge alone / `END`
+  alone) — that was a correct fix for the wrong failure mode and is superseded here.**
+  GFM/CommonMark's HTML-block rule only fires when a *line itself begins with* `<!--`; the
+  three-line form put `<!-- BADGE:X:START -->` at the start of its own line, which made
+  *that* line an isolated HTML block and split every badge into its own paragraph (visibly
+  correct rendering, but stacked one-per-line instead of one row). The narrower, correct
+  rule: a `<!-- -->` comment appearing **mid-line**, after non-comment content already
+  opened that line, is inert inline HTML and does not split the paragraph. So the original
+  single-line-per-marker form is fine, and always was — the only defect was the very first
+  badge/marker on the row beginning the line with `<!--`. Leading the whole row with a
+  plain badge (Rust) fixes both problems at once: no line begins with `<!--`, and every
+  badge stays in one paragraph/one visual row. This is a real, observed defect and fix —
+  verified against a real project's `README.md` on github.com, not a hypothetical.
 - Replaces the content between each `<!-- BADGE:<name>:START -->`/
   `<!-- BADGE:<name>:END -->` marker pair in `README.md` with a freshly built badge
-  Markdown line — matching via a regex on the literal marker pair (dotall), never deleting
-  the markers themselves, only what's between them.
+  Markdown fragment, **matched and replaced same-line, per marker, on the shared badge
+  row** — never inserting a newline before the first marker or between subsequent markers,
+  since the whole row must remain one physical line. Never deletes the markers themselves,
+  only what's between them.
 - **Field mapping** (preserve the original labels/colors from the pre-migration dynamic
   badges; only the fetch mechanism changes):
 
