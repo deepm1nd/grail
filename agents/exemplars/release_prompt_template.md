@@ -18,6 +18,10 @@ RELEASE Phase output, version **v[N.NN.NN]**. This work has already been authore
 consistency-audited by a Claude session (`RELEASE.md` §6.9) — **your job is execution
 only: build, test, extract, publish. You do not author, edit, or rewrite any prose
 content.** If anything looks incomplete or wrong, that is an Escalation Trigger
+(`RELEASE.md` §11) — stop and report, do not fix it yourself. **(v0.12.11) Per `AGENTS.md`
+§2.4.1's Autonomous Continuation mandate, do not pause to ask permission or confirmation to
+continue a Step already authorized by the Checklist** — the only stop is a genuine
+Escalation Trigger, exactly as above.
 (`RELEASE.md` §11) — stop and report, do not fix it yourself.
 
 ### 1. Read first

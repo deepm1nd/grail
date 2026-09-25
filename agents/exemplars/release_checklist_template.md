@@ -37,7 +37,8 @@
   Step's DoD/Exit Criteria are genuinely satisfied with no issue requiring intervention,
   `submit` fires directly — no "Should I proceed?"/"finalize and submit?" confirmation turn
   beforehand — and the call itself then pauses the session for the user's "Continue"/
-  "Proceed" response.
+  "Proceed" response. **(v0.12.11) This is one instance of `AGENTS.md` §2.4.1's Autonomous
+  Continuation mandate** — see that section for the general statement.
 
 ---
 

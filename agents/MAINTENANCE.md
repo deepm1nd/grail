@@ -37,7 +37,7 @@ mechanics to `DESIGN.md` §0; not restated here.
 | M1 — Impact Triage | `agents/PREFERRED_DEPENDENCIES.md` and `agents/PREFERRED_SERVICES.md`, only if Question 5 (new dependency/infra service) fires. |
 | M2 — Requirements, Test, Verification *(full path only)* | `DESIGN.md` §4.5 (Requirement Quality Criteria / Requirement Smell catalog). |
 | M3 — Classification, Architecture Synthesis, Impact Assessment *(full path only)* | None beyond whichever project-specific Architecture Specification files M3's own instructions name. |
-| M4 — Task Decomposition *(full path only)* | `agents/exemplars/development_plan_template.md` §8 (Task Template shape, Complexity Score formula), reused directly. |
+| M4 — Task Decomposition *(full path only)* | `agents/exemplars/development_plan_template.md` §8 (Task Template shape) and §6 (Complexity Score formula, v0.12.11-corrected citation), reused directly. |
 
 ## 1. Relationship to Design and Development
 
@@ -45,8 +45,8 @@ Reuses existing mechanisms rather than inventing parallel ones: branch-per-unit-
 with exact-name-verbatim discipline; Claude-drafts/Jules-executes file-relay hand-off, no
 direct API/credential integration between sessions (`AGENT_TOOL_POLICY.md`); append-only,
 edited-in-place logging (Appendix B/F, same convention as `CHANGELOG.md`); the Complexity
-Score formula and Task Template shape (`development_plan_template.md` §8), reused not
-reinvented.
+Score formula (`development_plan_template.md` §6, v0.12.11-corrected citation) and Task
+Template shape (`development_plan_template.md` §8), reused not reinvented.
 
 **Claude-side Maintenance sessions (M1–M3 below) operate in Advisory Mode** — the same
 operating contract `CLAUDE.md` §1 defines for Design Phase (no persistent repo access,
@@ -72,6 +72,16 @@ Resume Maintenance for [projectname], item [ID]
 Same file-attachment discipline as any other session boundary — nothing carries over from
 chat memory; the resuming session needs the current batch/checklist/prompt files
 re-provided.
+
+**(v0.12.11) Exception — a batch containing an Interactive Investigation Loop (IIL,
+§13):** the Claude session stays open for the **entire batch**, not just one item, acting as
+a persistent orchestrator for the dev-agent session's investigation round-trips — the
+"resuming an already-open item" flow above does not apply to Claude's side while an IIL is
+active. This mode is opt-in, triggered only by a batch actually containing an IIL Task
+Group; a batch with no IIL item follows the standard per-item M0–M4-then-close flow above
+unchanged. If the orchestrator session nears its own context limit, it hands off to a fresh
+Claude session via a written summary, the same way a Development session hands off via its
+Task Group Summary — see §13 for the full mechanism.
 
 ## 3. Two Entry Points — Never Interleaved
 
@@ -233,7 +243,8 @@ Development task would; no separate M1 question or parallel Maintenance-specific
 doc-mandate is needed. **Self-check after M4:** every task has a Verification Method and
 DoD —
 mechanical completeness check, not a gated audit. **Complexity Score
-(`development_plan_template.md` §8's formula, reused unmodified) applied across the
+(`development_plan_template.md` §6's formula, reused unmodified — including its
+maximize-toward-ceiling packing guidance) applied across the
 batch's full task list** determines Task Group count in the generated Checklist — one batch is
 at least one Task Group, more if the ceiling requires a split, exactly as an over-ceiling
 Development Task Group already gets split.
@@ -415,7 +426,10 @@ does not independently decide scope during implementation.
 assumed to be the project's actual first post-v0.1.0 Maintenance batch.** Unlike
 Development Phase's `test/` output (fixed at `v0.0.1` for that phase's whole duration,
 `agents/DEVELOPMENT.md`), a Maintenance batch's version is a real project SemVer value, set
-by whoever opens the batch, not a framework default.
+by whoever opens the batch, not a framework default. **(v0.12.11) One fixed exception: the
+first-ever Maintenance batch a project opens is always `v0.0.1`, by standing project
+convention** — not computed from §11's roll-up logic for that one batch specifically. Every
+later batch reverts to the general rule above (user/batch-determined, never assumed).
 
 Three files, **named with their real target version from the moment the batch opens** —
 no placeholder/`_open` staging name, no rename step at release:
@@ -425,6 +439,7 @@ no placeholder/`_open` staging name, no rename step at release:
 | Spec-equivalent (M0–M3, per item) | `maintenance_batch_template.md` | `[projectname]_[type]_v[N.NN.NN].md` |
 | Checklist (M4 output, or M1 exit on the lightweight path) | `maintenance_checklist_template.md` | `[projectname]_v[N.NN.NN]_checklist.md` |
 | Jules hand-off prompt | `maintenance_prompt_template.md` | `[projectname]_v[N.NN.NN]_prompt.md` |
+| **(v0.12.11) Task Group Summary — one per Task Group**, mirroring Development's own (`development_plan_template.md` §11.3) | *(no separate template — same shape, Maintenance-Task-Group-scoped)* | `dev/plan/v[N.NN.NN]/summary/[projectname]_task_group_[ID]_summary.md`, where `[ID]` is the Task Group's `[PREFIX]-NNNN` identifier (`maintenance_batch_template.md`'s naming rule) — written by the dev-agent session at the same point `development_plan_template.md` §11.3 specifies, before its Final Wrap-Up Submit |
 
 Because batch composition is fixed at open time (§5) — no drip-feed — the target version
 is computed **once, at batch-open**, as the roll-up across every item already known to be
@@ -508,6 +523,12 @@ out of its own scope.
 - [ ] Deprecation/removal notices added where applicable
 - [ ] Consumer-facing contract (Architecture Spec §10) reviewed and updated if affected
 
+**(v0.12.11)** Per `AGENTS.md` §2.4.1's Autonomous Continuation mandate, a Maintenance
+session does not pause for permission, confirmation, or affirmation to continue authorized
+work — the only stops are an Escalation Trigger below, the escape valve (§9), or (within an
+IIL Task Group specifically) its own Submit/scrap decision point, §13's sole exception to
+that mandate.
+
 ## 12. Escalation
 
 Stop, summarize, wait (`development_plan_template.md` §13) when: an item's M1 Impact
@@ -516,11 +537,102 @@ different consequences; Jules's implementation reaches further than the Checklis
 stated scope, **including a lightweight-path item that turns out to have real
 architectural impact** (return to Claude for a scope revision, not unilateral expansion —
 §9's escape valve); or anything that would itself raise a standing safety concern outside
-this framework's scope, handled as it would be in any other context.
+this framework's scope, handled as it would be in any other context. **(v0.12.11) A
+user-invoked IIL scrap (§13) is a distinct, user-initiated abort path — not an agent-detected
+Escalation Trigger — but resolves the same way: stop, summarize what converged so far and
+why it didn't fully converge, and wait for the user's re-planning decision on the batch's
+remainder.**
 
 ---
 
-## Appendix G — Merged Readiness Audit + Remediation Prompt
+## 13. Interactive Investigation Loop (IIL)
+
+**Purpose:** some Maintenance items cannot be designed, strategized, or planned from the
+Claude session's own knowledge alone — they need dev-agent-only information first (a test
+bench run and its metrics, a specific code snippet extracted from the live tree, an A/B
+comparison, a profiling capture) before Claude can determine the actual fix/design, and that
+determination may need to iterate against further dev-agent output before it converges. The
+IIL is the structure for that back-and-forth, scoped to Maintenance Phase only —
+Development Phase stays fully linear, no IIL mechanism there.
+
+### 13.1. Session Structure
+
+- **One dev-agent session per IIL Task Group, continuous start-to-finish, literally staying
+  open and idle while the user relays output to Claude and brings the next task back.**
+  This is not a new dev session per round — it is one long-running conversation with pauses.
+  If the dev session crashes, or new files need to reach the repository that it has no way to
+  pull mid-session, the user may end it and later open a fresh dev session against the same
+  Task Group's same branch — this is an **ordinary resume**, identical to any other
+  Maintenance session resuming from Checklist + branch + commit state
+  (`maintenance_prompt_template.md` steps 2–3); it needs no special handling beyond the
+  commit-not-submit discipline below, which is exactly what makes that state resumable.
+- **One Claude orchestrator session spans the entire batch** containing the IIL (§2's
+  exception above) — not just the IIL Task Group itself — staying available to respond to
+  round-trips as they arise, rather than closing after M4 the way an ordinary item does. On
+  approaching its own context limit, it hands off to a fresh Claude session via a written
+  summary (item(s) status, IIL round history and current disposition, any other open batch
+  work) — the orchestrator's equivalent of a Task Group Summary, for its own continuity.
+
+### 13.2. Task Group Structure
+
+- **A dedicated Task Group, not tasks interleaved with unrelated work.** An item's M4
+  (Task Decomposition) declares this Task Group as an IIL — a decision made independent of
+  the item's Lightweight/Full path classification (M1 stays fully mechanical and untouched;
+  IIL-ness is orthogonal, decided by whoever drafts M4 based on the nature of the work).
+- **Task 1 is fully pre-authored at M4**, exactly like an ordinary task — it defines the
+  specific investigation/extraction/test/A-B-comparison and the exact output format, metrics,
+  and/or chat-text answer required. **IIL tasks may carry substantially more descriptive
+  content than an ordinary task** — multiple steps, a specified output file format, required
+  chat-text output, experimental/throwaway code changes, A/B comparison protocols — the
+  Task Template's usual brevity does not apply here.
+- **Every subsequent task is authored live, by the persistent Claude orchestrator**, after
+  reviewing the prior task's dev-session output — either another investigation task or the
+  eventual implementation task. The dev session's own behavior is completely unchanged: it
+  still only ever works tasks and checks boxes, never authors content. The only difference
+  from an ordinary Task Group is *when* a task's content is written — live, on-the-fly,
+  instead of upfront at M4 — not *who* checks it off or *how* it's worked once written.
+- **The Task Group's Exit Criteria is open-ended at drafting time** — "converged solution
+  implemented and verified," not a fixed task list — since the actual task count isn't
+  knowable until convergence.
+- **Commit, don't submit, at the end of each task within the IIL.** The dev-agent session
+  commits its work locally after each task but does not call `submit`. This is what keeps
+  the crash/new-files resume path (§13.1) an ordinary resume: partial, committed,
+  not-yet-submitted work is already a supported Maintenance resume state.
+- **The Submit-or-scrap decision is the sole point requiring affirmative confirmation** —
+  fired only on explicit request from **the user or the Claude orchestrator**, never
+  automatically and never silently inferred from Exit Criteria appearing satisfied. This is
+  the one named exception to `AGENTS.md` §2.4.1's Autonomous Continuation mandate, because an
+  IIL Task Group has no fixed Exit Criteria to gate the decision any other way.
+  - **Submit:** the dev session's Final Wrap-Up Submit fires normally, covering every task
+    committed across the whole IIL — same single-Submit-per-Task-Group convention as any
+    other Maintenance item.
+  - **Scrap:** the user's sole authority (§13.3) — the Task Group is abandoned and the batch's
+    remainder is escalated for re-planning (§12).
+
+### 13.3. Convergence Authority
+
+**The user alone judges whether the loop is converging.** Neither the dev agent nor the
+Claude orchestrator decides to stop iterating on its own. If the user decides the IIL is not
+converging, or will not converge, the user may **scrap the Task Group outright and escalate
+for re-planning of the remainder of the batch** (§12) — a distinct, user-invoked abort path,
+not something either agent proposes or executes unilaterally.
+
+### 13.4. Illustrative Shape
+
+```
+[ ] Task 1  — Perform test X; capture metrics m, n, o; report in chat. (pre-authored at M4)
+    { user relays output to the Claude orchestrator; Claude analyzes and authors Task 2 }
+[ ] Task 2  — [authored live by Claude] Extract snippet implementing function A; run A/B
+              comparison per [protocol]; report results in the specified format.
+    { user relays output; Claude analyzes — converged, authors the implementation task }
+[ ] Task 3  — [authored live by Claude] Implement the designed optimization; iterate if the
+              committed result doesn't meet [metric] on re-test.
+[ ] Task ...  — remaining ordinary tasks in this Task Group, if any
+**Submit or scrap** — fires only on explicit user/Claude-orchestrator request (§13.2)
+```
+
+This may be the Nth of several tasks in a larger Task Group that has ordinary tasks both
+before and after the IIL sequence — those tasks are unaffected and follow standard rules.
 
 > Use this prompt verbatim to start §3's "Already-completed project" entry point. It
 > enforces the hard stop between the gap report and any remediation work — the two

@@ -29,7 +29,9 @@ Criteria are genuinely satisfied with no issue, ambiguity, or problem requiring
 intervention, call `submit` directly — do not ask "Should I proceed?" or "Would you like me
 to finalize and submit?" first.** `submit` itself then causes a pause — the user will say
 "Continue" or "Proceed" to resume; this is normal, expected flow, not an error, and not
-something to ask permission for in advance. **Session Unit** for this session is one
+something to ask permission for in advance. **(v0.12.11) This is one instance of the general
+rule — see `AGENTS.md` §2.4.1's Autonomous Continuation mandate for the full statement and
+its sole exception (a Maintenance IIL's Submit/scrap decision, `agents/MAINTENANCE.md` §13).** **Session Unit** for this session is one
 Maintenance Batch item (Checklist Task Group)
 — work only within that scope, never beyond it, regardless of remaining capacity.
 
@@ -155,6 +157,21 @@ review and never claims the task done.
 it cannot be resolved that way** — a persistent test failure, an unverifiable precondition,
 a low-confidence result — **stop immediately.** Go to step 9 now.
 
+### 8a. Interactive Investigation Loop (IIL) items — commit, don't submit, per task
+If the Checklist marks this item's Task Group as an IIL (`agents/MAINTENANCE.md` §13): work
+Task 1 (and every subsequent task, which may arrive **authored live** by the Claude
+orchestrator session between your tasks — not all pre-written the way an ordinary Task
+Group is) exactly as any other task, but **commit your work locally at the end of each task
+and do not call `submit`.** Stay open/idle after each task while the user relays your output
+to the Claude orchestrator and brings the next task back — this is expected, normal flow,
+not a stall. **Do not decide on your own that the loop has converged or should stop** — the
+Submit-or-scrap decision fires only on explicit request from the user or the Claude
+orchestrator (§13.2's sole exception to the no-affirmation-question rule elsewhere in this
+prompt). If you are ended and later resumed fresh (a crash, or new files needing to reach
+the repo) — this is an ordinary resume: re-verify the branch (step 3), confirm which tasks
+are already committed, and continue from the first not-yet-worked task; no special handling
+beyond the commit-not-submit discipline above, which is exactly what makes this resumable.
+
 ### 9. Report back — on normal completion or on stopping
 Report: which task(s) were completed, evidence for each, any deviation from the batch
 file's stated scope, and whether the item's regression scope (per its §2/§3, or §1 for a
@@ -164,7 +181,12 @@ Verification session (`agents/MAINTENANCE.md` §10).
 
 ### 10. On normal completion only: final wrap-up submit and stop
 This is the item's Task Group's **sole Submit Point** — no task was submitted individually
-along the way. Confirm build/tests green, then `submit` everything together. Notify the
+along the way (an IIL item, §8a, is the one case where nothing was submitted along the way
+by design, not merely by convention). **(v0.12.11) Before submitting: write/update this Task
+Group's Summary** at `dev/plan/v[N.NN.NN]/summary/[projectname]_task_group_[ID]_summary.md`
+(`agents/MAINTENANCE.md` §8, same shape as `development_plan_template.md` §11.3 — tasks
+completed with evidence, deviations, issues, escalation status) — this is Checklist-adjacent
+bookkeeping, like the Checklist itself, not a restricted file. Confirm build/tests green, then `submit` everything together. Notify the
 user this item's Checklist Task Group is complete. **Do not begin the next item**,
 regardless of remaining capacity — it starts in a new session. **Do not check the next
 item's Entry Criteria either** — per this prompt's Task-Group-Boundary Scope Rule above,
@@ -175,6 +197,7 @@ that belongs entirely to the session that opens it.
 - [ ] Any aborted task has its boxes unchecked, with a note explaining why.
 - [ ] Build and test commands pass (unless you stopped per step 8/9).
 - [ ] Session report written (step 9).
+- [ ] (v0.12.11) Task Group Summary written/updated before the Final Wrap-Up Submit (step 10).
 - [ ] Evidence captured for every task completed this session with a real Verification
       Method — actual output, not a paraphrase.
 - [ ] Every new/renamed test this session actually resolves via its declared name/tag

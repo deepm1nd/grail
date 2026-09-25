@@ -94,17 +94,37 @@ Tasks for this item live in `[projectname]_v[N.NN.NN]_checklist.md` (this item's
 Verification Method and DoD (confirmed in the Checklist file itself). *(A lightweight-path
 item's Checklist Task Group is generated directly from §1's exit, with no separate M4 pass.)*
 
+**(v0.12.11) Interactive Investigation Loop (IIL) declaration:** M4 may declare this item's
+Task Group an IIL (`agents/MAINTENANCE.md` §13) — independent of this item's Lightweight/Full
+path above; decided here based on whether the item genuinely needs dev-agent-only
+information (a test/measurement/extraction/A-B-comparison) before Claude can design the
+actual fix, potentially iterating. If declared:
+- **IIL:** Yes/No
+- **Task 1 (pre-authored here, the only task fixed at M4 for an IIL):** the specific
+  investigation/extraction/test/comparison and its exact required output format/metrics —
+  written out in full, same as an ordinary task, but may run substantially longer than one
+  (multiple steps, an output file format, required chat-text output, experimental code,
+  an A/B protocol).
+- All subsequent tasks in this Task Group are authored live by the Claude orchestrator
+  session during the batch (`agents/MAINTENANCE.md` §13.2) — not pre-authored here, and the
+  Task Group's Exit Criteria in the Checklist is open-ended rather than a fixed task list.
+
 ### Verification (filled in after Jules reports back)
 - Matches briefed content (§0–§3, or §0–§1 for a lightweight item): Y/N — [note if N]
 - Regression scope actually run: Y/N — [note if N]
 - **Escape valve fired?** (`agents/MAINTENANCE.md` §9/§12) Y/N — if Y, note whether this
   was a lightweight-path item reclassified after Jules found real impact
+- **(v0.12.11) IIL scrapped?** (`agents/MAINTENANCE.md` §13.3) Y/N — if Y, note at which
+  round and the re-planning disposition for the batch's remainder
 - Appendix B/F row added: Y/N — reference: `[B|F].<version><letter>`
 
 ---
 
-*(Repeat one `## Item [ID]` block per item in this batch — sequential ID within this file
-(`BF-0001`, `BF-0002`, ...), reset per batch file. Do not compress or summarize multiple
+*(Repeat one `## Item [ID]` block per item in this batch — sequential ID within this file,
+`[PREFIX]-NNNN` (v0.12.11: `[PREFIX]` ≤5 letters, chosen once per batch, e.g. `BF-0001`,
+`BF-0002`, ...), sequential from `0001`, never renumbered, reset per batch file. This same ID
+is what the Checklist's matching `## Task Group [ID]` uses, and what a Task Group Summary's
+filename (`agents/MAINTENANCE.md` §8) embeds. Do not compress or summarize multiple
 items into one block; each item gets its own, however small — including lightweight-path
 items, which still get a full block even though most of it is a fast "N/A, lightweight
 path" pass.)*

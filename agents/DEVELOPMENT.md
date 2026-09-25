@@ -63,6 +63,11 @@ of either.
     falls into, treat it as the Escalation Trigger tier** — the safer default, since a wrongly
     continued session risks building on an unresolved ambiguity, while a wrongly stopped one
     only costs a session restart.
+  - **(v0.12.11) This two-tier split is the one legitimate in-session question case; it does
+    not license anything broader.** `AGENTS.md` §2.4.1's Autonomous Continuation mandate
+    governs every other case — a session never pauses for permission, confirmation, or
+    affirmation to continue routine, already-authorized work. See that section for the full
+    statement and its sole exception.
 - **No Reproducing Shared Working Documents (`AGENTS.md` §2.7):** The Development Checklist
   (`[projectname]_dev_checklist.md`) and the Dev Prompt (`[projectname]_dev_prompt.md`)
   are edited or read in place, directly in the repository, by every session. The agent is
@@ -163,9 +168,18 @@ The agent MUST transform every task into a verifiable goal.
 Task completion is not determined by the agent's subjective assessment. For every task, the agent MUST:
 1.  **Produce Required Artifacts:** Capture the specific logs, screenshots, or data outputs defined in the task's "Definition of Done (DoD)."
 2.  **Verify Against DoD:** Meticulously compare the captured artifacts against the task's exit criteria.
-3.  **Present Evidence & Obtain Approval:** Present the artifacts (especially screenshots) to the user and obtain explicit approval before marking the task as complete.
+3.  **Mark Complete:** Once artifacts are captured and verified against the task's DoD,
+    check the task off. **(v0.12.11) No separate user approval is sought per task or per
+    screenshot** — the checked box and the captured evidence are the record, per `AGENTS.md`
+    §2.4.1's Autonomous Continuation mandate and §5.2 step 5's continuous-update flow below.
+    A screenshot/artifact that fails its own DoD comparison is a task-level defect to fix,
+    not a reason to pause for sign-off.
 
-**Exception for Batched Tasks:** If several tasks are tightly interrelated and would be more efficient to implement at once, the agent MUST request permission from the user to batch these tasks into a single build cycle.
+**(v0.12.11) Batching interrelated tasks needs no runtime permission.** Task/sub-task
+batching within a Session Unit is a Plan-drafting-time decision — it's what Task Group
+composition (§6.1's Complexity Score sizing) already is. A session encountering several
+tightly-interrelated tasks the Plan already grouped together simply implements them in
+order; there is nothing left to request permission for mid-session.
 
 ### 5.2. Task-Group-Driven Workflow
 The workflow for a single Development Phase **session** is as follows. Per §4's One Task Group
@@ -265,7 +279,7 @@ advances into a second Task Group even if time/capacity remains.
         swapping the offending dependency — never to edit the disclosure file itself.
     -   **Documentation:** Verify that all documentation is up-to-date per the **Mandate for Pre-Commit Documentation Integrity**. For the first Task Group of the project, this includes scaffolding the project's root `README.md` (see §5.2.1 below), reviewing/extending `ci.yml` (§5.2.2), creating `deny.toml` and reconciling `THIRD_PARTY_LICENSES.md` against the first real `cargo deny check licenses` run (§5.2.3); for the final Task Group, this includes a final README review and the full Productization Readiness Checklist (§5.2.4). **README badges are static and CI-written** (`agents/exemplars/README_template.md`'s Metrics & Badges section, `agents/CI.md` Stage 6) — there is no per-Task Group Branch-Name substitution for a Development session to perform; CI's Metrics Commit step rewrites the badge values on every push, from whichever branch it ran on. No Documentation-integrity DoD item exists for this any more.
     -   **Assurance Review:** Perform a final, active review of all code and changes in the current Task Group. Ensure that all planned tasks are fully implemented and that NO partial, incomplete, or stubbed work exists — checked continuously during the Task Group, not only here (`AGENTS.md` §2.3's Maximal Implementation mandate); this review is a final backstop, not the primary enforcement point.
-6.  **Write the Task Group Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `dev/plan/[projectname]_task_group_[N]_summary.md`.
+6.  **Write the Task Group Summary:** Per `agents/exemplars/development_plan_template.md` §11.3, write `dev/plan/v0.0.1/summary/[projectname]_task_group_[ID]_summary.md`.
 7.  **Final Wrap-Up Submit:** This is now the Task Group's **sole `submit` call** (`AGENTS.md`
     §2.1) — every task and sub-task implemented in steps 2–3 above is included in this one
     submit, not previously saved individually. Fires after docs, README updates, the Task
@@ -281,7 +295,7 @@ advances into a second Task Group even if time/capacity remains.
 **The project's root `README.md` is now drafted during Design Phase, at Step 8**, alongside
 the Development Plan/Checklist/Dev Prompt (`agents/DESIGN.md` §5.8) — not authored from
 scratch by the Development agent. The first Development Phase session's task
-(Task Group 0, per the Checklist template) is **review, confirmation, and enhancement** of that
+(Task Group TG-0001, per the Checklist template) is **review, confirmation, and enhancement** of that
 already-drafted README against the actual repository as it starts to take shape — not
 initial scaffolding. It is revisited for a final accuracy/completeness review during the
 last Task Group, once the built system may have diverged in minor ways from the Design-time
@@ -292,20 +306,20 @@ update it as part of that Task Group's documentation-integrity check (§5.2 step
 
 **`.github/workflows/ci.yml` is drafted during Design Phase, at Step 8**, from
 `agents/CI.md`'s stage skeleton, using Step 5's CI Stage Applicability findings
-(`agents/DESIGN.md` §5.5/§5.8) — not authored from scratch here. Task Group 0's task is
+(`agents/DESIGN.md` §5.5/§5.8) — not authored from scratch here. Task Group TG-0001's task is
 **review, confirmation, and extension** of that draft against the repository as it starts
 to take shape, mirroring the README pattern above — most commonly confirming that the
 conditional stages Step 5 identified (WASM, Playwright/E2E, ESP32, infra services) are
 correctly present or correctly absent once the actual codebase makes that visible, and that
-Stage 0's `scripts/setup_env.sh` step matches whatever `setup_env.sh` content Task Group 0
+Stage 0's `scripts/setup_env.sh` step matches whatever `setup_env.sh` content Task Group TG-0001
 itself produces or extends.
 
 #### 5.2.3. Third-Party License Disclosure
 
 **`deny.toml` (with its `[licenses]` allow-list, `agents/PREFERRED_TOOLS.md`) is created
-during Task Group 0**, not before — it has no content prerequisite of its own, but naturally
+during Task Group TG-0001**, not before — it has no content prerequisite of its own, but naturally
 belongs alongside the workspace's `Cargo.toml`/`Cargo.lock`, which are themselves products
-of Task Group 0's scaffolding, not something Design Phase produces. Create it as part of
+of Task Group TG-0001's scaffolding, not something Design Phase produces. Create it as part of
 scaffolding, before running the check below.
 
 **`THIRD_PARTY_LICENSES.md` is drafted during Design Phase, at Step 8**, from the
@@ -316,22 +330,22 @@ the workspace is actually scaffolded, so Design Step 5's own license check
 **direct** dependencies only. **Format, both at this draft stage and at every later
 regeneration: a one-line description followed by a dependency/license table (crate name,
 version, license identifier) — no header/footer prose, no full license text bodies**
-(`agents/CI.md` Stage 5). Task Group 0's reconciliation below is a table expansion to the full
+(`agents/CI.md` Stage 5). Task Group TG-0001's reconciliation below is a table expansion to the full
 resolved tree, not a restructuring.
 
-**Task Group 0 runs the first real `cargo deny check licenses`** against the actual resolved
+**Task Group TG-0001 runs the first real `cargo deny check licenses`** against the actual resolved
 `Cargo.lock` — the earliest point a transitive-dependency license violation (a dependency's
 own dependency carrying an incompatible license, invisible at Design time) is genuinely
 catchable — and reconciles `THIRD_PARTY_LICENSES.md` against that result. Any violation
 found here is an Escalation Trigger (`agents/exemplars/development_plan_template.md` §13),
 not a silent fix: the agent cannot itself decide to swap a dependency or add a `[patch]`
-exception, per `PREFERRED_DEPENDENCIES.md`'s No Local Patching mandate. From Task Group 0
+exception, per `PREFERRED_DEPENDENCIES.md`'s No Local Patching mandate. From Task Group TG-0001
 onward, `agents/CI.md` Stage 5 re-runs this check on every push and fails (does not
 auto-commit) on any drift between the committed `THIRD_PARTY_LICENSES.md` and what the
 current dependency tree would actually produce.
 
 **`LICENSE.md`** (drafted at Step 8, static text) needs no reconciliation the way
-`THIRD_PARTY_LICENSES.md` does — Task Group 0's review is a simple accuracy check (correct
+`THIRD_PARTY_LICENSES.md` does — Task Group TG-0001's review is a simple accuracy check (correct
 license text, correct copyright holder/year), same tier as `.gitignore`'s review.
 
 #### 5.2.4. Productization Readiness Checklist

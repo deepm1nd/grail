@@ -266,7 +266,10 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 ### 5.8. Step 8: Development Plan & Checklist Generation
 - **Plan:** Create the dev plan files using `agents/exemplars/development_plan_template.md`.
 - **Environment/Configuration Elicitation:** Before drafting environment/config content (toolchain, local setup, CI — not addressed by Steps 1-7, which are about *what*, not *where/how built*): elicit concrete facts directly; for anything unspecified with a reasonable default, propose the default as a flagged assumption. Once per Plan, not once per Task Group. **Elicit the repository's GitHub org and repo name at this point** (needed to populate `[org]`/`[repo]` in the README's shields.io badge URLs, `agents/exemplars/README_template.md`) — do not leave these as unresolved placeholders in the generated README. **Tool install commands drafted here (`setup_env.sh`/`.bat`) prefer a prebuilt binary release over a source build wherever one exists for the target platform** (`agents/PREFERRED_TOOLS.md`'s Missing Tool Protocol), falling back to `cargo install --locked`/equivalent only when no binary release exists.
-- **Task Group Sizing Mandate:** Each Task Group must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. See `CLAUDE.md` §3.4 (Step 8) for the complexity-scoring formula and current ceiling, including the `first_integration_risk` term. **The computed score is a mandatory column in the Task Group Index (§6.1) of `agents/exemplars/development_plan_template.md`, shown for every Task Group, never left blank or only implied by Task Count** — over-ceiling requires a recorded override note in the same cell, not a silent judgment call. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one Task Group regardless of Task Group size** — sizing governs how much fits comfortably in a session, not whether multiple Task Groups may be attempted in one.
+- **Task Group Sizing Mandate:** Each Task Group must be completable within a single agent session, sized for an agent less capable than the one performing this Design Phase, with margin for unexpected complications. **(v0.12.11 — corrected)** See `agents/exemplars/development_plan_template.md` §6 for the
+complexity-scoring formula and current ceiling, including the `first_integration_risk` term
+(previously mis-cited as `CLAUDE.md` §3.4, which does not contain the formula) — that same
+§6 also states the sizing-maximization rule. **The computed score is a mandatory column in the Task Group Index (§6.1) of `agents/exemplars/development_plan_template.md`, shown for every Task Group, never left blank or only implied by Task Count** — over-ceiling requires a recorded override note in the same cell, not a silent judgment call. **Per `AGENTS.md` §2.8, a Development Phase session completes at most one Task Group regardless of Task Group size** — sizing governs how much fits comfortably in a session, not whether multiple Task Groups may be attempted in one.
 - **Walking Skeleton Milestone and Maturity-Triggered Component Integration (`agents/exemplars/development_plan_template.md` §6):** applied at Build Order sequencing time, not left implicit. For any Build Order with more than ~3 components that must eventually run together, an early, explicitly-named Task Group with genuine cross-crate Exit Criteria is placed before the bulk of per-component work — an architecture-risk-reduction milestone, explicitly distinct from MVP/product-scope decisions already made at Steps 1–2 and never bundled into that scoping conversation. Independently, each component gets a minimal integration test the moment it reaches functional maturity, sized into that same Task Group or, where it integrates with many others, its own dedicated following Task Group — never deferred to a single late capstone sized as if 11 prior phases had already produced a working integration when none had (the confirmed failure pattern in `lessons_learned_grail_gap.md`).
 - **Frontend Targeted Interleaving:** Where the project has a human-facing UI component, Task Group sequencing does not build the entire backend before any frontend work, nor push all frontend work into a single trailing Task Group. Instead, each screen/component's frontend implementation task is placed in the same Task Group as the real (non-mock) backend/data dependency it needs — never earlier (which would force a throwaway stub, contradicting the Anti-Stub Mandate) and never artificially deferred once its real dependency is available. See `agents/exemplars/development_plan_template.md` §6/§9.1 for the concrete sequencing mechanics this principle drives.
 - **Per-Task Design Refs, WIP-Checkpoint Field, and Per-Task-Group Session Unit:** Populated at drafting
@@ -300,12 +303,12 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   same non-negotiable template-adherence standard already applied to the Checklist, Dev
   Prompt, and every other `agents/exemplars/*_template.md` file at this step — an agent
   instance skipping or restructuring the README template is a Step 9 audit finding (§5.9),
-  not an acceptable stylistic variation. Development's Task Group 0 task then
+  not an acceptable stylistic variation. Development's Task Group TG-0001 task then
   reviews/confirms/enhances this draft rather than authoring from scratch
   (`agents/DEVELOPMENT.md` §5.2.1).
 - **.gitignore:** Draft the root `.gitignore` per `agents/exemplars/development_plan_template.md`
   §3's mandatory skeleton — standard Rust and Trunk entries, matched at any depth, not just
-  repo root. Development's Task Group 0 then reviews/confirms/extends it with
+  repo root. Development's Task Group TG-0001 then reviews/confirms/extends it with
   project-specific entries, mirroring the README convention (`agents/DEVELOPMENT.md`
   §5.2.1).
 - **CI Workflow:** Generate `.github/workflows/ci.yml` from `agents/CI.md`'s stage
@@ -321,7 +324,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
   `ci.yml`, since
   `ci.yml`'s Stage 2/3/5/6 steps invoke them directly (`agents/PREFERRED_TOOLS.md`'s
   Canonical Commands table). These have no dependency-resolution prerequisite, so they can
-  be drafted at the same time as `ci.yml` rather than waiting for Task Group 0's workspace
+  be drafted at the same time as `ci.yml` rather than waiting for Task Group TG-0001's workspace
   scaffold.
 - **Project License:** Generate `LICENSE.md` from the project's chosen output license text
   (default: PolyForm Noncommercial 1.0.0, `https://polyformproject.org/licenses/noncommercial/1.0.0/`)
@@ -337,7 +340,7 @@ handoff exclusion (assets referenced by filename only, never repackaged as files
 - **Project Changelog:** Generate an initial `CHANGELOG.md` from
   `agents/exemplars/CHANGELOG_template.md`, with a first `[0.1.0]` entry recording the
   Design Phase scaffold (Spec, Plan, Checklist, Dev Prompt, README, CI workflow, `deny.toml`,
-  `LICENSE.md` drafted). Like `.gitignore`/README, Development's Task Group 0 then
+  `LICENSE.md` drafted). Like `.gitignore`/README, Development's Task Group TG-0001 then
   reviews/confirms it against the repository as it starts to take shape rather than
   authoring from scratch.
 - **Development-Phase Risk Log:** Generate an initial, empty/skeleton

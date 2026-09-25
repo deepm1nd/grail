@@ -60,9 +60,10 @@ Propose the action and wait for explicit consent before calling:
 across many sessions, both submit types — the Session Unit's Final Wrap-Up Submit and a WIP
 Checkpoint — are removed from this tier's propose-and-wait requirement. When a Task
 Group/item/Step has genuinely satisfied its DoD/Exit Criteria with no issue, ambiguity, or
-problem requiring intervention, the session calls `submit` directly — it does not first ask
-"Should I proceed?" or "Would you like me to finalize and submit?" as a separate
-confirmation turn. A WIP Checkpoint fires the same way, without a preceding proposal, once
+problem requiring intervention, the session calls `submit` directly without a separate
+confirmation turn first. **(v0.12.11) The general form of this rule — which phrasings count,
+and its sole exception — is now stated once, canonically, in `AGENTS.md` §2.4.1's Autonomous
+Continuation mandate; not restated here.** A WIP Checkpoint fires the same way, without a preceding proposal, once
 its Design-specified trigger point (`agents/DEVELOPMENT.md` §5.2) is actually reached.
 Genuine Escalation Triggers — ambiguity, scope creep, failed verification — are unaffected
 by this change and still stop and report per each phase's own Escalation section, never

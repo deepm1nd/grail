@@ -335,7 +335,15 @@ dedicated Actions no longer applies now that everything is one job:
       - name: cargo-deny
         id: cargo_deny
         continue-on-error: true
-        run: cargo deny --format json check > /tmp/deny.json
+        # (v0.12.11) cargo-deny writes its actual findings to stdout, which the redirect
+        # below sends to a file — a plain `run:` line would leave the Actions step log
+        # empty/unhelpful on a real finding. Capture the exit status explicitly and dump
+        # the JSON before re-exiting with it, so the finding is visible directly in the
+        # step log, not only in the separately-uploaded metrics artifact.
+        run: |
+          cargo deny --format json check > /tmp/deny.json; status=$?
+          cat /tmp/deny.json
+          exit $status
 
       - name: Parse deny results
         id: parse_deny
@@ -345,7 +353,12 @@ dedicated Actions no longer applies now that everything is one job:
       - name: cargo-audit
         id: cargo_audit
         continue-on-error: true
-        run: cargo audit --json > /tmp/audit.json
+        # (v0.12.11) Same stdout-redirect blind spot as cargo-deny above — see that step's
+        # comment.
+        run: |
+          cargo audit --json > /tmp/audit.json; status=$?
+          cat /tmp/audit.json
+          exit $status
 
       - name: Parse audit results
         id: parse_audit
@@ -927,41 +940,76 @@ jobs:
 
 ---
 
-## 6. `scripts/run_ci.sh` — Local CI-Equivalent Run
+## 6. `scripts/run_ci.sh` / `scripts/run_ci.bat` — Local CI-Equivalent Run
 
 **Required at every Task Group's (Development, Maintenance) or Step's (Release) exit
 criteria** (`development_checklist_template.md`, `maintenance_checklist_template.md`,
 `release_checklist_template.md`) — run this script and present its output before that Task
 Group/Step can be marked complete. Exists because CI itself is now PR-triggered (§3 above)
 and therefore not run on every push; this gives the same signal locally, on demand, without
-opening a PR.
+opening a PR. **(v0.12.11) Windows parity is mandatory, not optional** — `run_ci.bat` is
+authored alongside `run_ci.sh` from the start, per `AGENTS.md` §2.2's Hermetic Environment
+Mandate, with the degradations noted below being the only permitted difference.
 
-**Required behavior** (`scripts/run_ci.sh` — project-specific, authored during Development
-Phase, not grail-supplied, the same pattern as `scripts/verify_traceability.js`):
+**Relationship to `scripts/setup_env.sh`/`.bat` and `scripts/check_env.sh`/`.bat`:** both
+`run_ci.*` scripts run a `require_tool` preflight check (`cargo`, `cargo-nextest`,
+`cargo-llvm-cov`, `cargo-deny`, `cargo-audit`, `node`, etc.) and **fail immediately with a
+clear message naming the missing tool and pointing at `scripts/setup_env.sh`/`.bat`** — they
+never attempt installation themselves. This keeps the Missing Tool Protocol's
+install/verify/run split intact (`agents/PREFERRED_TOOLS.md`): `setup_env.*` installs,
+`check_env.*` verifies read-only, `run_ci.*` runs the actual checks against an
+already-provisioned environment.
+
+**Required behavior** (`scripts/run_ci.sh`/`.bat` — project-specific, authored during
+Development Phase, not grail-supplied, the same pattern as `scripts/verify_traceability.js`):
 - Near-duplicates `ci.yml`'s Stage 1–5 steps (formatting, clippy, docs coverage, native/WASM
   build, test/coverage/security/license stages) — **every** check `ci.yml` runs, not a
-  trimmed subset — executed locally in sequence.
-- **Excludes any tool-installation step.** `run_ci.sh` assumes the environment is already
-  provisioned by `scripts/setup_env.sh`; if a required tool is missing, it fails fast with a
-  clear "run setup_env.sh first" message rather than installing anything itself — tool
-  installation lives only in `setup_env.sh`, never duplicated here.
-- Generates the same `metrics/*.toml` outputs as `ci.yml`'s Stages 4–5, then itself invokes
+  trimmed subset — executed locally in sequence. The exact stage list follows whatever
+  `ci.yml` actually runs for this project, including any project-specific stages (e.g. an
+  Example Suite Roster/Manifest gate, a project-specific Docs Lint pass) beyond this file's
+  generic skeleton — kept in lockstep with `ci.yml`'s real step list, not the generic
+  skeleton alone.
+- Generates the same `metrics/*.toml` outputs as `ci.yml`'s Stages 4–5, via the same
+  `scripts/metrics/parse_*.js` scripts, then itself invokes
   `scripts/metrics/write_readme_badges.js` — so `README.md`'s badges and `metrics/*.toml`
   land in the same commit as the Task Group's own `submit`, not a separate step.
-- Writes `metrics/source.toml` with `origin = "local"` (vs. `origin = "ci"` written by
-  `ci.yml`'s `Write branch/status marker` step, §3 above) — so a later reader can tell
-  whether the last recorded state came from an actual GitHub Actions run or a local pass.
-- **Output contract — mechanical, not left to agent judgment:**
-  - Every passing check prints exactly one summary line: `✅ <check>: pass`.
-  - Every failing check prints its failure-signature line through the end of that failure's
-    own block — never the full raw tool output, never truncated mid-block. Per-tool
-    signature start markers: `FAILED` (nextest), `error[` / `error:` (rustc/clippy), a
-    panic's `thread '...' panicked at` line, the first line of a cargo-deny/cargo-audit
-    JSON finding, or the equivalent first line of a Playwright failure block. The block ends
-    at the next check's own summary/failure line or end of output, whichever comes first.
-  - This same rule governs what the agent pastes into the DoD evidence entry when
-    presenting `run_ci.sh`'s output to the user — verbatim, per the rule above, never
-    paraphrased.
+- Writes `metrics/source.toml` via `scripts/metrics/write_source_marker.js --origin "local"`
+  (vs. `--origin "ci"` written by `ci.yml`'s `Write branch/status marker` step, §3 above) —
+  the one field that differs between the two paths; `--branch`, `--commit`, and `--status`
+  use the same schema in both.
+- Applies the same philosophy as `ci.yml`'s own `continue-on-error: true` + `Evaluate
+  required gates` pattern: every check runs regardless of an earlier check's failure
+  (`set -uo pipefail`, deliberately not `set -e`, in `run_ci.sh`; a `FAIL` flag variable
+  rather than early-exit in both scripts), and the script's own exit code (0 only if every
+  check passed) is the single aggregation point.
+
+**Output contract — mechanical, not left to agent judgment, and different between the two
+scripts where batch's limitations require it:**
+- **Shared extraction rule, most checks:** on failure, print from the first line matching
+  `FAILED|error\[|error:|thread .* panicked at` through the end of that failure's own
+  captured log — `run_ci.sh`'s `print_failure_block`, an `awk` one-liner. `run_ci.bat`
+  instead prints the tool's **entire captured output** on failure, since batch has no
+  reliable sed/grep-range equivalent without a third-party dependency — a documented,
+  best-effort degradation consistent with this project's existing Windows-is-best-effort
+  convention.
+- **`cargo-deny` and `cargo-audit` are handled differently, and need this explicitly:** both
+  tools write their actual JSON findings to **stdout**, which both scripts redirect to
+  `deny.json`/`audit.json` for parsing — meaning the shared extraction rule above (or, in
+  `ci.yml`'s case, a `run:` step whose output is redirected to a file) would show **empty or
+  unhelpful output on a real finding**, exactly when it matters most. Per the general
+  principle in `agents/PREFERRED_TOOLS.md`'s Missing Tool Protocol section, all three files —
+  `run_ci.sh`, `run_ci.bat`, **and `ci.yml` itself**, which has the identical blind spot —
+  explicitly dump the JSON findings file on failure, alongside whatever's in the stderr
+  capture:
+  - `run_ci.sh`: `print_failure_block audit.err` (or `deny.err`) followed by `cat
+    <tool>.json | head -50`.
+  - `run_ci.bat`: `type <tool>.err` followed by `type <tool>.json` (no `head` equivalent in
+    batch without a third-party tool — full-file dump is the accepted tradeoff).
+  - `ci.yml`: the `cargo-deny`/`cargo-audit` steps run as multi-line `run: |` blocks that
+    check the exit status explicitly and `cat` the JSON file before re-exiting with the
+    original status (§3's Stage 5 skeleton above reflects this).
+- This same rule governs what the agent pastes into the DoD evidence entry when presenting
+  `run_ci.sh`/`.bat`'s output to the user — verbatim, per the rule above, never paraphrased.
 
 ---
 
@@ -977,6 +1025,12 @@ directly (not via the dedicated GitHub Actions), so these signatures appear in a
 | `error[rejected]: failed to satisfy license requirements`, with a named crate and license | cargo-deny, `[licenses]` | A dependency (often transitive) carries a license outside the allow-list. |
 | `unmaintained`/`yanked` findings, different message shape than the above | cargo-deny, `[advisories]` | An advisory-tier finding — not a license issue. |
 | CVE ID + advisory link | cargo-audit | A RustSec vulnerability — independent of cargo-deny entirely. |
+
+**(v0.12.11) Findings are also dumped in full via `cat <tool>.json` (or `type <tool>.json` on
+Windows)** — both in `ci.yml`'s own Stage 5 step output and in `scripts/run_ci.sh`/`.bat` —
+alongside the signature line above, since `cargo-deny`/`cargo-audit` write their actual JSON
+findings to stdout-redirected-to-file, which the signature line alone doesn't surface (§6).
+Read that JSON dump for the finding's full detail, not just the one-line signature.
 
 Early in a project's life, a red Stage 5 (or any stage) may also simply mean a missing
 Stage 0 step or an environment/tooling gap rather than a real finding at all — see §2's

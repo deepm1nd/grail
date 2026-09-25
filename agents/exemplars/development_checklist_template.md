@@ -7,7 +7,9 @@
 > Escalation (Plan §13/§14) — proposed, approved, edited in place, never forked.
 
 ## How to Use
-- One `## Task Group N: <Title>` section per Plan Task Group, same order as Plan §6.1.
+- One `## Task Group [PREFIX]-NNNN: <Title>` section per Plan Task Group, same order and
+  same `[PREFIX]-NNNN` ID as Plan §6.1 (v0.12.11 — sequential from `0001`, `[PREFIX]-0001`
+  always the fixed scaffold-review Task Group; see §6.1's naming rule).
 - Each Task Group opens with **Entry Criteria** (copied from Plan §6.1), verified before any task.
 - Each task is a `### Task: <TASK-ID>` sub-section with DoD items as individual checkboxes.
 - Each Task Group closes with an **Exit Criteria** line, checked only when every task above it is.
@@ -26,7 +28,7 @@
 - **No compressed formats** (`AGENTS.md` §2.3): the generated Checklist writes out every
   Task Group and every task in full, individually, in order — never a "repeat this block per
   Task Group" placeholder, an ellipsis standing in for omitted Task Groups/tasks, or any other
-  shorthand. This template's own `## Task Group 1` block below is illustrative only; a real,
+  shorthand. This template's own `## Task Group TG-0002` block below is illustrative only; a real,
   delivered Checklist expands the entire Plan.
 - **Continuous updates, in place** — each DoD sub-item checked the moment it's satisfied,
   not batched to end of task/Task Group.
@@ -62,7 +64,7 @@
 
 ---
 
-## Task Group 0: [Title]
+## Task Group TG-0001: [Title]
 
 **Entry Criteria:**
 - [ ] [copied verbatim from Plan §6.1]
@@ -119,7 +121,7 @@ sole Final Wrap-Up Submit, `AGENTS.md` §2.1 — the only Submit Point for this 
 
 ---
 
-## Task Group 1: [Title]
+## Task Group TG-0002: [Title]
 
 **Entry Criteria:**
 - [ ] [...]
@@ -143,7 +145,7 @@ sole Final Wrap-Up Submit, `AGENTS.md` §2.1 — the only Submit Point for this 
 
 ---
 
-*(This `## Task Group 1` block is this template's own illustrative placeholder — one example of
+*(This `## Task Group TG-0002` block is this template's own illustrative placeholder — one example of
 the shape a Task Group section takes. Per `AGENTS.md` §2.3's No Compressed Formats mandate, the
 actual generated Checklist for a real project MUST NOT contain a "repeat this block"
 instruction: it fully writes out one complete `## Task Group N` block per Task Group in Plan §6.1, in
@@ -267,7 +269,7 @@ collapsed, abbreviated, or left as a placeholder for the user/agent to expand la
 
 > One entry per session (Plan §11). Never edit a prior entry except to fix a factual error
 > (log the fix as a new entry). For full evidence, see Task Group Summary files
-> (`dev/plan/[projectname]_task_group_[N]_summary.md`).
+> (`dev/plan/v0.0.1/summary/[projectname]_task_group_[ID]_summary.md`).
 
 | Date | Task Group(s) touched | Tasks completed | Tasks aborted | Escalation (Plan §13) | Notes |
 |---|---|---|---|---|---|

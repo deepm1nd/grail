@@ -152,9 +152,22 @@ for which steps, if any, are exempt from its standard procedure.
     re-enable code review:** delete this bullet — a WIP Checkpoint still always bypasses
     regardless, since it never claims finished work; only the Task Group's Final Wrap-Up
     Submit would then go through normal review.
--   **Hermetic Environment Mandate:** The agent MUST ensure that the development environment is hermetic and reproducible using `scripts/setup_env.sh` (Linux) and `scripts/setup_env.bat` (Windows).
+-   **Hermetic Environment Mandate:** The agent MUST ensure that the development environment
+    is hermetic and reproducible. **(v0.12.11) This applies to all three environment
+    scripts, each authored in both forms:** `scripts/setup_env.sh` / `.bat` (installs),
+    `scripts/check_env.sh` / `.bat` (read-only verify), and `scripts/run_ci.sh` / `.bat`
+    (local CI-equivalent run, `agents/CI.md` §6) — same idempotency/behavior-parity bar for
+    every `.bat` counterpart as already applied to `setup_env.bat`. See `agents/
+    PREFERRED_TOOLS.md`'s Missing Tool Protocol for the install/verify/run split these three
+    scripts implement, and its Windows/.bat Scripting Convention for how a `.bat` script
+    shells out to PowerShell.
 -   **Evidence-Based Completion Mandate:** The agent is forbidden from claiming task or requirement completion without presenting the Required Artifacts (Logs, Screenshots, etc.) defined in the planning phase.
--   **Mandatory Screenshot Approval:** Any and all screenshots captured by the agent MUST be explicitly shown to the user and approved by the user before the corresponding task or requirement is marked as complete.
+-   **Screenshot Capture, Not Per-Task Approval:** Any and all screenshots captured by the
+    agent MUST be saved as the task's Required Artifact and compared against its DoD. **(v0.12.11)
+    Capturing and verifying the artifact is sufficient to mark the task complete — no
+    separate user approval step is sought per screenshot or per task**, consistent with
+    §2.4.1's Autonomous Continuation mandate below; a screenshot that fails its own DoD
+    comparison is a task-level defect to fix, not a reason to pause for sign-off.
 -   **Mandate for Phase-End Quality Assurance:** At the conclusion of every phase (Design, Development) and before finalizing the work, the agent MUST perform a comprehensive Assurance Review. The agent must verify that all planned steps were executed correctly and ensure that NO partial, incomplete, unimplemented, stubbed, or "good enough" work exists in the deliverables for that phase.
 -   **Selective Reading Mandate:** The agent is **EXPLICITLY FORBIDDEN** from reading whole documentation files (Architecture Specification, Development Plan) using a whole-file read tool unless the file is known to be short (e.g. the protocols file, `[projectname]_dev_plan_04_protocols_and_dod`). All other documentation reads MUST use targeted extraction (`sed -n 'START,ENDp'`, `grep -n "pattern" -A N`, `awk`) scoped to the specific section needed. Whole-file reads of large documents consume context window unnecessarily and are a primary cause of session failures on complex or mature projects. The reference table in `agents/exemplars/dev_prompt_template.md` maps uncertainty types to specific file+section+extraction targets.
 -   **No Broad Repository Scan Mandate:** The agent is **EXPLICITLY FORBIDDEN** from performing a broad repository scan or structural survey at session start or at any other point during a Development Phase session. The agent MUST NOT enumerate, list, or speculatively read directories and files. Navigation is to specific known paths only — the checklist, prior Task Group Summaries, the current Task Group's plan section, and source files named in the current task. Any other file is accessed only when a specific documented uncertainty arises and the reference table identifies it as the target.
@@ -207,6 +220,22 @@ for which steps, if any, are exempt from its standard procedure.
 #### 2.4.1. Think Before Coding
 - **No Assumptions:** The agent must never assume user intent. Confusions must be surfaced, and tradeoffs explicitly stated.
 - **Stop on Confusion or Gates:** If a task is unclear, or if a defined "GATE" is reached, the agent MUST stop and ask for clarification or approval. Combining multiple gates into a single turn is forbidden. **For a Development Phase session, "stop" means the Escalation Trigger severity ceiling in `agents/DEVELOPMENT.md` §4/`agents/exemplars/development_plan_template.md` §13 once the confusion rises above task-level implementation detail** — not an in-session question-and-continue for anything Plan/Spec-level.
+- **(v0.12.11) Autonomous Continuation — the converse of the rule above, stated with equal
+  force:** the agent does **not** pause to ask for permission, confirmation, or affirmation
+  to continue routine work already authorized by the governing Plan/Checklist/Batch. This
+  covers any phrasing that functions as a check-in seeking the user's go-ahead where no
+  problem, error, or Escalation Trigger exists — for example "Should I proceed?", "Would you
+  like me to continue/finalize/submit?", "Shall I go ahead?", "Let me know if you'd like me
+  to...", or an unprompted progress check-in. **The test is function, not exact wording:** if
+  the sentence asks the user to greenlight something already authorized, it is not sent. The
+  only legitimate stops are: an Escalation Trigger, a genuine task-level Ask-on-Uncertainty
+  question (`agents/DEVELOPMENT.md` §4's two-tier split, or the equivalent per-phase
+  question tier), a Forbidden-tier tool gate (`agents/AGENT_TOOL_POLICY.md` §3), or the
+  phase's own declared unit/step/Task-Group boundary. **The sole exception:** a Maintenance
+  Interactive Investigation Loop's (IIL) Submit-or-scrap decision (`agents/MAINTENANCE.md`'s
+  IIL section) requires affirmative user-or-Claude-orchestrator confirmation before firing,
+  since an IIL Task Group has no fixed Exit Criteria to gate it automatically — every other
+  Task Group, Step, or Batch Item follows the general rule above without exception.
 - **Surface Simpler Approaches:** If a simpler solution exists, the agent must propose it rather than blindly implementing a complex one.
 - **Re-Verify Before Extending a Rule by Analogy:** When applying an existing rule, convention, or pattern to a new case that merely *resembles* the cases it was built for, the agent MUST check whether the new case actually shares the underlying assumption the rule depends on — not just whether it looks structurally similar on the surface. A rule built to solve one problem (e.g. preventing collisions across repeated deliveries) can actively defeat a different goal if mechanically applied to a case with a different usage pattern (e.g. a file meant for continuous in-place editing rather than repeated delivery). Surface similarity is not sufficient justification; the agent states the actual reasoning for why the rule still applies, not just that the case "looks like" one the rule already covers.
 

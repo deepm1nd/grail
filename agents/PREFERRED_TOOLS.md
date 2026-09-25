@@ -513,6 +513,29 @@ end-to-end, not just the newly-appended line, whenever `setup_env.sh` is modifie
 Playwright browser drivers in headless CI) may fail without triggering the above —
 `setup_env.sh` logs the failure and continues via error-accumulation, never `set -e`.
 
+**(v0.12.11) Redirected-stdout diagnostics need an explicit on-failure dump.** Any tool
+whose actual diagnostic output goes to stdout — where that stdout is then redirected to a
+file for parsing, as `cargo-deny`/`cargo-audit` are — needs an explicit `cat`/`type` of that
+file on failure, in addition to whatever the shared stderr-based failure-extraction
+convention already captures. A tool whose diagnostics land in a live, un-redirected stream
+(stderr, or a captured combined log) is already covered by that shared convention and needs
+no special handling. See `agents/CI.md` §6 for the full description and the concrete fix
+applied to `cargo-deny`/`cargo-audit`; apply the same principle to any future tool added to
+`scripts/run_ci.sh`/`.bat` or `ci.yml` whose findings are stdout-redirected.
+
+**(v0.12.11) Windows/.bat Scripting Convention — PowerShell via a temp helper file, not
+inline `-Command` strings.** Any `.bat` script (`setup_env.bat`, `check_env.bat`,
+`run_ci.bat`) that needs to shell out to PowerShell for something `.bat` cannot do natively
+(a web download, archive extraction, etc.) MUST write a small parameterized PowerShell
+script to a temp file (e.g. `%TEMP%\<project>_ps_helper.ps1`) and invoke it via
+`powershell -NoProfile -ExecutionPolicy Bypass -File "<path>" -Action <action> ...` with
+real `-File` parameters — never an inline `-Command "..."` string. This is not a style
+preference: a `$`-prefixed PowerShell variable name or a `%VAR%` cmd-ism embedded inside a
+double-quoted `-Command` argument is interpolated (or silently left un-interpolated) across
+the shell boundary before PowerShell ever parses it, a real, observed class of bug. A `-File`
+invocation with named parameters never crosses that boundary at all. Delete the temp helper
+file at the end of the script (`del "%PS_HELPER%" >nul 2>&1`); do not leave it behind.
+
 **CI has no equivalent of a Jules session's Environment Snapshot** — see `agents/CI.md`'s
 Stage 0 for the full handling. In short: every GitHub Actions job starts from zero state,
 so `scripts/setup_env.sh` MUST be its own explicit, unconditional step in `ci.yml`, run

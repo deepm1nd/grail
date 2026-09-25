@@ -187,7 +187,7 @@ UI assets.
    you say "Continue" to start the next session.
 5. **Review evidence as it accumulates**, not just at the end: each Task Group's
    `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` (build/test summary lines,
-   screenshots, clips) and `dev/plan/[projectname]_task_group_[N]_summary.md` (the narrative — what
+   screenshots, clips) and `dev/plan/v0.0.1/summary/[projectname]_task_group_[ID]_summary.md` (the narrative — what
    happened, deviations, issues). A session that hits something it can't resolve stops
    immediately and writes its Task Group Summary instead of guessing — bring that back to a
    **Design Phase session with Claude** to diagnose and restructure the Plan/Checklist,
@@ -392,7 +392,7 @@ project inherits.
   restructuring, or touching another Task Group's marks. Every other doc file is read-only
   to it.
 - **Project README drafted at Design Step 8**, reviewed/confirmed/enhanced during
-  Development Phase's Task Group 0, not scaffolded from scratch there.
+  Development Phase's Task Group TG-0001, not scaffolded from scratch there.
 - **CI as an async, human-reviewed backstop.** `ci.yml` and `THIRD_PARTY_LICENSES.md` are
   drafted at Design Step 8 (same pattern as README/`.gitignore`) and reviewed at
   Development Phase 0. CI itself (`agents/CI.md`) never blocks a session — no session
@@ -413,7 +413,7 @@ one means in practice.
   `DEVELOPMENT.md`, `MAINTENANCE.md`, `RELEASE.md`).
 - **Task Group.** The unit a Development or Maintenance Phase is broken into internally —
   a numbered container of related Tasks in the Development/Maintenance Plan and Checklist
-  (e.g. "Task Group 0," "Final Task Group"), each with its own Entry Criteria, Exit
+  (e.g. "Task Group TG-0001," "Final Task Group"), each with its own Entry Criteria, Exit
   Criteria, and Definition of Done. One agent session works at most one Task Group's worth
   of work (or a smaller declared Session Unit within it) before stopping.
 - **Task.** The smallest unit of implementation work within a Task Group — one

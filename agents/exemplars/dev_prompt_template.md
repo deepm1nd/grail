@@ -23,7 +23,9 @@ Group's DoD/Exit Criteria are genuinely satisfied with no issue, ambiguity, or p
 requiring intervention, call `submit` directly — do not ask "Should I proceed?" or "Would
 you like me to finalize and submit?" first.** `submit` itself then causes a pause — the user
 will say "Continue" or "Proceed" to resume; this is normal, expected flow, not an error, and
-not something to ask permission for in advance. **Session Unit** for this session's Task Group is
+not something to ask permission for in advance. **(v0.12.11) This is one instance of the
+general rule — see `AGENTS.md` §2.4.1's Autonomous Continuation mandate for the full
+statement, which phrasings it covers, and its sole exception.** **Session Unit** for this session's Task Group is
 stated in the Checklist/Plan §6.1 (`Task Group`, `Task`, or `Code+Verify`) — work only within
 that scope, never beyond it, regardless of remaining capacity.
 
@@ -47,8 +49,8 @@ that scope, never beyond it, regardless of remaining capacity.
    your current, identified Task Group (flip DoD/task boxes, append a Session Log row) — every
    other file is read-only; an apparent error in one is an Escalation Trigger, never a
    same-session fix.
-2. Every existing `dev/plan/[projectname]_task_group_[N]_summary.md`, in Task Group order — what actually happened
-   in completed Task Groups, not just what the Plan intended. Use `ls dev/plan/[projectname]_task_group_*_summary.md`
+2. Every existing `dev/plan/v0.0.1/summary/[projectname]_task_group_[ID]_summary.md`, in Task Group order — what actually happened
+   in completed Task Groups, not just what the Plan intended. Use `ls dev/plan/v0.0.1/summary/[projectname]_task_group_*_summary.md`
    to find them; read each with targeted extraction or in full if short.
 3. `[projectname]_dev_plan_02_environment_and_phases_v[N].md` §6.1 — Task Group Index only.
    Extract with: `grep -n "Task Group Index\|^| " [projectname]_dev_plan_02_environment_and_phases_v[N].md | head -60`
@@ -224,7 +226,7 @@ a production credential — **stop immediately.** Do not troubleshoot further, d
 with other tasks in the Task Group. Go to step 9 now.
 
 ### 9. Write the Task Group Summary — on normal completion or on stopping
-Write/update `dev/plan/[projectname]_task_group_[N]_summary.md` (Plan §11.3): header block, tasks completed
+Write/update `dev/plan/v0.0.1/summary/[projectname]_task_group_[ID]_summary.md` (Plan §11.3): header block, tasks completed
 with evidence (**link to `test/v[N.NN.NN]/[projectname]_task_group_[N]_verification.md` rather than
 repeating its content**), deviations, issues/problems (with full diagnostic detail if this is
 why you stopped), assumptions, unplanned changes, incomplete tasks, open items, and

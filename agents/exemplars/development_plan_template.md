@@ -94,7 +94,7 @@ possibly updated relative to what was shown during Design.
 preventing collision.
 
 **`.gitignore` — drafted at Design Step 8, reviewed/confirmed/extended at Development
-Task Group 0**, mirroring the `README.md` convention (`agents/DEVELOPMENT.md` §5.2.1). The
+Task Group TG-0001**, mirroring the `README.md` convention (`agents/DEVELOPMENT.md` §5.2.1). The
 mandatory entries below use **depth-agnostic patterns** — they must match regardless of
 whether a Rust crate/component or Trunk build lives at the repository root or in any
 nested subfolder (workspace member, `libs/`, `services/`, etc.):
@@ -119,7 +119,7 @@ nested subfolder (workspace member, `libs/`, `services/`, etc.):
 ```
 
 Additional project-specific entries (generated artifacts, local scratch dirs, etc.) are
-appended at Development's Task Group 0 review, not invented speculatively at Design time.
+appended at Development's Task Group TG-0001 review, not invented speculatively at Design time.
 
 Per `AGENTS.md` §2.1, non-reproducible evidence artifacts under `test/` (the concise
 per-Task-Group Verification file plus each Task Group's detailed screenshots/logs subfolder — see
@@ -173,6 +173,17 @@ a recorded override (§6.1's Complexity Score column carries the override note i
 never a silent exception). **Independent of sizing: a session completes at most one Task Group**,
 regardless of remaining capacity (`AGENTS.md` §2.8).
 
+**(v0.12.11) Maximize toward the ceiling, don't under-fill.** Within whatever a Task Group's
+composition is otherwise constrained to by Frontend Targeted Interleaving, the Walking
+Skeleton Milestone, and Maturity-Triggered Component Integration below, batch as many tasks
+into each Task Group as the complexity ceiling allows — draft toward the ceiling, not away
+from it. A Task Group scoring well under ceiling with more same-dependency-tier tasks still
+available to include is a drafting defect (leaves session-count/context-switching overhead
+on the table for no sizing reason), not a conservative choice. This does not relax the
+ceiling itself, or override any of the sequencing/dependency rules below — it governs how
+many otherwise-eligible tasks land in one Task Group once those rules have already
+determined which tasks *may* go together.
+
 **Frontend Targeted Interleaving:** where a UI exists, each screen/component's frontend
 task is placed in the **same Task Group** as the real (non-mock) backend/data source it depends
 on — never earlier (forces a stub) and never batched into a trailing frontend-only Task Group.
@@ -214,6 +225,19 @@ audit to catch after the fact.
 
 ### 6.1. Task Group Index
 
+**(v0.12.11) Task Group ID — `[PREFIX]-NNNN`, sequential from `0001`, never renumbered.**
+`[PREFIX]` is chosen once per project (≤5 letters, e.g. `TG`), recorded here at drafting
+time. IDs are strictly sequential across the whole Plan (`TG-0001`, `TG-0002`, ...) — no
+gaps, no reuse, no reordering later. **`TG-0001` is always the fixed scaffold-review Task
+Group** (§5.2's Task Group TG-0001 role in `DEVELOPMENT.md`/`DESIGN.md` — same content and
+semantics, renamed into this scheme); real feature work begins at `TG-0002`. A Maintenance
+batch uses this identical `[PREFIX]-NNNN` shape (`agents/MAINTENANCE.md`) with its own
+prefix chosen per batch — the two are never required to share a prefix, and in practice
+should differ, since a Task Group Summary's filename (§11.3) embeds this ID and both a Dev
+Task Group Summary and a same-version-numbered Maintenance batch's Task Group Summary can
+otherwise land in the same `dev/plan/v0.0.1/summary/` folder (`agents/MAINTENANCE.md`'s
+first-batch-is-always-`v0.0.1` convention).
+
 **Session Unit** (`AGENTS.md` §2.8): declared per Task Group — `Task Group` (default, whole Task Group per
 session), `Task` (one task per session), or `Code+Verify` (one Code or Verify sub-task per
 session — only meaningful for Task Groups dominated by split tasks, §8). Changed later only via
@@ -235,7 +259,7 @@ without a recorded override note in the same cell (e.g. `17 — override approve
 a drafting defect, not a judgment call left to the executing session.
 
 **Final Task Group includes a README review/finalization task** — the README itself is drafted
-at Design Step 8, not scaffolded here; Development's Task Group 0 task is to review, confirm, and
+at Design Step 8, not scaffolded here; Development's Task Group TG-0001 task is to review, confirm, and
 enhance it against the repository as it develops (`agents/DEVELOPMENT.md` §5.2.1).
 
 ### 6.2. Task Group Dependency Graph
@@ -481,7 +505,7 @@ immediately per §13's model instead.
 
 ### 11.3. Task Group Summary
 
-**One file per Task Group, `dev/plan/[projectname]_task_group_[N]_summary.md`**, produced at Task Group close —
+**One file per Task Group, `dev/plan/v0.0.1/summary/[projectname]_task_group_[ID]_summary.md`**, produced at Task Group close —
 whether the Task Group succeeded, partially succeeded, or the session stopped on an escalation.
 Required content:
 - **Header:** Task Group ID/title, Build-Order step(s), date, executing session self-description,
@@ -583,7 +607,7 @@ that fails, a persistent test failure, an ambiguous Spec question, an unverifiab
 Criteria, a low-confidence artifact, a task requiring a production credential/
 infrastructure — stops the entire session immediately:**
 1. Halt all task work — no partial continuation to other tasks, no further troubleshooting.
-2. Write `dev/plan/[projectname]_task_group_[N]_summary.md` (§11.3) with full diagnostic detail: what was
+2. Write `dev/plan/v0.0.1/summary/[projectname]_task_group_[ID]_summary.md` (§11.3) with full diagnostic detail: what was
    tried, exact failure output, and — if determinable — the (A)/(B) classification.
 3. Leave the repository in its last clean, committed state. No PR, no further progress.
 4. Stop. The human brings the Task Group Summary to a Design Phase session, which diagnoses the
@@ -629,7 +653,7 @@ happens to be compatible.
 - [ ] No task cites a requirement ID that doesn't exist (no orphan citations).
 - [ ] Every Task Group (§6.1) has non-empty Entry and Exit Criteria.
 - [ ] Every task (§8) has a non-empty Verification Method and ≥1 DoD checkbox.
-- [ ] The Task Group Dependency Graph (§6.2) is acyclic and every Task Group reachable from Task Group 0.
+- [ ] The Task Group Dependency Graph (§6.2) is acyclic and every Task Group reachable from Task Group TG-0001.
 - [ ] The Checklist contains exactly one line per task DoD item — no drift.
 - [ ] §0's Architecture Cross-Reference lists every source document cited in §8.
 - [ ] Every filename conforms to `CLAUDE.md` §4 (`[projectname]_dev_plan_NN_topic_v[N].md`,

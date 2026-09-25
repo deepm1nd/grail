@@ -58,10 +58,19 @@
 │   ├── spec/                    # Architecture Specification files
 │   ├── plan/                    # Development Plan, Checklist, Dev Prompt files
 │   │   ├── [projectname]_dev_risks.md          # Development-Phase risk log
-│   │   └── [projectname]_task_group_[N]_summary.md  # Task Group Summary (one per Task Group)
+│   │   └── v0.0.1/summary/       # (v0.12.11) Task Group Summaries — fixed at v0.0.1 for the
+│   │       └── [projectname]_task_group_[ID]_summary.md  # whole Dev Phase (test/v0.0.1/'s
+│   │                             # own reasoning: no real version exists yet). [ID] is the
+│   │                             # Task Group's [PREFIX]-NNNN identifier (§6.1) — this,
+│   │                             # not the version folder, is what keeps a Dev summary and a
+│   │                             # same-version Maintenance-batch summary (below) distinct.
 │   ├── maintenance/
-│   │   └── v[N.NN.NN]/           # one folder per Maintenance batch — v0.0.1 or higher,
-│   │                             # user/batch-determined at open time, never assumed
+│   │   ├── v[N.NN.NN]/           # one folder per Maintenance batch — the FIRST batch a
+│   │   │                         # project ever opens is always v0.0.1 by convention; every
+│   │   │                         # later batch is user/batch-determined at open time
+│   │   └── (Task Group Summaries for a batch live at dev/plan/v[N.NN.NN]/summary/, i.e.
+│   │       alongside the Dev Phase ones above, not under this maintenance/ folder — see
+│   │       agents/MAINTENANCE.md)
 │   └── release/
 │       └── v[N.NN.NN]/           # one folder per RELEASE-Phase pass — v0.0.1 or higher,
 │                                 # user-determined at open time, never assumed
@@ -75,7 +84,8 @@
 ├── metrics/                    # Coverage/test/audit/deny/playwright TOML — CI-maintained
 ├── scripts/
 │   ├── setup_env.sh / .bat     # Idempotent tool/dependency installer
-│   ├── check_env.sh            # Read-only pre-flight verifier
+│   ├── check_env.sh / .bat     # Read-only pre-flight verifier
+│   ├── run_ci.sh / .bat        # (v0.12.11) Local CI-equivalent run (`agents/CI.md` §6)
 │   └── metrics/                # Parsers feeding metrics/*.toml
 ├── test/                       # grail's own process/evidence tree — Markdown verification &
 │                                # traceability artifacts ONLY. NOT Rust integration-test

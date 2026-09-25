@@ -382,6 +382,11 @@ Jules touches build/deploy/extraction machinery only — **never authored prose.
 
 ## 11. Escalation
 
+**(v0.12.11)** Per `AGENTS.md` §2.4.1's Autonomous Continuation mandate, a Release session
+does not pause for permission, confirmation, or affirmation to continue authorized work —
+the only stop is a genuine Escalation Trigger below or a Step's own Entry Criteria not yet
+satisfied.
+
 Same discipline as `MAINTENANCE.md` §12 and `development_plan_template.md` §13 — stop,
 summarize, and wait on: a genuinely ambiguous scope decision at Step 1; discovery, at any
 Step, that the continuous-documentation discipline (§6.7) was not actually followed
