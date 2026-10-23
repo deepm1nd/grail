@@ -50,6 +50,16 @@ real architectural impact" is exactly the same trigger as "the briefed scope was
 narrow"** — treat it identically: stop, do not proceed wider unilaterally, do not attempt
 to resolve it yourself.
 
+**(v0.12.12) Do not stop to ask for approval, confirmation, or affirmation to proceed** —
+to the next task, sub-task, or item within your Session Unit, or between them. This includes phrasing like "Should I
+proceed with X and move on to Y?", "Please confirm if I should continue", or "Would you like me to
+continue?" — any check-in seeking a green light for work already authorized. Step or sub-step
+labels you give your own work are internal nomenclature, never a boundary. **The only permissible
+reasons to stop and request a user response are:** a genuine failure, error, or broken build/test;
+genuine ambiguity you cannot resolve yourself; an Escalation Trigger; or a defined Entry Criteria/
+gate that is genuinely not yet met. Routine continuation never requires a check-in. (Canonical
+statement: `AGENTS.md` §2.4.1.) In an IIL Task Group (§8a), reporting a task's output and then waiting for the next task is required flow, not a check-in.
+
 ### 1. Read docs — mandatory upfront, then on demand only
 
 **CRITICAL CONTEXT WINDOW RULES — read and follow before opening any file:**
@@ -167,7 +177,12 @@ to the Claude orchestrator and brings the next task back — this is expected, n
 not a stall. **Do not decide on your own that the loop has converged or should stop** — the
 Submit-or-scrap decision fires only on explicit request from the user or the Claude
 orchestrator (§13.2's sole exception to the no-affirmation-question rule elsewhere in this
-prompt). If you are ended and later resumed fresh (a crash, or new files needing to reach
+prompt). **(v0.12.12) Path A:** if the next prompt contains verbatim Checklist text to insert under
+the current Task Group, insert it exactly as supplied — do not reword, reorder, or decide anything
+about it — then work and check it off like any other task, following its continuation
+instructions (`agents/MAINTENANCE.md` §13.5). You cannot see files added to the repo after your
+session started; if the orchestrator's prompt says a new session is needed (Path B), stop at that
+point with your work committed. If you are ended and later resumed fresh (a crash, or new files needing to reach
 the repo) — this is an ordinary resume: re-verify the branch (step 3), confirm which tasks
 are already committed, and continue from the first not-yet-worked task; no special handling
 beyond the commit-not-submit discipline above, which is exactly what makes this resumable.

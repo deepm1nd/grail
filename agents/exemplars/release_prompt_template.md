@@ -24,6 +24,16 @@ continue a Step already authorized by the Checklist** — the only stop is a gen
 Escalation Trigger, exactly as above.
 (`RELEASE.md` §11) — stop and report, do not fix it yourself.
 
+**(v0.12.12) Do not stop to ask for approval, confirmation, or affirmation to proceed** —
+to the next task, sub-task, or Step of this pipeline, or between them. This includes phrasing like "Should I
+proceed with X and move on to Y?", "Please confirm if I should continue", or "Would you like me to
+continue?" — any check-in seeking a green light for work already authorized. Step or sub-step
+labels you give your own work are internal nomenclature, never a boundary. **The only permissible
+reasons to stop and request a user response are:** a genuine failure, error, or broken build/test;
+genuine ambiguity you cannot resolve yourself; an Escalation Trigger; or a defined Entry Criteria/
+gate that is genuinely not yet met. Routine continuation never requires a check-in. (Canonical
+statement: `AGENTS.md` §2.4.1.)
+
 ### 1. Read first
 - `[projectname]_release_v[N.NN.NN]_checklist.md` — confirm every Step's Exit Criteria is
   checked before proceeding. If Step 7 (Reference-Sync) or Step 9 (Consistency Audit) is

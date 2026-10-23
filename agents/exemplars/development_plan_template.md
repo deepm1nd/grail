@@ -225,10 +225,16 @@ audit to catch after the fact.
 
 ### 6.1. Task Group Index
 
-**(v0.12.11) Task Group ID — `[PREFIX]-NNNN`, sequential from `0001`, never renumbered.**
+**(v0.12.11/v0.12.12) Task Group ID — `[PREFIX]-NNNN`, sequential from `0001`, immutable once Submitted.**
 `[PREFIX]` is chosen once per project (≤5 letters, e.g. `TG`), recorded here at drafting
 time. IDs are strictly sequential across the whole Plan (`TG-0001`, `TG-0002`, ...) — no
-gaps, no reuse, no reordering later. **`TG-0001` is always the fixed scaffold-review Task
+gaps. **(v0.12.12) Immutable once Submitted; freely renumbered/restructurable before Submit.** When a Task
+Group is inserted, split, merged, or removed ahead of its Submit — typically by an escalation-driven
+Plan rewrite (§13) — renumber every not-yet-Submitted Task Group so the sequence stays gap-free. A
+Submitted Task Group's ID, Summary filename, branch, and commit references never change. This
+replaces v0.12.11's blanket "never renumbered" for Task Group IDs only; individual Task IDs
+(e.g. `DOMAIN-005`) stay under the stable-ID rule (`AGENTS.md` §2.1), except that a Task ID
+embedding its Task Group's ID follows that ID on a pre-Submit renumber. **`TG-0001` is always the fixed scaffold-review Task
 Group** (§5.2's Task Group TG-0001 role in `DEVELOPMENT.md`/`DESIGN.md` — same content and
 semantics, renamed into this scheme); real feature work begins at `TG-0002`. A Maintenance
 batch uses this identical `[PREFIX]-NNNN` shape (`agents/MAINTENANCE.md`) with its own
@@ -616,6 +622,15 @@ infrastructure — stops the entire session immediately:**
    back to the end of the last known-good Task Group and hands a fresh Development Phase session
    the updated documents to resume from there.
 
+**(v0.12.12) Precondition for any escalation-driven Plan/Checklist rewrite: fetch the latest actual
+Checklist and repo state first.** The Design session rewriting the Plan must request the current
+Checklist (and the Task Group Summaries) from the human and audit what is actually checked off and
+committed, across all Task Groups including completed ones — never rewrite against remembered or
+assumed state. The rewrite may renumber or restructure any not-yet-Submitted Task Group (§6.1);
+Submitted Task Groups are never touched. This is the same shape as a Maintenance IIL's Path B
+split (`agents/MAINTENANCE.md` §13.5): stop, re-plan centrally, push, resume in a fresh session —
+keep the two consistent.
+
 ### 13.1. Escalation Requiring Design-Phase Re-Engagement
 
 Distinct from an in-session trigger above: evidence across multiple Task Group Summaries
@@ -635,8 +650,9 @@ triggering one.
 A Task Group's task list may be amended after work starts only when a later Task Group/task discovers
 the original decomposition was wrong/incomplete. Record in `CHANGELOG.md`: what changed,
 which Task Group/task, why. Never retroactively mark completed tasks differently than they were
-actually completed. Task/Task Group IDs are never renumbered — new tasks get new IDs, deprecated
-ones marked `[DEPRECATED]`. Changes spanning more than one Task Group, or changing Exit Criteria,
+actually completed. Task IDs are never renumbered — new tasks get new IDs, deprecated
+ones marked `[DEPRECATED]`. **(v0.12.12) Task Group IDs follow §6.1's rule instead:** immutable once
+Submitted, renumberable before. Changes spanning more than one Task Group, or changing Exit Criteria,
 are "Major" and must be surfaced to the reviewer even without a Spec change. **The Checklist
 and Dev Prompt are amended in place, never reproduced as a new file** (`AGENTS.md` §2.7).
 

@@ -122,7 +122,8 @@ actual fix, potentially iterating. If declared:
 
 *(Repeat one `## Item [ID]` block per item in this batch — sequential ID within this file,
 `[PREFIX]-NNNN` (v0.12.11: `[PREFIX]` ≤5 letters, chosen once per batch, e.g. `BF-0001`,
-`BF-0002`, ...), sequential from `0001`, never renumbered, reset per batch file. This same ID
+`BF-0002`, ...), sequential from `0001`, immutable once Submitted and freely renumbered/restructurable before
+Submit (v0.12.12; `development_plan_template.md` §6.1), reset per batch file. This same ID
 is what the Checklist's matching `## Task Group [ID]` uses, and what a Task Group Summary's
 filename (`agents/MAINTENANCE.md` §8) embeds. Do not compress or summarize multiple
 items into one block; each item gets its own, however small — including lightweight-path

@@ -634,6 +634,49 @@ not something either agent proposes or executes unilaterally.
 This may be the Nth of several tasks in a larger Task Group that has ordinary tasks both
 before and after the IIL sequence — those tasks are unaffected and follow standard rules.
 
+### 13.5. Continuing or Restructuring Mid-IIL: Path A / Path B (v0.12.12)
+
+A running dev session **cannot receive new files and cannot refresh files from the repo** — it
+cannot see anything added after it started. Its only input channel is a prompt the user pastes
+into its chat. That constraint splits IIL continuation into two paths.
+
+**Standing precondition, both paths:** before drafting a Path A snippet or a Path B split, the
+Claude orchestrator **requests the current Checklist from the user** and audits actual completion
+state across **every** Task Group, including completed ones — never trusting its own running memory
+of what is checked off. Any restructuring is drafted against that on-disk state.
+
+**Path A — same dev session continues** (no change to later Task Groups or their sequencing, and no
+new files needed). The orchestrator gives the running session a prompt containing:
+1. the **verbatim Checklist text** of the new task(s) to insert under the current Task Group; and
+2. **explicit continuation instructions** — how to proceed and what to report back.
+
+The dev session inserts the text exactly as supplied. This is a narrow, named exception to the rule
+that a dev session never edits the Checklist: it transcribes content the orchestrator wrote and
+decides or rewords nothing. It then works and checks off the new task like any other. Commit, don't
+submit, still applies.
+
+**Path B — split and close-as-is, then a fresh dev session.** Required when **either** (a) the
+investigation's result changes later Task Groups or their sequencing, **or** (b) new files must
+reach the dev agent. Either alone is sufficient. The current session ends and:
+1. **The current Task Group is closed exactly as it stands**: only its completed tasks remain, with
+   contiguous checkmarks and no gaps, nothing rewritten and no completed work touched. Its Final
+   Wrap-Up Submit fires now. This **is** the §13.2 Submit decision, made at this point, not a
+   second gate.
+2. A **new Task Group** carries the incomplete and new work forward. Task Groups are renumbered
+   as needed so IDs stay sequential (§13.6), the user pushes the updated Checklist and any new
+   files, and a **fresh dev session** — which can see them — starts from the new Task Group.
+3. **The IIL continues across the split.** The new Task Group's Task 1 may itself be
+   orchestrator-authored from the investigation so far rather than a fresh pre-authored start.
+
+If the user scraps instead (§13.3), none of the above applies: escalate for batch re-planning (§12).
+
+### 13.6. Task Group Renumbering (v0.12.12)
+
+Task Group IDs are **immutable once Submitted; freely renumbered and restructurable before Submit**
+(`development_plan_template.md` §6.1). A Path B split or any mid-batch insertion renumbers every
+not-yet-Submitted Task Group so the sequence stays gap-free; Submitted Task Groups keep their IDs,
+Summary filenames, and branches unchanged.
+
 > Use this prompt verbatim to start §3's "Already-completed project" entry point. It
 > enforces the hard stop between the gap report and any remediation work — the two
 > sub-phases are never run in a single uninterrupted pass.

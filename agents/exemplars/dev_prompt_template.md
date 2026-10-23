@@ -29,6 +29,16 @@ statement, which phrasings it covers, and its sole exception.** **Session Unit**
 stated in the Checklist/Plan §6.1 (`Task Group`, `Task`, or `Code+Verify`) — work only within
 that scope, never beyond it, regardless of remaining capacity.
 
+**(v0.12.12) Do not stop to ask for approval, confirmation, or affirmation to proceed** —
+to the next task, sub-task, or item within your Session Unit, or between them. This includes phrasing like "Should I
+proceed with X and move on to Y?", "Please confirm if I should continue", or "Would you like me to
+continue?" — any check-in seeking a green light for work already authorized. Step or sub-step
+labels you give your own work are internal nomenclature, never a boundary. **The only permissible
+reasons to stop and request a user response are:** a genuine failure, error, or broken build/test;
+genuine ambiguity you cannot resolve yourself; an Escalation Trigger; or a defined Entry Criteria/
+gate that is genuinely not yet met. Routine continuation never requires a check-in. (Canonical
+statement: `AGENTS.md` §2.4.1.)
+
 ### 1. Read docs — mandatory upfront, then on demand only
 
 **CRITICAL CONTEXT WINDOW RULES — read and follow before opening any file:**

@@ -17,7 +17,8 @@
   order as the batch file (`maintenance_batch_template.md`) — no Task Group TG-0001 scaffold section, no
   Final Task Group Productization section; a Maintenance batch has neither. **(v0.12.11)
   `[ID]` is `[PREFIX]-NNNN`** — `[PREFIX]` ≤5 letters chosen once per batch, sequential from
-  `0001`, never renumbered (e.g. `BF-0001`, `BF-0002`, ...; a project may choose any prefix,
+  `0001`, immutable once Submitted and freely renumbered/restructurable before Submit
+  (v0.12.12; `development_plan_template.md` §6.1) (e.g. `BF-0001`, `BF-0002`, ...; a project may choose any prefix,
   and Maintenance's prefix need not match Development's own `[PREFIX]-NNNN` scheme,
   `development_plan_template.md` §6.1).
 - Each Task Group opens with **Entry Criteria** (from the item's M0/M2 content — or, for a
@@ -43,8 +44,9 @@
   mark, checking the Task Group's `Submitted` box, appending a Session Log row. Rewording a
   task/DoD line or restructuring content is an Escalation Trigger, not a same-session fix.
   **(v0.12.11) The Claude orchestrator session appending a new task's content to an IIL Task
-  Group is the one explicit exception** — it is authoring new content by design, not
-  rewording existing content.
+  Group is the one explicit exception (v0.12.12: when the dev session is still running, it
+  transcribes the orchestrator's verbatim text into the Checklist itself — `agents/MAINTENANCE.md`
+  §13.5 Path A)** — it is authoring new content by design, not rewording existing content.
 - **No compressed formats** — every Task Group and task is written out in full, individually,
   in order. This template's own `## Task Group BF-0001` and `## Task Group BF-0002` blocks
   below are illustrative only.
